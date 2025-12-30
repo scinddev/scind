@@ -238,6 +238,38 @@ proxy:
   # Future: Traefik-specific settings, TLS, entrypoints, etc.
 ```
 
+### Workspace Registry
+
+**Location**: `~/.config/contrail/workspaces.yaml` (global/per-user)
+
+This file tracks all known workspaces across the system, enabling `workspace list` and preventing workspace name collisions.
+
+```yaml
+# AUTO-GENERATED - Managed by Contrail
+# Records known workspaces and their locations
+
+workspaces:
+  dev:
+    path: /home/user/workspaces/dev
+    registered_at: 2024-12-28T10:30:00Z
+    last_seen: 2024-12-29T14:22:00Z
+  review:
+    path: /home/user/workspaces/review
+    registered_at: 2024-12-28T11:00:00Z
+    last_seen: 2024-12-29T13:15:00Z
+  myapp-dev:
+    path: /home/user/projects/myapp
+    registered_at: 2024-12-29T09:00:00Z
+    last_seen: 2024-12-29T14:30:00Z
+```
+
+**Registry behavior**:
+- `workspace init` automatically registers the workspace, failing if the name is already registered to a different path
+- `workspace list` reads the registry and optionally validates entries still exist
+- `workspace prune` removes stale entries (paths that no longer contain `workspace.yaml`)
+
+**Docker label fallback**: If the registry file is missing or corrupted, Contrail can reconstruct it by querying Docker for containers with `workspace.name` and `workspace.path` labels. This provides resilience against accidental deletion of `~/.config/contrail/workspaces.yaml`.
+
 ### Global State
 
 **Location**: `~/.config/contrail/state.yaml` (global/per-user)
@@ -293,6 +325,8 @@ port_inventory:
 - `unavailable` → `assigned`: Port became free, Contrail claimed it
 - `assigned` → `released`: Workspace/app removed, port freed
 - `unavailable` → `released`: External process stopped, `contrail port gc` cleaned it up
+
+**Port availability checking**: `contrail port scan` and `contrail port gc` check port availability by attempting to bind to each tracked port using `net.Listen("tcp", ":PORT")`. Ports that can be bound are marked as available; ports that fail with "address already in use" remain in their current state. This method is reliable across platforms and doesn't require parsing system-specific files like `/proc/net`.
 
 ### Workspace Configuration
 
@@ -361,6 +395,23 @@ workspace:
 | `%SERVICE_NAME%` | Export | Underlying Compose service | `web` |
 | `%SERVICE_PORT%` | Export | Container port number | `8080` |
 | `%SERVICE_PROTOCOL%` | Export | Protocol (for proxied) | `https` |
+
+### Template Resolution Timing
+
+Template variables are resolved at **generation time** (when `workspace generate` or `workspace up` runs). The resolved values are written into the generated override files.
+
+**Flavor changes**: When `contrail flavor set FLAVOR` is executed, it:
+1. Updates `.generated/state.yaml` with the new flavor
+2. Immediately regenerates the affected application's override file
+
+This ensures override files always reflect the current flavor without requiring a separate `generate` step.
+
+**Example scenario**:
+1. User runs `contrail generate` with flavor "lite"
+2. Override files are generated with "lite" values (e.g., `%APPLICATION_FLAVOR%` = "lite")
+3. User runs `contrail flavor set full`
+4. Contrail regenerates the override with "full" values immediately
+5. User runs `contrail up` — override is already up-to-date
 
 ### Application Configuration (Service Contract)
 
@@ -612,6 +663,7 @@ services:
       - "traefik.http.services.dev-app-one-web-https.loadbalancer.server.port=443"
       # Workspace metadata
       - "workspace.name=dev"
+      - "workspace.path=/home/user/workspaces/dev"
       - "workspace.application=app-one"
       - "workspace.exported_service=web"
       - "workspace.visibility=public"
@@ -632,6 +684,7 @@ services:
           - app-one-db
     labels:
       - "workspace.name=dev"
+      - "workspace.path=/home/user/workspaces/dev"
       - "workspace.application=app-one"
       - "workspace.exported_service=db"
       - "workspace.visibility=protected"
@@ -653,6 +706,15 @@ networks:
 **Location**: `{workspace}/overrides/{application-name}.yaml`
 
 Optional. If present, merged after the generated override file. Useful for workspace-specific customizations that can't be expressed in the application config.
+
+**Preservation guarantee**: Files in `{workspace}/overrides/` are **never modified by Contrail**. They persist across all regeneration operations, including `workspace generate --force`. Only the `.generated/` directory contents are affected by regeneration.
+
+**Merge order**: Docker Compose files are merged in this order:
+```
+docker compose -f base.yaml -f .generated/app.override.yaml -f overrides/app.yaml
+```
+
+This allows workspace-specific customizations (extra environment variables, volume mounts, middleware) that persist across regeneration.
 
 ```yaml
 # Manual overrides for app-one in dev workspace
@@ -845,10 +907,26 @@ contrail-compose -a app-two ps
 
 1. Ensure proxy is running
 2. Create workspace network if it doesn't exist
-3. Check if override files are stale; regenerate if needed
+3. Check if override files are stale; regenerate if needed (see Staleness Detection)
 4. For each application:
    - Resolve active flavor
    - Execute `docker compose up -d` with compose files + override
+
+### Staleness Detection
+
+Contrail uses **mtime comparison** to determine if generated override files need to be regenerated. Override files are considered stale if any of the following source files have a newer modification time than the generated override:
+
+- `workspace.yaml`
+- `{app}/application.yaml`
+- `.generated/state.yaml` (active flavor may have changed)
+- Active flavor's compose files (e.g., `docker-compose.yaml`, `docker-compose.worker.yaml`)
+
+**Behavior**:
+- `workspace up` and `workspace generate` automatically regenerate stale overrides
+- Use `--force` flag to regenerate regardless of staleness
+- Touch a file accidentally? Use `--force` to ensure clean state
+
+**Note**: mtime comparison is simple and fast but may trigger unnecessary regeneration if files are touched without content changes. The `--force` flag provides explicit control when needed.
 
 ### Generation Logic (`workspace generate`)
 
@@ -873,6 +951,21 @@ contrail-compose -a app-two ps
    - Execute `docker compose down`
 2. Optionally remove workspace network
 3. If `--volumes` specified, remove associated volumes
+
+### Destroy Sequence (`workspace destroy`)
+
+Completely removes a workspace and optionally its application directories:
+
+1. Run `workspace down --volumes` to stop all containers and remove volumes
+2. Remove `.generated/` directory
+3. Prompt before removing application directories (unless `--force`)
+4. Remove `workspace.yaml`
+5. Release any assigned ports from global state
+6. Remove workspace from registry (`~/.config/contrail/workspaces.yaml`)
+
+**Flags**:
+- `--force`: Skip confirmation prompts for application directory removal
+- `--keep-apps`: Preserve application directories (only remove workspace configuration)
 
 ### Viewing Logs
 

@@ -65,8 +65,8 @@ workspaces:
 2. Should `workspace init` auto-register?
 3. Should there be a `workspace register` command for existing workspaces?
 
-**Response**:  
-> _[Your response here]_
+**Response**:
+> Global Registry file with a fallback / ability to scan for workspaces using Docker labels to bootstrap / update the global registry. For example, if someone removes `~/.config/contrail/workspaces.yaml`, we should be able to reconstruct most of it by looking at Docker labels from running containers.
 
 ---
 
@@ -99,8 +99,8 @@ workspace:
 - `clone` should skip apps with `path: .` and log: "Skipping myapp: application is workspace root"
 - Validation should warn if both `path: .` and `repository:` are set
 
-**Response**:  
-> _[Your response here]_
+**Response**:
+> Clone should skip apps with `path: .` and log: "Skipping myapp: application is workspace root"
 
 ---
 
@@ -149,18 +149,20 @@ Both would write to `assigned_ports.dev.*` in global state.
 2. Should the solution tie into M-1 (workspace discovery)?
 3. How important is human-readable state files?
 
-**Response**:  
-> _[Your response here]_
+**Response**:
+> 1. Yes, workspace names should be unique since they are intended to be a unique namespace across an entire host.
+> 2. Yes, tie into M-1—any attempt to access the "list of workspaces" should take the global registry into account *and also check Docker labels* to see if any new workspaces are active that aren't in the registry for some reason.
+> 3. Human-readable state files are not super important. (The question about hash suffixes in Option B was about making state keys like `assigned_ports.dev-a1b2c3.*` instead of just `assigned_ports.dev.*`, but this is moot since we're enforcing uniqueness via the registry + Docker label fallback.)
 
 ---
 
 ## Checklist
 
-- [ ] Design and document workspace discovery mechanism
-- [ ] Add discovery mechanism to PRD concepts section
-- [ ] Add discovery details to Tech Spec
-- [ ] Add any new commands to CLI Reference (e.g., `workspace register`, `workspace prune`)
-- [ ] Document single-app workspace clone behavior
-- [ ] Add validation for `path: .` + `repository:` combination
-- [ ] Design and document workspace name collision prevention
-- [ ] Update global state schema if needed
+- [x] Design and document workspace discovery mechanism (registry + Docker label fallback)
+- [x] Add discovery details to Tech Spec (new "Workspace Registry" section)
+- [x] Add `workspace prune` command to CLI Reference
+- [x] Update `workspace list` with `--validate` and `--rebuild` flags
+- [x] Document single-app workspace clone behavior (`path: .` skipped with message)
+- [x] Document workspace name uniqueness enforcement in `workspace init`
+- [x] Add `workspace.path` label to generated override examples
+- [x] Add `workspacePruneCmd` to Go Stack command scaffolding

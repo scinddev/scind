@@ -448,6 +448,15 @@ var workspaceGenerateCmd = &cobra.Command{
     },
 }
 
+var workspacePruneCmd = &cobra.Command{
+    Use:   "prune",
+    Short: "Remove stale workspace registry entries",
+    RunE: func(cmd *cobra.Command, args []string) error {
+        // Implementation
+        return nil
+    },
+}
+
 var workspaceUpCmd = &cobra.Command{
     Use:   "up",
     Short: "Bring up a workspace",
@@ -501,6 +510,7 @@ func init() {
     workspaceCmd.AddCommand(workspaceInitCmd)
     workspaceCmd.AddCommand(workspaceCloneCmd)
     workspaceCmd.AddCommand(workspaceGenerateCmd)
+    workspaceCmd.AddCommand(workspacePruneCmd)
     workspaceCmd.AddCommand(workspaceUpCmd)
     workspaceCmd.AddCommand(workspaceDownCmd)
     workspaceCmd.AddCommand(workspaceRestartCmd)

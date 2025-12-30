@@ -1,8 +1,8 @@
 # Contrail Specification Issues — Index
 
-**Created**: December 2024  
-**Total Issues**: 27  
-**Groups**: 10
+**Created**: December 2024
+**Total Issues**: 28
+**Groups**: 11
 
 ---
 
@@ -13,13 +13,14 @@
 | 1 | `01-go-stack-cleanup.md` | 3 | Go Stack | Small | ✅ COMPLETED |
 | 2 | `02-schema-validation.md` | 4 | Tech Spec, Go Stack | Medium | ✅ COMPLETED |
 | 3 | `03-conceptual-foundations.md` | 3 | PRD, Tech Spec | Small | ✅ COMPLETED |
-| 4 | `04-workspace-features.md` | 3 | PRD, Tech Spec, CLI Ref | Large | High-severity gaps in core functionality |
-| 5 | `05-operations-generation.md` | 5 | Tech Spec, CLI Ref | Medium | Generate/up/down lifecycle details |
+| 4 | `04-workspace-features.md` | 3 | PRD, Tech Spec, CLI Ref | Large | ✅ COMPLETED |
+| 5 | `05-operations-generation.md` | 5 | Tech Spec, CLI Ref | Medium | ✅ COMPLETED |
 | 6 | `06-context-detection.md` | 1 | Tech Spec, CLI Ref, Go Stack | Small | Single focused issue, needs workspace concepts |
 | 7 | `07-cli-commands.md` | 3 | CLI Ref, Go Stack | Small | Command naming, depends on concepts being settled |
 | 8 | `08-shell-integration.md` | 2 | CLI Ref, Shell Integration, Go Stack | Small | Isolated shell concerns, depends on CLI |
 | 9 | `09-proxy-init.md` | 1 | PRD, Tech Spec, CLI Ref, Go Stack | Medium | New feature, best after existing features clarified |
 | 10 | `10-documentation-polish.md` | 2 | All | Small | Final cleanup after substantive changes |
+| 11 | `11-docker-labels.md` | 1 | Tech Spec, Go Stack | Medium | Formalize Docker label schema for workspace discovery and tool integration |
 
 ---
 
@@ -35,7 +36,7 @@
 | M-7: Workspace name collisions | 4 | `04-workspace-features.md` |
 | A-1: Staleness detection undefined | 5 | `05-operations-generation.md` |
 
-### Medium Severity (10 issues)
+### Medium Severity (11 issues)
 | Issue | Group | File |
 |-------|-------|------|
 | C-4: Proxy command naming | 7 | `07-cli-commands.md` |
@@ -48,6 +49,7 @@
 | A-4: Template resolution timing | 5 | `05-operations-generation.md` |
 | A-6: Repeatable --app behavior | 7 | `07-cli-commands.md` |
 | A-10: Compose file validation | 2 | `02-schema-validation.md` |
+| L-1: Docker labels not specified | 11 | `11-docker-labels.md` |
 
 ### Low Severity (10 issues)
 | Issue | Group | File |
@@ -98,6 +100,9 @@
 ### Various
 - `10-documentation-polish.md` (2 issues)
 
+### Technical Spec + Go Stack
+- `11-docker-labels.md` (1 issue)
+
 ---
 
 ## Quick Start
@@ -108,6 +113,7 @@
 4. **Groups 6-8** are implementation details — can parallelize if needed
 5. **Group 9** is additive (new feature) — can defer if time-constrained
 6. **Group 10** is final polish — do last
+7. **Group 11** formalizes Docker labels — added during review
 
 ---
 
@@ -125,5 +131,6 @@ contrail-issues/
 ├── 07-cli-commands.md             # Command details
 ├── 08-shell-integration.md        # Shell concerns
 ├── 09-proxy-init.md               # New feature
-└── 10-documentation-polish.md     # Final cleanup
+├── 10-documentation-polish.md     # Final cleanup
+└── 11-docker-labels.md            # Docker label schema (added during review)
 ```

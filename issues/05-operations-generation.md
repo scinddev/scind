@@ -59,8 +59,8 @@ checksums:
 
 **Suggested Resolution**: Option A (mtime) for simplicity, with `--force` flag to override. Document explicitly in Tech Spec.
 
-**Response**:  
-> _[Your response here]_
+**Response**:
+> Use mtime comparison for staleness detection, with `--force` flag to override.
 
 ---
 
@@ -102,8 +102,8 @@ checksums:
 
 **Suggested Resolution**: Option A with staleness check. Document that `flavor set` marks the app as needing regeneration, and `up` will handle it.
 
-**Response**:  
-> _[Your response here]_
+**Response**:
+> Use Option A (generate-time resolution) combined with Option B (flavor set triggers regeneration). Templates are resolved when `generate` runs, and `flavor set` immediately regenerates affected app's override to ensure consistency.
 
 ---
 
@@ -122,8 +122,8 @@ checksums:
 
 **Action**: Add to Technical Spec Operations section.
 
-**Response**:  
-> _[Your response here]_
+**Response**:
+> Add destroy sequence to Tech Spec Operations section.
 
 ---
 
@@ -145,8 +145,8 @@ checksums:
 **Suggested Resolution**: Document in Tech Spec:
 > `contrail port scan` checks port availability by attempting to bind to each tracked port using `net.Listen("tcp", ":PORT")`. Ports that can be bound are marked as available; ports that fail with "address already in use" remain in their current state.
 
-**Response**:  
-> _[Your response here]_
+**Response**:
+> Use the suggested `net.Listen("tcp", ":PORT")` method for port availability checking. Document this in the Tech Spec.
 
 ---
 
@@ -183,16 +183,16 @@ checksums:
 >
 > `workspace generate --force` only affects `.generated/` contents.
 
-**Response**:  
-> _[Your response here]_
+**Response**:
+> Document manual override preservation and merge order explicitly in Tech Spec. Files in `overrides/` are never modified by Contrail and are merged after generated overrides.
 
 ---
 
 ## Checklist
 
-- [ ] Define and document staleness detection criteria in Tech Spec
-- [ ] Document template variable resolution timing
-- [ ] Clarify relationship between `flavor set` and regeneration
-- [ ] Add `workspace destroy` sequence to Tech Spec Operations
-- [ ] Document port availability checking method
-- [ ] Document manual override preservation and merge order
+- [x] Define and document staleness detection criteria in Tech Spec
+- [x] Document template variable resolution timing
+- [x] Clarify relationship between `flavor set` and regeneration
+- [x] Add `workspace destroy` sequence to Tech Spec Operations
+- [x] Document port availability checking method
+- [x] Document manual override preservation and merge order

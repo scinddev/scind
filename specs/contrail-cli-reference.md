@@ -126,11 +126,17 @@ Manage workspace lifecycle and orchestration.
 
 ### `contrail workspace list`
 
-List all workspaces.
+List all registered workspaces.
 
 ```bash
 contrail workspace list [flags]
 ```
+
+**Flags**:
+| Flag | Description |
+|------|-------------|
+| `--validate` | Check that registered paths still contain `workspace.yaml` |
+| `--rebuild` | Rebuild registry from Docker labels (useful if registry is missing) |
 
 **Output** (default table):
 ```
@@ -138,6 +144,35 @@ NAME     APPS  STATUS   PATH
 dev      3     running  ~/workspaces/dev
 review   3     stopped  ~/workspaces/review
 control  2     running  ~/workspaces/control
+```
+
+**Discovery mechanism**: Reads from the workspace registry (`~/.config/contrail/workspaces.yaml`). If the registry is missing, automatically attempts to rebuild from Docker container labels.
+
+---
+
+### `contrail workspace prune`
+
+Remove stale entries from the workspace registry.
+
+```bash
+contrail workspace prune [flags]
+```
+
+**Flags**:
+| Flag | Description |
+|------|-------------|
+| `--dry-run` | Show what would be removed without making changes |
+
+**Behavior**:
+- Checks each registered workspace path for a valid `workspace.yaml`
+- Removes entries where the path no longer exists or lacks a valid config
+- Reports removed entries
+
+**Example**:
+```bash
+contrail workspace prune
+# Removed: old-project (path /home/user/old-project no longer exists)
+# Registry: 3 workspaces remaining
 ```
 
 ---
@@ -177,11 +212,14 @@ contrail workspace init [flags]
 - If run in an empty directory without `--workspace`, prompts for name
 - If run with `--workspace=NAME`, creates `./NAME/workspace.yaml` or `./workspace.yaml` if `--path=.`
 - Creates initial directory structure
+- **Registers the workspace** in `~/.config/contrail/workspaces.yaml`
+- **Fails if name is already registered** to a different path (enforces workspace name uniqueness)
 
 **Example** (new workspace):
 ```bash
 contrail workspace init --workspace=dev
 # Creates ./dev/workspace.yaml
+# Registers "dev" -> ./dev in workspace registry
 ```
 
 **Example** (current directory):
@@ -189,6 +227,14 @@ contrail workspace init --workspace=dev
 cd ~/my-project
 contrail workspace init --workspace=dev
 # Creates ./workspace.yaml with name: dev
+# Registers "dev" -> ~/my-project in workspace registry
+```
+
+**Example** (name collision):
+```bash
+contrail workspace init --workspace=dev
+# Error: Workspace "dev" already registered at ~/workspaces/dev
+# Use a different name, or run `contrail workspace prune` if that path no longer exists
 ```
 
 ---
@@ -211,6 +257,14 @@ contrail workspace clone [flags]
 - Reads `repository` URLs from `workspace.yaml`
 - Clones each application to its configured path
 - Skips applications that already exist locally
+- **Skips applications with `path: .`** (single-app workspaces where the application is the workspace root)
+
+**Single-app workspace handling**:
+```bash
+contrail workspace clone
+# Skipping myapp: application is workspace root (path: .)
+# Cloned: app-two -> ./app-two
+```
 
 ---
 
