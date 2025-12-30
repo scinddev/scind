@@ -35,8 +35,8 @@ These issues involve aligning the PRD and Technical Spec on fundamental concepts
 
 **Suggested Resolution**: Lazy creation at `up` time with idempotent behavior. Update PRD to match Tech Spec.
 
-**Response**:  
-> _[Your response here]_
+**Response**:
+> I agree with the suggested resolution. Lazy creation at `up` time with idempotent behavior. Update PRD to match Tech Spec.
 
 ---
 
@@ -61,8 +61,8 @@ These issues involve aligning the PRD and Technical Spec on fundamental concepts
 **Suggested Resolution**: Document the rationale in Tech Spec:
 > When both HTTP and HTTPS are configured, base variables default to HTTPS (port 443) following security-by-default principles. Applications should prefer HTTPS for service-to-service communication. Use protocol-specific variables (`*_HTTP_*`) when HTTP is explicitly required.
 
-**Response**:  
-> _[Your response here]_
+**Response**:
+> I agree with the suggested resolution. Document the rationale in the Tech Spec.
 
 ---
 
@@ -90,13 +90,13 @@ These issues involve aligning the PRD and Technical Spec on fundamental concepts
 - B) Remove from schema entirely (YAGNI)
 - C) Add concrete behavior now (e.g., protected services get a warning banner in Servlo)
 
-**Response**:  
-> _[Your response here]_
+**Response**:
+> The concrete behavior is making this information available via Docker labels for tools that read them (like Servlo) to distinguish between public and protected services. Otherwise no direct Contrail behavior/functionality changes.
 
 ---
 
 ## Checklist
 
-- [ ] Align PRD and Tech Spec on network creation timing
-- [ ] Add rationale for HTTPS-default in base environment variables
-- [ ] Decide on visibility field's purpose and document intent
+- [x] Align PRD and Tech Spec on network creation timing (updated Tech Spec to "lazy at `workspace up`")
+- [x] Add rationale for HTTPS-default in base environment variables (added to Tech Spec)
+- [x] Document visibility field's purpose (Docker labels for external tools like Servlo)

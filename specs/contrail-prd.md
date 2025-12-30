@@ -98,7 +98,9 @@ Services not listed in `exported_services` remain **private**—only accessible 
 
 ### Visibility
 
-Each port can have a `visibility` of `public` or `protected`. This is primarily **documentation** to communicate intent to collaborators—it does not change Contrail's behavior. Both public and protected proxied services route through Traefik.
+Each port can have a `visibility` of `public` or `protected`. This is primarily **documentation** to communicate intent to collaborators—it does not change Contrail's core behavior. Both public and protected proxied services route through Traefik.
+
+Visibility is exposed via Docker labels (`workspace.visibility`), enabling external tools like Servlo to distinguish between public and protected services for display or filtering purposes.
 
 ### Flavor
 
@@ -565,7 +567,7 @@ workspace:
 | **Manifest** | Generated read-only file showing computed hostnames, ports, and environment variables |
 | **Port Type** | How a port is routed: `proxied` (through Traefik) or `assigned` (direct port binding) |
 | **Protocol** | For proxied types, the traffic protocol: `http`, `https`, or future SNI types |
-| **Visibility** | Documentation-only flag (`public`/`protected`) indicating intended use |
+| **Visibility** | Flag (`public`/`protected`) indicating intended use; exposed via Docker labels for external tools |
 | **Alias** | A DNS name on the workspace-internal network |
 | **Context Detection** | Automatic discovery of workspace/app from current directory |
 

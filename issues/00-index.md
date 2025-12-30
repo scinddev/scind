@@ -12,7 +12,7 @@
 |-------|------|--------|-----------|--------|-----------|
 | 1 | `01-go-stack-cleanup.md` | 3 | Go Stack | Small | ✅ COMPLETED |
 | 2 | `02-schema-validation.md` | 4 | Tech Spec, Go Stack | Medium | ✅ COMPLETED |
-| 3 | `03-conceptual-foundations.md` | 3 | PRD, Tech Spec | Small | Establishes core concepts before feature details |
+| 3 | `03-conceptual-foundations.md` | 3 | PRD, Tech Spec | Small | ✅ COMPLETED |
 | 4 | `04-workspace-features.md` | 3 | PRD, Tech Spec, CLI Ref | Large | High-severity gaps in core functionality |
 | 5 | `05-operations-generation.md` | 5 | Tech Spec, CLI Ref | Medium | Generate/up/down lifecycle details |
 | 6 | `06-context-detection.md` | 1 | Tech Spec, CLI Ref, Go Stack | Small | Single focused issue, needs workspace concepts |

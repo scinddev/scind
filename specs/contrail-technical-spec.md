@@ -82,7 +82,7 @@ A **workspace** is a logical grouping of Docker Compose-based applications that 
 - **Name**: `{workspace-name}-internal` (e.g., `dev-internal`)
 - **Scope**: Per-workspace
 - **Purpose**: Enables inter-application communication within a workspace using stable aliases
-- **Created by**: Workspace initialization
+- **Created by**: `workspace up` (lazy, idempotent—created if not exists)
 
 ### Application Default Networks
 
@@ -124,7 +124,9 @@ Each port can have a `visibility` of `public` or `protected`. This is primarily 
 - **public**: This port is intended for external/production use
 - **protected**: This port exists for development/debugging but should not be depended on in production
 
-Visibility does not change Contrail's behavior—all exported services receive internal network aliases and environment variables regardless of visibility. Both public and protected proxied services route through Traefik.
+Visibility does not change Contrail's core behavior—all exported services receive internal network aliases and environment variables regardless of visibility. Both public and protected proxied services route through Traefik.
+
+**Docker label exposure**: Visibility is included in the generated Docker labels (`workspace.visibility=public` or `workspace.visibility=protected`), enabling external tools (such as Servlo) to distinguish between public and protected services for display or filtering purposes.
 
 ### Private Services
 
@@ -612,6 +614,7 @@ services:
       - "workspace.name=dev"
       - "workspace.application=app-one"
       - "workspace.exported_service=web"
+      - "workspace.visibility=public"
     environment:
       - CONTRAIL_WORKSPACE_NAME=dev
       - CONTRAIL_APP_ONE_WEB_HOST=dev-app-one-web.contrail.test
@@ -631,6 +634,7 @@ services:
       - "workspace.name=dev"
       - "workspace.application=app-one"
       - "workspace.exported_service=db"
+      - "workspace.visibility=protected"
     environment:
       - CONTRAIL_WORKSPACE_NAME=dev
       - CONTRAIL_APP_ONE_DB_HOST=app-one-db
@@ -710,6 +714,8 @@ CONTRAIL_{APPLICATION}_{EXPORTED_SERVICE}_{PROTOCOL}_URL={url}
 | `proxied` | `http` | Proxied hostname | 80 | `http` | ✓ | `*_HTTP_*` |
 | `proxied` | both | Proxied hostname | 443 | `https` | ✓ | Both |
 | `assigned` | - | Internal alias | Assigned port | ✗ | ✗ | ✗ |
+
+**HTTPS-default rationale**: When both HTTP and HTTPS are configured for an exported service, base variables (`*_PORT`, `*_SCHEME`, `*_URL`) default to HTTPS (port 443) following security-by-default principles. Applications should prefer HTTPS for service-to-service communication. Use protocol-specific variables (`*_HTTP_*`) when HTTP is explicitly required.
 
 ### Usage in Applications
 
