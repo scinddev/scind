@@ -135,24 +135,29 @@ Use --force to overwrite, or --path to create elsewhere.
 
 ## Implementation Checklist
 
-- [ ] Decide on proxy configuration location (per-project vs global)
-- [ ] Decide on auto-start behavior
-- [ ] Design `proxy init` command interface
-- [ ] Document in PRD
-- [ ] Document in Technical Spec with templates
-- [ ] Document in CLI Reference
-- [ ] Add to Go Stack command mapping
-- [ ] Create embedded template for docker-compose.yaml
+- [x] Decide on proxy configuration location (per-project vs global) → Global at `~/.config/contrail/proxy/`
+- [x] Decide on auto-start behavior → Auto-start on `workspace up`
+- [x] Design `proxy init` command interface → `--force`, `--domain`, `--path` flags
+- [x] Document in PRD (Quick Reference, Architecture section)
+- [x] Document in Technical Spec with templates (Proxy Infrastructure section with docker-compose.yaml and traefik.yaml)
+- [x] Document in CLI Reference (full `proxy init` command documentation)
+- [x] Add to Go Stack command mapping and scaffolding (proxyInitCmd with full proxy.go)
+- [x] Create embedded template for docker-compose.yaml (in Tech Spec)
 
 ---
 
 ## Response
 
-**Location Decision**:  
-> _[Where should proxy config live? Why?]_
+**Location Decision**:
+> Option B (Global `~/.config/contrail/proxy/`). The proxy should be a single shared instance across all workspaces. It could be managed as a Docker Compose project or directly via Docker commands. Using Docker Compose means users could manually edit the configuration and break things, but that's acceptable if well-documented—and `--force` on `proxy init` provides a recovery path.
 
-**Auto-Start Decision**:  
-> _[Should proxy auto-start? Why?]_
+**Auto-Start Decision**:
+> Option B (Auto-start). The proxy should be brought up automatically when someone brings up a workspace for the first time. This was partially addressed in Group 7 (C-4) where we noted that workspace/application commands should automatically bring up the proxy if needed.
 
-**Additional Notes**:  
-> _[Any other considerations?]_
+**Additional Notes**:
+> - `proxy init` should create the complete Docker Compose project including core Traefik configuration
+> - The `dynamic/` directory is for Traefik dynamic configuration and `certs/` for TLS certificates—include both for a complete setup
+> - The proxy should be completely self-contained and managed by Contrail; users should be mostly unaware of the proxy internals
+> - All wiring should happen via Docker labels on workspaces and applications
+> - The `--domain` flag should be included with `contrail.test` as default, allowing users to specify a custom domain (e.g., for wildcard DNS they want to share externally)
+> - If proxy config already exists, error by default; allow `--force` to overwrite (useful as a recovery mechanism if manual edits break things)

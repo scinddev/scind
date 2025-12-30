@@ -147,6 +147,16 @@ A named configuration that specifies which Docker Compose files to use when runn
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
+### Proxy Layer Bootstrap
+
+The proxy layer (Traefik) is a prerequisite for proxied services. Contrail manages the proxy lifecycle:
+
+1. **Bootstrap**: `contrail proxy init` creates the proxy configuration at `~/.config/contrail/proxy/`
+2. **Auto-start**: `workspace up` automatically starts the proxy if not running
+3. **Shared instance**: A single proxy instance serves all workspaces on the host
+
+The proxy is implemented as a Docker Compose project managed by Contrail. Users generally don't interact with it directly—workspaces connect to it automatically via Docker labels.
+
 ### Key Architectural Decisions
 
 #### Decision: Docker Compose Project Name Isolation
@@ -318,7 +328,6 @@ contrail workspace status [-w NAME]
 # Application management
 contrail app add --app=NAME --repo=URL
 contrail app up [-a NAME]
-contrail app logs [-a NAME]
 
 # Flavor management
 contrail flavor list [-a NAME]
@@ -328,10 +337,16 @@ contrail flavor set FLAVOR [-a NAME]
 contrail port list
 contrail port gc
 
+# Proxy management
+contrail proxy init              # Bootstrap proxy configuration
+contrail proxy up                # Start proxy (auto-started by workspace up)
+contrail proxy down              # Stop proxy
+contrail proxy status            # Check proxy status
+
 # Shortcuts (with context detection)
 contrail up                    # Bring up current workspace
 contrail down                  # Tear down current workspace
-contrail logs                  # View logs for current app
+contrail-compose logs -f       # View logs for current app (via shell function)
 ```
 
 ---
@@ -606,3 +621,4 @@ Default templates:
 | 0.3.0-draft | Dec 2024 | Type/protocol split, protocol-specific env vars, assigned port binding, port inventory, contrail.test domain |
 | 0.4.0-draft | Dec 2024 | CLI redesign (options-based, context detection, up/down semantics), single-app workspace support, extracted CLI reference document |
 | 0.5.0-draft | Dec 2024 | Added `contrail-compose` shell function concept to product vision; linked shell integration specification |
+| 0.5.1-draft | Dec 2024 | Spec review: network creation timing, workspace discovery, proxy init, removed logs command |

@@ -50,8 +50,8 @@ These issues concern CLI command naming consistency and behavior details. Best a
 
 **Suggested Resolution**: Option A (`up`/`down`) for consistency with the rest of Contrail's vocabulary.
 
-**Response**:  
-> _[Your response here]_
+**Response**:
+> Use Option A (`up`/`down`) for consistency. Additionally, workspace and application commands should automatically bring up the proxy if needed, so users rarely need to call `contrail proxy up` manually. Update Go Stack to use `proxyUpCmd`/`proxyDownCmd`.
 
 ---
 
@@ -102,8 +102,8 @@ contrail workspace up -a app-two
 **Suggested Resolution**: Option A (Explicit Replaces Context). Document:
 > When `--app` is specified, context-detected application is ignored. To start multiple specific apps, use multiple `-a` flags: `contrail up -a app-one -a app-two`
 
-**Response**:  
-> _[Your response here]_
+**Response**:
+> Use Option A (explicit replaces context). When `--app` is specified, context-detected application is ignored.
 
 ---
 
@@ -139,14 +139,14 @@ If base resolves but wildcard doesn't, warn:
   Configure dnsmasq: address=/contrail.test/127.0.0.1
 ```
 
-**Response**:  
-> _[Your response here]_
+**Response**:
+> Check base domain plus all public domains from workspace manifests. If no workspaces exist yet, fall back to a test subdomain to verify wildcard configuration. This provides actionable feedback using real hostnames that will actually be accessed.
 
 ---
 
 ## Checklist
 
-- [ ] Align proxy command naming between CLI Reference and Go Stack
-- [ ] Document `--app` flag behavior with context detection
-- [ ] Add explicit documentation about explicit flags overriding context
-- [ ] Enhance `doctor` DNS check to verify wildcard resolution
+- [x] Align proxy command naming between CLI Reference and Go Stack
+- [x] Document `--app` flag behavior with context detection
+- [x] Add explicit documentation about explicit flags overriding context
+- [x] Enhance `doctor` DNS check to verify wildcard resolution

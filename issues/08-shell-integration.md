@@ -70,8 +70,8 @@ The shell function currently parses `-w`/`--workspace` and `-a`/`--app` as Contr
 - CLI Reference: Document `--flavor` only for `compose-prefix`
 - Go Stack: Remove short flag registration
 
-**Response**:  
-> _[Your response here]_
+**Response**:
+> Use Option D. Flavor should not be changed at runtime via `contrail-compose` as it would require regenerating everything and could have major impact on a running application. Users must use `contrail flavor set` before using `contrail-compose`. Remove the `--flavor` flag from `compose-prefix` entirely. See also: new issue added for documenting `flavor set` behavior when application is already running.
 
 ---
 
@@ -113,15 +113,16 @@ The shell function checks for empty output to detect failures and re-runs
 the command to display the error message.
 ```
 
-**Response**:  
-> _[Your response here]_
+**Response**:
+> Yes, add exit codes reference table to Shell Integration doc.
 
 ---
 
 ## Checklist
 
-- [ ] Remove `-f` short flag from `compose-prefix` command
-- [ ] Update Shell Integration spec to show `--flavor` only
-- [ ] Update CLI Reference `compose-prefix` documentation
-- [ ] Update Go Stack flag registration
-- [ ] Add exit code documentation to Shell Integration
+- [x] Remove `--flavor` flag from `compose-prefix` command entirely (Option D)
+- [x] Update Shell Integration spec to remove flavor flag
+- [x] Update CLI Reference `compose-prefix` documentation
+- [x] Update Go Stack flag registration
+- [x] Add exit code documentation to Shell Integration
+- [x] Create new issue (Group 12) for flavor set behavior when app is running

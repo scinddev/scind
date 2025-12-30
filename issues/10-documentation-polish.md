@@ -61,8 +61,8 @@ This makes it unclear which document is authoritative when they conflict, and su
 
 After completing all issue groups, update all documents to the same version (suggest 0.6.0-draft to indicate significant revision).
 
-**Response**:  
-> _[Your response here]_
+**Response**:
+> Keep versions independent per file. Increment each document's version when changes are made to that specific document (or at the end of a session where multiple changes are made). Add guidance to CLAUDE.md to ensure version updates are part of the workflow when modifying spec documents.
 
 ---
 
@@ -90,20 +90,22 @@ contrail logs --since="2024-12-28T10:00:00"
 contrail logs -a app-one --since=1h -f
 ```
 
-**Response**:  
-> _[Your response here]_
+**Response**:
+> Remove `contrail logs` / `contrail workspace logs` entirely. Use `contrail-compose logs` instead, which already provides full Docker Compose logs functionality with context-aware project naming.
 
 ---
 
-## Post-Completion Checklist
+## Implementation Checklist
 
-After all other issue groups are resolved:
-
-- [ ] Update all document versions to synchronized number
-- [ ] Update revision history in each document
-- [ ] Add `--since` examples to CLI Reference
-- [ ] Do a final cross-reference check for any new inconsistencies
-- [ ] Update the "Related Documentation" links if any docs were renamed/restructured
+- [x] Add version management guidance to CLAUDE.md
+- [x] Remove `contrail logs` / `contrail workspace logs` from CLI Reference
+- [x] Remove `contrail app logs` from CLI Reference
+- [x] Remove `contrail logs` alias from PRD
+- [x] Remove `contrail app logs` from PRD
+- [x] Remove `workspaceLogsCmd` and `logsCmd` from Go Stack
+- [x] Remove `appLogsCmd` from Go Stack command mapping
+- [x] Update Tech Spec to remove logs from Quick Reference
+- [x] Update revision history in each modified document
 
 ---
 

@@ -45,15 +45,46 @@ Add a "Docker Labels" section to the Technical Spec that formally specifies:
 - Guidance for external tool integration
 
 **Response**:
-> _[Your response here]_
+> Use `contrail.` prefix for all labels, with kebab-case for multi-word segments (following Traefik convention). No schema versioning needed for now.
+>
+> **Label schema:**
+>
+> Context labels (on all app containers):
+> ```
+> contrail.workspace.name=review
+> contrail.workspace.path=/Users/beau/workspaces/review
+> contrail.app.name=app-one
+> contrail.app.path=/Users/beau/workspaces/review/app-one
+> ```
+>
+> Export labels (keyed by export name for consistency):
+> ```
+> # Proxied export with http + https
+> contrail.export.web.host=review-app-one-web.contrail.test
+> contrail.export.web.proxy.http.visibility=public
+> contrail.export.web.proxy.http.url=http://review-app-one-web.contrail.test
+> contrail.export.web.proxy.https.visibility=public
+> contrail.export.web.proxy.https.url=https://review-app-one-web.contrail.test
+>
+> # Assigned port export
+> contrail.export.debug.host=review-app-one-debug.contrail.test
+> contrail.export.debug.port.9000.visibility=protected
+> contrail.export.debug.port.9000.assigned=9003
+> ```
+>
+> Proxy container labels:
+> ```
+> contrail.managed=true
+> contrail.component=proxy
+> ```
 
 ---
 
 ## Checklist
 
-- [ ] Define complete Docker label schema
-- [ ] Document label naming conventions
-- [ ] Add labels required for workspace discovery (M-1 fallback)
-- [ ] Add Docker Labels section to Technical Spec
-- [ ] Update generated override example with any new labels
-- [ ] Add label documentation for external tool integration
+- [x] Define complete Docker label schema
+- [x] Document label naming conventions (`contrail.` prefix, kebab-case)
+- [x] Add labels required for workspace discovery (M-1 fallback) — `contrail.workspace.path`, `contrail.app.path`
+- [x] Add Docker Labels section to Technical Spec
+- [x] Update generated override example with new labels
+- [x] Add label documentation for external tool integration

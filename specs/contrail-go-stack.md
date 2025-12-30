@@ -369,9 +369,27 @@ func isGlobalCommand(cmd *cobra.Command) bool {
 }
 
 func detectAndSetContext(cmd *cobra.Command) error {
-    // Implementation: walk up directory tree looking for workspace.yaml and application.yaml
-    // Set results in viper: viper.Set("detected.workspace", ws)
+    // Implementation: walk up directory tree using workspace boundary approach
     // See internal/context/detector.go for full implementation
+    //
+    // Algorithm (workspace boundary):
+    // 1. Walk up from CWD looking for workspace.yaml → establishes workspace root
+    // 2. Walk up from CWD toward workspace root looking for application.yaml
+    //    - Only consider application.yaml files WITHIN the workspace directory tree
+    //    - Never traverse above workspace root (prevents vendor hijacking)
+    // 3. Set results in viper:
+    //    - viper.Set("detected.workspace", workspaceName)
+    //    - viper.Set("detected.workspace_path", workspaceRoot)
+    //    - viper.Set("detected.app", appName)
+    //    - viper.Set("detected.app_path", appPath)
+    //
+    // Error messages for debugging:
+    // - If application.yaml found but no workspace.yaml:
+    //   "No workspace found (workspace.yaml) in current directory or any parent directories,
+    //    but found an application (application.yaml) at: {path}"
+    // - If neither found:
+    //   "No workspace found (workspace.yaml) in current directory or any parent directories,
+    //    and no application (application.yaml) found either"
     return nil
 }
 
@@ -493,15 +511,6 @@ var workspaceStatusCmd = &cobra.Command{
     },
 }
 
-var workspaceLogsCmd = &cobra.Command{
-    Use:   "logs",
-    Short: "View workspace logs",
-    RunE: func(cmd *cobra.Command, args []string) error {
-        // Implementation
-        return nil
-    },
-}
-
 func init() {
     rootCmd.AddCommand(workspaceCmd)
 
@@ -515,7 +524,6 @@ func init() {
     workspaceCmd.AddCommand(workspaceDownCmd)
     workspaceCmd.AddCommand(workspaceRestartCmd)
     workspaceCmd.AddCommand(workspaceStatusCmd)
-    workspaceCmd.AddCommand(workspaceLogsCmd)
 
     // workspace init flags
     workspaceInitCmd.Flags().String("path", "", "directory to create workspace in")
@@ -531,11 +539,6 @@ func init() {
 
     // workspace generate flags
     workspaceGenerateCmd.Flags().Bool("force", false, "regenerate even if up-to-date")
-
-    // workspace logs flags
-    workspaceLogsCmd.Flags().BoolP("follow", "f", false, "follow log output")
-    workspaceLogsCmd.Flags().Int("tail", 0, "number of lines to show from end")
-    workspaceLogsCmd.Flags().Bool("timestamps", false, "show timestamps")
 }
 ```
 
@@ -569,12 +572,6 @@ var psCmd = &cobra.Command{
     RunE:  workspaceStatusCmd.RunE,
 }
 
-var logsCmd = &cobra.Command{
-    Use:   "logs",
-    Short: "Alias for 'workspace logs'",
-    RunE:  workspaceLogsCmd.RunE,
-}
-
 var generateCmd = &cobra.Command{
     Use:   "generate",
     Short: "Alias for 'workspace generate'",
@@ -585,13 +582,11 @@ func init() {
     rootCmd.AddCommand(upCmd)
     rootCmd.AddCommand(downCmd)
     rootCmd.AddCommand(psCmd)
-    rootCmd.AddCommand(logsCmd)
     rootCmd.AddCommand(generateCmd)
 
     // Copy flags from workspace commands to aliases
     upCmd.Flags().AddFlagSet(workspaceUpCmd.Flags())
     downCmd.Flags().AddFlagSet(workspaceDownCmd.Flags())
-    logsCmd.Flags().AddFlagSet(workspaceLogsCmd.Flags())
     generateCmd.Flags().AddFlagSet(workspaceGenerateCmd.Flags())
 }
 ```
@@ -642,16 +637,120 @@ var composePrefixCmd = &cobra.Command{
     },
 }
 
-var composePrefixFlavor string
-
 func init() {
     rootCmd.AddCommand(composePrefixCmd)
-    composePrefixCmd.Flags().StringVarP(&composePrefixFlavor, "flavor", "f", "", "use specific flavor")
+    // Note: No --flavor flag. Flavor changes require regeneration and can impact
+    // running applications. Users must use `contrail flavor set` instead.
 }
 
 func getComposeFilesForApp(workspace, app string) ([]string, error) {
     // Implementation: read application.yaml, resolve flavor, return file list
     return []string{}, nil
+}
+```
+
+### Step 7b: Scaffold Proxy Commands
+
+Create `internal/cli/proxy.go`:
+
+```go
+package cli
+
+import (
+    "fmt"
+    "os"
+    "path/filepath"
+
+    "github.com/spf13/cobra"
+)
+
+var proxyCmd = &cobra.Command{
+    Use:   "proxy",
+    Short: "Manage the Traefik reverse proxy",
+}
+
+var proxyInitCmd = &cobra.Command{
+    Use:   "init",
+    Short: "Bootstrap proxy configuration",
+    Long:  `Creates the Traefik Docker Compose project at ~/.config/contrail/proxy/`,
+    RunE: func(cmd *cobra.Command, args []string) error {
+        force, _ := cmd.Flags().GetBool("force")
+        domain, _ := cmd.Flags().GetString("domain")
+        path, _ := cmd.Flags().GetString("path")
+
+        // Check if proxy config exists
+        if _, err := os.Stat(filepath.Join(path, "docker-compose.yaml")); err == nil {
+            if !force {
+                return fmt.Errorf("proxy configuration already exists at %s\nUse --force to overwrite", path)
+            }
+            // Backup existing config
+            // ...
+        }
+
+        // Create directory structure
+        // Create docker-compose.yaml, traefik.yaml, dynamic/, certs/
+        // Create proxy network if needed
+        // Output next steps
+
+        return nil
+    },
+}
+
+var proxyUpCmd = &cobra.Command{
+    Use:   "up",
+    Short: "Start the Traefik proxy",
+    RunE: func(cmd *cobra.Command, args []string) error {
+        // Run proxy init if config doesn't exist
+        // Create proxy network if needed
+        // Start containers via docker compose
+        return nil
+    },
+}
+
+var proxyDownCmd = &cobra.Command{
+    Use:   "down",
+    Short: "Stop the Traefik proxy",
+    RunE: func(cmd *cobra.Command, args []string) error {
+        // Stop containers via docker compose
+        return nil
+    },
+}
+
+var proxyRestartCmd = &cobra.Command{
+    Use:   "restart",
+    Short: "Restart the Traefik proxy",
+    RunE: func(cmd *cobra.Command, args []string) error {
+        // Restart via docker compose
+        return nil
+    },
+}
+
+var proxyStatusCmd = &cobra.Command{
+    Use:   "status",
+    Short: "Show proxy status",
+    RunE: func(cmd *cobra.Command, args []string) error {
+        // Check container status, network, entrypoints
+        return nil
+    },
+}
+
+func init() {
+    rootCmd.AddCommand(proxyCmd)
+    proxyCmd.AddCommand(proxyInitCmd)
+    proxyCmd.AddCommand(proxyUpCmd)
+    proxyCmd.AddCommand(proxyDownCmd)
+    proxyCmd.AddCommand(proxyRestartCmd)
+    proxyCmd.AddCommand(proxyStatusCmd)
+
+    // proxy init flags
+    proxyInitCmd.Flags().Bool("force", false, "overwrite existing configuration")
+    proxyInitCmd.Flags().String("domain", "contrail.test", "proxy domain for generated hostnames")
+    proxyInitCmd.Flags().String("path", defaultProxyPath(), "directory to create proxy in")
+}
+
+func defaultProxyPath() string {
+    home, _ := os.UserHomeDir()
+    return filepath.Join(home, ".config", "contrail", "proxy")
 }
 ```
 
@@ -780,7 +879,6 @@ go build -o contrail ./cmd/contrail
 | `contrail workspace down` | `workspaceCmd` → `workspaceDownCmd` | |
 | `contrail workspace restart` | `workspaceCmd` → `workspaceRestartCmd` | |
 | `contrail workspace status` | `workspaceCmd` → `workspaceStatusCmd` | |
-| `contrail workspace logs` | `workspaceCmd` → `workspaceLogsCmd` | |
 | `contrail app list` | `appCmd` → `appListCmd` | |
 | `contrail app show` | `appCmd` → `appShowCmd` | |
 | `contrail app init` | `appCmd` → `appInitCmd` | |
@@ -790,16 +888,16 @@ go build -o contrail ./cmd/contrail
 | `contrail app down` | `appCmd` → `appDownCmd` | |
 | `contrail app restart` | `appCmd` → `appRestartCmd` | |
 | `contrail app status` | `appCmd` → `appStatusCmd` | |
-| `contrail app logs` | `appCmd` → `appLogsCmd` | |
 | `contrail flavor list` | `flavorCmd` → `flavorListCmd` | |
 | `contrail flavor show` | `flavorCmd` → `flavorShowCmd` | |
 | `contrail flavor set` | `flavorCmd` → `flavorSetCmd` | |
 | `contrail port list` | `portCmd` → `portListCmd` | Global (no context) |
 | `contrail port release` | `portCmd` → `portReleaseCmd` | Global (no context) |
 | `contrail port gc` | `portCmd` → `portGcCmd` | Global (no context) |
+| `contrail proxy init` | `proxyCmd` → `proxyInitCmd` | Global (no context) |
 | `contrail proxy status` | `proxyCmd` → `proxyStatusCmd` | Global (no context) |
-| `contrail proxy start` | `proxyCmd` → `proxyStartCmd` | Global (no context) |
-| `contrail proxy stop` | `proxyCmd` → `proxyStopCmd` | Global (no context) |
+| `contrail proxy up` | `proxyCmd` → `proxyUpCmd` | Global (no context) |
+| `contrail proxy down` | `proxyCmd` → `proxyDownCmd` | Global (no context) |
 | `contrail proxy restart` | `proxyCmd` → `proxyRestartCmd` | Global (no context) |
 | `contrail config show` | `configCmd` → `configShowCmd` | Global (no context) |
 | `contrail config set` | `configCmd` → `configSetCmd` | Global (no context) |
@@ -807,7 +905,6 @@ go build -o contrail ./cmd/contrail
 | `contrail up` | `upCmd` | Alias for `workspace up` |
 | `contrail down` | `downCmd` | Alias for `workspace down` |
 | `contrail ps` | `psCmd` | Alias for `workspace status` |
-| `contrail logs` | `logsCmd` | Alias for `workspace logs` |
 | `contrail generate` | `generateCmd` | Alias for `workspace generate` |
 | `contrail compose-prefix` | `composePrefixCmd` | Hidden, for shell integration |
 | `contrail init-shell` | `initShellCmd` | Outputs shell scripts |
@@ -898,3 +995,4 @@ Use Docker-in-Docker or testcontainers for integration tests that verify actual 
 | Version | Date | Changes |
 |---------|------|---------|
 | 0.1.0-draft | Dec 2024 | Initial Go stack specification |
+| 0.1.1-draft | Dec 2024 | Spec review: fixed validation rules, added missing commands, proxy commands, removed logs command |

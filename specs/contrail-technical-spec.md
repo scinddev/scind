@@ -238,6 +238,78 @@ proxy:
   # Future: Traefik-specific settings, TLS, entrypoints, etc.
 ```
 
+### Proxy Infrastructure
+
+**Location**: `~/.config/contrail/proxy/` (global/per-user)
+
+The proxy is implemented as a Docker Compose project managed by Contrail. It runs a Traefik instance that handles reverse proxying for all workspaces on the host.
+
+**Directory structure** (created by `contrail proxy init`):
+```
+~/.config/contrail/proxy/
+├── docker-compose.yaml    # Traefik service definition
+├── traefik.yaml          # Traefik static configuration
+├── dynamic/              # Dynamic configuration (auto-discovered)
+└── certs/                # TLS certificates (future)
+```
+
+**docker-compose.yaml** (generated):
+```yaml
+name: contrail-proxy
+
+services:
+  traefik:
+    image: traefik:v3.0
+    command:
+      - "--configFile=/etc/traefik/traefik.yaml"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik.yaml:/etc/traefik/traefik.yaml:ro
+      - ./dynamic:/etc/traefik/dynamic:ro
+      - ./certs:/etc/traefik/certs:ro
+    networks:
+      - proxy
+    restart: unless-stopped
+    labels:
+      - "contrail.managed=true"
+      - "contrail.component=proxy"
+
+networks:
+  proxy:
+    external: true
+```
+
+**traefik.yaml** (generated):
+```yaml
+api:
+  dashboard: false
+
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+
+providers:
+  docker:
+    exposedByDefault: false
+    network: proxy
+  file:
+    directory: /etc/traefik/dynamic
+    watch: true
+```
+
+**Lifecycle**:
+- `proxy init`: Creates the directory structure and configuration files
+- `proxy up`: Starts the Traefik container (creates `proxy` network if needed)
+- `proxy down`: Stops the Traefik container
+- `workspace up`: Automatically runs `proxy up` if proxy is not running
+
+**Recovery**: If a user manually edits the proxy configuration and breaks it, `proxy init --force` regenerates the default configuration.
+
 ### Workspace Registry
 
 **Location**: `~/.config/contrail/workspaces.yaml` (global/per-user)
@@ -403,8 +475,27 @@ Template variables are resolved at **generation time** (when `workspace generate
 **Flavor changes**: When `contrail flavor set FLAVOR` is executed, it:
 1. Updates `.generated/state.yaml` with the new flavor
 2. Immediately regenerates the affected application's override file
+3. If the application is currently running, displays a warning:
+   ```
+   Warning: Application "app-name" is currently running.
+   The new flavor has been applied to the configuration, but running
+   containers still use the previous flavor.
+
+   To apply the flavor change:
+     contrail app restart -a app-name
+   ```
 
 This ensures override files always reflect the current flavor without requiring a separate `generate` step.
+
+**Running application considerations**: Flavor changes affect running applications in different ways:
+
+| Scenario | Effect | Resolution |
+|----------|--------|------------|
+| Flavor adds services | New services defined in override but not running | Run `contrail up` to start new services |
+| Flavor removes services | Services still running but not in override | Run `contrail up` to stop orphaned services |
+| Flavor changes environment | Running containers have old values | Run `contrail app restart` to pick up changes |
+
+**Orphaned service handling**: When `contrail up` is run after a flavor change that removes services, Contrail passes `--remove-orphans` to Docker Compose to stop and remove containers for services no longer defined in the active configuration.
 
 **Example scenario**:
 1. User runs `contrail generate` with flavor "lite"
@@ -661,12 +752,15 @@ services:
       - "traefik.http.routers.dev-app-one-web-https.entrypoints=websecure"
       - "traefik.http.routers.dev-app-one-web-https.tls=true"
       - "traefik.http.services.dev-app-one-web-https.loadbalancer.server.port=443"
-      # Workspace metadata
-      - "workspace.name=dev"
-      - "workspace.path=/home/user/workspaces/dev"
-      - "workspace.application=app-one"
-      - "workspace.exported_service=web"
-      - "workspace.visibility=public"
+      # Contrail context labels
+      - "contrail.workspace.name=dev"
+      - "contrail.workspace.path=/home/user/workspaces/dev"
+      - "contrail.app.name=app-one"
+      - "contrail.app.path=/home/user/workspaces/dev/app-one"
+      # Contrail export labels
+      - "contrail.export.web.host=dev-app-one-web.contrail.test"
+      - "contrail.export.web.proxy.https.visibility=public"
+      - "contrail.export.web.proxy.https.url=https://dev-app-one-web.contrail.test"
     environment:
       - CONTRAIL_WORKSPACE_NAME=dev
       - CONTRAIL_APP_ONE_WEB_HOST=dev-app-one-web.contrail.test
@@ -683,11 +777,15 @@ services:
         aliases:
           - app-one-db
     labels:
-      - "workspace.name=dev"
-      - "workspace.path=/home/user/workspaces/dev"
-      - "workspace.application=app-one"
-      - "workspace.exported_service=db"
-      - "workspace.visibility=protected"
+      # Contrail context labels
+      - "contrail.workspace.name=dev"
+      - "contrail.workspace.path=/home/user/workspaces/dev"
+      - "contrail.app.name=app-one"
+      - "contrail.app.path=/home/user/workspaces/dev/app-one"
+      # Contrail export labels
+      - "contrail.export.db.host=dev-app-one-db.contrail.test"
+      - "contrail.export.db.port.5432.visibility=protected"
+      - "contrail.export.db.port.5432.assigned=5432"
     environment:
       - CONTRAIL_WORKSPACE_NAME=dev
       - CONTRAIL_APP_ONE_DB_HOST=app-one-db
@@ -729,6 +827,87 @@ services:
   postgres:
     volumes:
       - ./local-db-init:/docker-entrypoint-initdb.d:ro
+```
+
+---
+
+## Docker Labels
+
+Contrail uses Docker labels for workspace discovery, service routing, and external tool integration. All labels use the `contrail.` namespace prefix with kebab-case for multi-word segments.
+
+### Context Labels
+
+Applied to all application containers for workspace discovery and registry reconstruction:
+
+| Label | Description | Example |
+|-------|-------------|---------|
+| `contrail.workspace.name` | Workspace identifier | `dev` |
+| `contrail.workspace.path` | Absolute path to workspace directory | `/Users/beau/workspaces/dev` |
+| `contrail.app.name` | Application identifier | `app-one` |
+| `contrail.app.path` | Absolute path to application directory | `/Users/beau/workspaces/dev/app-one` |
+
+### Export Labels
+
+Applied to containers with exported services. Labels are keyed by export name for consistency, supporting multiple exports per container.
+
+**Proxied exports** (HTTP/HTTPS through Traefik):
+```
+contrail.export.{name}.host={hostname}
+contrail.export.{name}.proxy.http.visibility={public|protected|private}
+contrail.export.{name}.proxy.http.url={url}
+contrail.export.{name}.proxy.https.visibility={public|protected|private}
+contrail.export.{name}.proxy.https.url={url}
+```
+
+**Assigned port exports** (direct port mapping):
+```
+contrail.export.{name}.host={hostname}
+contrail.export.{name}.port.{internal-port}.visibility={public|protected|private}
+contrail.export.{name}.port.{internal-port}.assigned={external-port}
+```
+
+**Example** — web service with proxied HTTP/HTTPS and debug port:
+```yaml
+labels:
+  # Context
+  - "contrail.workspace.name=dev"
+  - "contrail.workspace.path=/Users/beau/workspaces/dev"
+  - "contrail.app.name=app-one"
+  - "contrail.app.path=/Users/beau/workspaces/dev/app-one"
+  # Proxied export: web
+  - "contrail.export.web.host=dev-app-one-web.contrail.test"
+  - "contrail.export.web.proxy.http.visibility=public"
+  - "contrail.export.web.proxy.http.url=http://dev-app-one-web.contrail.test"
+  - "contrail.export.web.proxy.https.visibility=public"
+  - "contrail.export.web.proxy.https.url=https://dev-app-one-web.contrail.test"
+  # Assigned port export: debug
+  - "contrail.export.debug.host=dev-app-one-debug.contrail.test"
+  - "contrail.export.debug.port.9000.visibility=protected"
+  - "contrail.export.debug.port.9000.assigned=9003"
+```
+
+### Proxy Container Labels
+
+Applied to the Contrail-managed Traefik proxy container:
+
+| Label | Description | Example |
+|-------|-------------|---------|
+| `contrail.managed` | Indicates Contrail manages this container | `true` |
+| `contrail.component` | Component type | `proxy` |
+
+### External Tool Integration
+
+External tools can discover Contrail workspaces and services by querying Docker labels:
+
+```bash
+# Find all Contrail-managed containers
+docker ps --filter "label=contrail.workspace.name" --format "{{.Names}}"
+
+# Find all containers for a specific workspace
+docker ps --filter "label=contrail.workspace.name=dev" --format "{{.Names}}"
+
+# Get workspace paths for registry reconstruction
+docker inspect --format '{{index .Config.Labels "contrail.workspace.path"}}' $(docker ps -q --filter "label=contrail.workspace.name")
 ```
 
 ---
@@ -867,6 +1046,32 @@ For complete CLI documentation, see **[Contrail CLI Reference](./contrail-cli-re
 
 **Options-Based Targeting**: All targeting uses `--workspace` / `-w` and `--app` / `-a` flags rather than positional arguments, making commands consistent and composable with context detection.
 
+### Context Detection Algorithm
+
+Context detection uses a **workspace boundary** approach to prevent accidental detection of config files in vendor packages or nested test fixtures.
+
+**Detection steps**:
+1. **Find workspace root**: Walk up from current working directory looking for `workspace.yaml`. The first one found establishes the workspace root.
+2. **Find application context**: Walk up from current working directory toward the workspace root looking for `application.yaml`. Only consider `application.yaml` files that are within the workspace directory tree.
+3. **Never traverse above workspace root** for application detection—this prevents vendor packages or nested fixtures from hijacking context.
+
+**Error handling** (when no workspace found):
+- If `application.yaml` found but no `workspace.yaml`:
+  ```
+  No workspace found (workspace.yaml) in current directory or any parent directories,
+  but found an application (application.yaml) at: /path/to/application.yaml
+  ```
+- If neither found:
+  ```
+  No workspace found (workspace.yaml) in current directory or any parent directories,
+  and no application (application.yaml) found either
+  ```
+
+**Edge cases**:
+- **Nested vendor packages**: If working in `app-one/vendor/some-package/` where the vendor package has its own `application.yaml`, it is ignored because the workspace's `app-one/application.yaml` is found first when walking toward the workspace root.
+- **Workspace within workspace**: If a test fixture has its own `workspace.yaml` nested inside a workspace, the closest (innermost) `workspace.yaml` wins—this is typically the test fixture, which is the expected behavior.
+- **Single-app workspaces**: With `path: .`, both `workspace.yaml` and `application.yaml` are in the same directory, so detection finds both immediately.
+
 ### Quick Reference
 
 ```bash
@@ -876,10 +1081,9 @@ contrail workspace up [-w NAME]
 contrail workspace down [-w NAME]
 contrail workspace status [-w NAME]
 
-# Application operations  
+# Application operations
 contrail app add --app=NAME --repo=URL
 contrail app up [-a NAME]
-contrail app logs [-a NAME]
 
 # Flavor management
 contrail flavor set FLAVOR [-a NAME]
@@ -891,7 +1095,6 @@ contrail port gc
 # Top-level aliases (with context detection)
 contrail up
 contrail down
-contrail logs
 
 # Docker Compose passthrough (shell function)
 contrail-compose exec php bash
@@ -1149,3 +1352,4 @@ applications:
 | 0.3.0-draft | Dec 2024 | Type/protocol split, assigned port binding, port inventory |
 | 0.4.0-draft | Dec 2024 | Single-app workspace support, CLI redesign reference, extracted CLI documentation |
 | 0.5.0-draft | Dec 2024 | Updated operations examples to show `contrail-compose` usage; linked shell integration specification |
+| 0.5.1-draft | Dec 2024 | Spec review: validation rules, staleness detection, context detection algorithm, proxy init, Docker labels, flavor set behavior |

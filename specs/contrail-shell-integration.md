@@ -86,7 +86,8 @@ docker compose -p dev-app-two -f '/home/user/workspaces/dev/app-two/docker-compo
 |------|-------|-------------|
 | `--workspace` | `-w` | Specify workspace (overrides context detection) |
 | `--app` | `-a` | Specify application (overrides context detection) |
-| `--flavor` | `-f` | Use specific flavor (overrides active flavor) |
+
+> **Note**: There is no `--flavor` flag. Flavor changes require regeneration and can impact running applications, so flavor must be set explicitly via `contrail flavor set` before using `contrail-compose`.
 
 ### Output Format
 
@@ -112,6 +113,18 @@ Available workspaces: contrail workspace list
 $ echo $?
 5
 ```
+
+### Exit Codes
+
+`contrail compose-prefix` uses standard Contrail exit codes:
+
+| Code | Meaning |
+|------|---------|
+| 0 | Success - prefix output to stdout |
+| 1 | General error (configuration issues, file not found, etc.) |
+| 5 | Context detection failed (no workspace/app found) |
+
+The shell function `contrail-compose` checks for empty output to detect failures and re-runs the command to display the error message. When `compose-prefix` succeeds, `contrail-compose` returns the exit code from the underlying `docker compose` command.
 
 ---
 
@@ -826,3 +839,4 @@ php     nginx   postgres    worker
 | Version | Date | Changes |
 |---------|------|---------|
 | 0.1.0-draft | Dec 2024 | Initial shell integration specification |
+| 0.1.1-draft | Dec 2024 | Spec review: removed --flavor flag from compose-prefix, added exit codes documentation |

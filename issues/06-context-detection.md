@@ -87,8 +87,14 @@ If working in `~/workspaces/dev/app-one/vendor/some-package/`, which `applicatio
 3. If no `workspace.yaml` found, `application.yaml` alone is valid (single-app standalone mode)
 4. Never traverse above workspace root for application detection
 
-**Response**:  
-> _[Your response here]_
+**Response**:
+> Use Option B (Workspace Boundary) with required `workspace.yaml`. Since `workspace.yaml` is required in all cases (even single-app workspaces use `path: .`), context detection should:
+> 1. Walk up to find `workspace.yaml` → establishes workspace root
+> 2. Walk up from CWD to workspace root looking for `application.yaml`
+> 3. Never traverse above workspace root for application detection
+> 4. If no `workspace.yaml` found, error with helpful debugging info:
+>    - If `application.yaml` found: "No workspace found (workspace.yaml) in current directory or any parent directories, but found an application (application.yaml) at: /full/path/to/application.yaml"
+>    - If neither found: "No workspace found (workspace.yaml) in current directory or any parent directories, and no application (application.yaml) found either"
 
 ---
 
@@ -114,8 +120,8 @@ Update `detectAndSetContext` implementation notes:
 
 ## Checklist
 
-- [ ] Define context detection algorithm with workspace boundaries
-- [ ] Document edge cases in CLI Reference
-- [ ] Add algorithm details to Tech Spec
-- [ ] Update Go Stack implementation notes
-- [ ] Add test cases for edge scenarios to testdata/
+- [x] Define context detection algorithm with workspace boundaries
+- [x] Document edge cases in CLI Reference
+- [x] Add algorithm details to Tech Spec
+- [x] Update Go Stack implementation notes
+- [ ] Add test cases for edge scenarios to testdata/ (deferred to implementation)

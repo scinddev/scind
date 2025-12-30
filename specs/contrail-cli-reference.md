@@ -34,11 +34,16 @@ Contrail automatically detects workspace and application context from the curren
 
 ### Detection Rules
 
-1. **Application context**: Walk up the directory tree looking for `application.yaml`
-   - If found, the directory name containing it becomes the implicit `--app` value
+Context detection uses a **workspace boundary** approach to prevent accidental detection of config files in vendor packages or nested test fixtures.
 
-2. **Workspace context**: Walk up the directory tree looking for `workspace.yaml`
-   - If found, the `workspace.name` value becomes the implicit `--workspace` value
+1. **Workspace context** (found first): Walk up the directory tree looking for `workspace.yaml`
+   - If found, this establishes the **workspace root**
+   - The `workspace.name` value becomes the implicit `--workspace` value
+
+2. **Application context** (bounded by workspace): Walk up from current directory toward the workspace root looking for `application.yaml`
+   - Only considers `application.yaml` files **within the workspace directory tree**
+   - If found, the directory name containing it becomes the implicit `--app` value
+   - **Never traverses above the workspace root**—this prevents vendor packages from hijacking context
 
 3. **Both can be detected simultaneously**:
    ```
@@ -49,9 +54,38 @@ Contrail automatically detects workspace and application context from the curren
                    └── workspace.yaml → workspace = "dev"
    ```
 
-4. **Explicit flags override detection**: `--workspace` and `--app` always take precedence
+4. **Explicit flags override detection**: `--workspace` and `--app` always take precedence over context detection
+   - When any `--app` flag is specified, context-detected application is **completely ignored**
+   - This applies even when multiple `-a` flags are used
+   - To start multiple specific apps: `contrail up -a app-one -a app-two`
 
 5. **Global commands ignore context**: `port`, `proxy`, and `config` commands don't use directory context
+
+### Flag Override Behavior
+
+When explicit flags are provided, they **replace** (not add to) context detection:
+
+```bash
+# From within app-one directory (context would detect app-one)
+$ cd ~/workspaces/dev/app-one
+
+# This starts ONLY app-two, not both app-one and app-two
+$ contrail up -a app-two
+# Starting: app-two
+# (app-one from context is ignored)
+
+# To start multiple apps, list them all explicitly
+$ contrail up -a app-one -a app-two
+# Starting: app-one, app-two
+```
+
+This "explicit replaces context" behavior ensures predictable results—when you specify apps explicitly, you get exactly what you asked for.
+
+### Edge Cases
+
+**Nested vendor packages**: If working in `app-one/vendor/some-package/` where the vendor package has its own `application.yaml`, it is ignored. The workspace's `app-one/application.yaml` is found first when walking toward the workspace root.
+
+**Workspace within workspace**: If a test fixture has its own `workspace.yaml` nested inside a workspace (e.g., for integration tests), the closest `workspace.yaml` wins—this is the test fixture, which is the expected behavior.
 
 ### Context Feedback
 
@@ -72,18 +106,43 @@ Use `--quiet` or `-q` to suppress context indicators.
 
 ### Error Handling
 
-When context is required but not detected:
+When context is required but not detected, error messages provide debugging hints:
 
+**No workspace found, but application.yaml exists** (helps identify misplaced apps):
+```bash
+$ cd ~/random-project
+$ contrail app status
+Error: No workspace found (workspace.yaml) in current directory or any parent directories,
+but found an application (application.yaml) at: /home/user/random-project/application.yaml
+
+Create a workspace with: contrail workspace init --workspace=NAME
+```
+
+**Neither workspace nor application found**:
 ```bash
 $ cd ~
+$ contrail app status
+Error: No workspace found (workspace.yaml) in current directory or any parent directories,
+and no application (application.yaml) found either.
+
+Either:
+  1. Run from within a workspace directory
+  2. Specify explicitly: contrail app status --workspace=NAME --app=NAME
+
+Available workspaces: contrail workspace list
+```
+
+**Workspace found but no application context** (for app-specific commands):
+```bash
+$ cd ~/workspaces/dev
 $ contrail app status
 Error: No application context detected.
 
 Either:
   1. Run from within an application directory
-  2. Specify explicitly: contrail app status --workspace=NAME --app=NAME
+  2. Specify explicitly: contrail app status --app=NAME
 
-Available workspaces: contrail workspace list
+Available apps in 'dev': app-one, app-two, app-three
 ```
 
 ---
@@ -399,26 +458,6 @@ app-three   lite     stopped  0/2 running      —
 
 ---
 
-### `contrail workspace logs`
-
-View logs from workspace containers.
-
-```bash
-contrail workspace logs [flags]
-```
-
-**Flags**:
-| Flag | Description |
-|------|-------------|
-| `-w, --workspace` | Target workspace (or use context) |
-| `-a, --app` | Filter to specific app (or use app context) |
-| `--service` | Filter to specific service within app |
-| `-f, --follow` | Follow log output (default: true) |
-| `--tail` | Number of lines to show from end (default: 100) |
-| `--since` | Show logs since timestamp or duration (e.g., "10m", "2024-01-01") |
-
----
-
 ### `contrail workspace destroy`
 
 Completely remove a workspace.
@@ -638,25 +677,6 @@ contrail app status [flags]
 
 ---
 
-### `contrail app logs`
-
-View logs from an application.
-
-```bash
-contrail app logs [flags]
-```
-
-**Flags**:
-| Flag | Description |
-|------|-------------|
-| `-w, --workspace` | Target workspace (or use context) |
-| `-a, --app` | Target application (or use context) |
-| `--service` | Filter to specific service |
-| `-f, --follow` | Follow log output |
-| `--tail` | Number of lines from end |
-
----
-
 ## Flavor Commands
 
 Manage application flavors (named configurations).
@@ -721,12 +741,25 @@ contrail flavor set <flavor> [flags]
 | `-a, --app` | Target application (or use context) |
 
 **Behavior**:
-- Updates `.generated/state.yaml`
-- Does NOT automatically restart; use `contrail app restart` to apply
+- Updates `.generated/state.yaml` with the new flavor
+- Immediately regenerates the affected application's override file
+- If the application is running, displays a warning with restart guidance
+- Does NOT automatically restart containers
+
+> **Warning when application is running**: If the target application is currently running, `flavor set` displays a warning explaining that running containers still use the previous flavor and provides the command to apply changes.
+
+**After changing flavors**:
+| Scenario | Command |
+|----------|---------|
+| Flavor adds/removes services | `contrail up` (starts new services, stops orphaned services) |
+| Flavor changes environment or config | `contrail app restart -a APP` |
 
 **Example**:
 ```bash
+# Change flavor (regenerates config, warns if running)
 contrail flavor set full --app=app-two
+
+# Apply to running application
 contrail app restart --app=app-two
 ```
 
@@ -858,7 +891,59 @@ contrail port scan
 
 ## Proxy Commands
 
-Manage the Traefik reverse proxy.
+Manage the Traefik reverse proxy. The proxy is a shared instance that serves all workspaces on the host.
+
+### `contrail proxy init`
+
+Bootstrap the proxy configuration. This creates the Traefik Docker Compose project at `~/.config/contrail/proxy/`.
+
+```bash
+contrail proxy init [flags]
+```
+
+**Flags**:
+| Flag | Description |
+|------|-------------|
+| `--force` | Overwrite existing configuration (useful for recovery) |
+| `--domain` | Set proxy domain (default: `contrail.test`) |
+| `--path` | Directory to create proxy in (default: `~/.config/contrail/proxy/`) |
+
+**Behavior**:
+1. Check if proxy configuration already exists
+   - If exists and no `--force`: error with message
+   - If exists and `--force`: backup existing config and overwrite
+2. Create proxy directory structure (`docker-compose.yaml`, `traefik.yaml`, `dynamic/`, `certs/`)
+3. Create `proxy` Docker network if it doesn't exist
+4. Output next steps (DNS setup, starting proxy)
+
+**Example**:
+```bash
+$ contrail proxy init
+Created proxy configuration at ~/.config/contrail/proxy/
+
+Next steps:
+  1. Configure DNS for *.contrail.test → 127.0.0.1
+     (See: contrail doctor for DNS verification)
+  2. Start the proxy:
+     contrail proxy up
+
+$ contrail proxy init
+Error: Proxy configuration already exists at ~/.config/contrail/proxy/
+Use --force to overwrite, or --path to create elsewhere.
+
+$ contrail proxy init --force
+Backed up existing configuration to ~/.config/contrail/proxy.backup.20241230/
+Created proxy configuration at ~/.config/contrail/proxy/
+```
+
+**Custom domain example**:
+```bash
+$ contrail proxy init --domain mydev.local
+Created proxy configuration at ~/.config/contrail/proxy/
+Domain set to: mydev.local
+```
+
+---
 
 ### `contrail proxy up`
 
@@ -871,7 +956,9 @@ contrail proxy up
 **Behavior**:
 - Creates `proxy` network if it doesn't exist
 - Starts Traefik container from proxy configuration
-- Required before any workspace with proxied services can run
+- If proxy configuration doesn't exist, runs `proxy init` first
+
+**Note**: Users rarely need to call this directly. `workspace up` automatically starts the proxy if it's not running.
 
 ---
 
@@ -1020,7 +1107,8 @@ contrail compose-prefix [flags]
 |------|-------------|
 | `-w, --workspace` | Target workspace (or use context) |
 | `-a, --app` | Target application (or use context) |
-| `-f, --flavor` | Use specific flavor (overrides active flavor) |
+
+> **Note**: There is no `--flavor` flag for `compose-prefix`. Flavor changes require regeneration and can impact running applications. Use `contrail flavor set` to change the active flavor before running `contrail-compose`.
 
 **Output**:
 ```bash
@@ -1097,7 +1185,6 @@ For common operations, these aliases are provided:
 | `contrail up` | `contrail workspace up` |
 | `contrail down` | `contrail workspace down` |
 | `contrail ps` | `contrail workspace status` |
-| `contrail logs` | `contrail workspace logs` |
 | `contrail generate` | `contrail workspace generate` |
 
 All aliases accept the same flags as their full forms and support context detection.
@@ -1146,8 +1233,22 @@ Checking Contrail environment...
 ✓ Traefik: running
 ✓ Config directory: ~/.config/contrail
 ✓ Domain resolution: contrail.test → 127.0.0.1
+✓ Workspace domains:
+  - dev-app-one-web.contrail.test → 127.0.0.1
+  - dev-app-two-api.contrail.test → 127.0.0.1
 
 All checks passed.
+```
+
+**DNS checking behavior**:
+- Checks base domain (`contrail.test`) resolution
+- If workspaces exist, checks all public proxied hostnames from workspace manifests
+- If no workspaces exist, checks a test subdomain (`check-{timestamp}.contrail.test`) to verify wildcard configuration
+
+**Wildcard DNS warning** (when base resolves but subdomains don't):
+```
+⚠ Wildcard DNS not configured. Individual hostnames may not resolve.
+  Configure dnsmasq: address=/contrail.test/127.0.0.1
 ```
 
 ---
@@ -1329,7 +1430,7 @@ cd ~/workspaces/dev/frontend
 contrail up                    # Brings up entire dev workspace
 
 # Work on frontend
-contrail logs                  # Tail frontend logs (context detected)
+contrail-compose logs -f       # Tail frontend logs (context detected)
 contrail app restart           # Restart after changes
 
 # Direct Docker Compose interaction (uses contrail-compose)
@@ -1338,7 +1439,7 @@ contrail-compose exec php php artisan   # Run artisan command
 
 # Check on another app
 contrail app status -a backend
-contrail app logs -a backend --tail=50
+contrail-compose -a backend logs --tail=50
 contrail-compose -a backend exec node npm test
 
 # End of day
@@ -1401,3 +1502,4 @@ contrail port gc               # Clean up stale assignments
 |---------|------|---------|
 | 0.1.0-draft | Dec 2024 | Initial CLI reference |
 | 0.2.0-draft | Dec 2024 | Added `compose-prefix`, `init-shell` commands; expanded shell completion documentation; added `contrail-compose` examples |
+| 0.2.1-draft | Dec 2024 | Spec review: proxy commands, context detection, doctor DNS checks, proxy init, flavor set behavior, removed logs command |
