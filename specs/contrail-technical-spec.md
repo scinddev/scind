@@ -848,10 +848,18 @@ contrail-compose -a app-two ps
 
 1. **Resolve flavor** for each application (CLI → state → default_flavor → "default")
 2. **Get compose files** from resolved flavor's `compose_files` list
-3. **Collect all exported services** across all applications in workspace
-4. **Generate override file** with networks, aliases, labels, and environment variables
-5. **Update state file** with resolved flavors
-6. **Update manifest** with computed values
+3. **Validate compose files exist** on disk; if any are missing, report error with available alternatives:
+   ```
+   Error: Flavor "full" references non-existent file: docker-compose.worker.yaml
+     Application: app-two
+     Available compose files: docker-compose.yaml, docker-compose.dev.yaml
+   ```
+4. **Infer port values** for any exported services with omitted `port:` field (see Port Configuration)
+5. **Default service names** for any exported services with omitted `service:` field
+6. **Collect all exported services** across all applications in workspace
+7. **Generate override file** with networks, aliases, labels, and environment variables
+8. **Update state file** with resolved flavors
+9. **Update manifest** with computed values
 
 ### Shutdown Sequence (`workspace down`)
 
@@ -942,6 +950,9 @@ Application developers should update `application.yaml` when:
 - **Proxied hostnames** (proxied type): `{workspace}-{application}-{exported_service}.{domain}` (e.g., `dev-app-one-web.contrail.test`)
 - **Internal aliases** (all types): `{application}-{exported_service}` (e.g., `app-one-web`, `app-one-db`)
 - **Environment variables**: `CONTRAIL_{APPLICATION}_{EXPORTED_SERVICE}_{SUFFIX}` in SCREAMING_SNAKE_CASE
+- **Traefik router names**: `{workspace}-{application}-{exported_service}-{protocol}` (e.g., `dev-app-one-web-https`)
+
+**Collision warning**: Traefik router names are derived from the naming pattern above. Creative naming that produces identical router names (e.g., workspace `dev-app` with app `one-web` vs. workspace `dev` with app `app-one-web`) could cause routing conflicts. Follow the lowercase-alphanumeric-with-hyphens convention and avoid names that could produce ambiguous concatenations.
 
 ### Git Strategy
 

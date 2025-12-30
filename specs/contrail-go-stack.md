@@ -689,14 +689,14 @@ type ApplicationConfig struct {
 }
 
 type ExportedService struct {
-    Service string `yaml:"service" validate:"required"`
+    Service string `yaml:"service,omitempty" validate:"omitempty"`  // Optional: defaults to map key
     Ports   []Port `yaml:"ports" validate:"required,dive"`
 }
 
 type Port struct {
     Type       string `yaml:"type" validate:"required,oneof=proxied assigned"`
     Protocol   string `yaml:"protocol,omitempty" validate:"omitempty,oneof=http https tcp postgresql mysql"`
-    Port       int    `yaml:"port" validate:"required,min=1,max=65535"`
+    Port       int    `yaml:"port,omitempty" validate:"omitempty,min=1,max=65535"`  // Optional: inferred from Compose service
     Visibility string `yaml:"visibility,omitempty" validate:"omitempty,oneof=public protected"`
 }
 
@@ -704,6 +704,34 @@ type Flavor struct {
     ComposeFiles []string `yaml:"compose_files" validate:"required,min=1"`
 }
 ```
+
+#### Config Loading: Inference and Defaults
+
+The config loader (`internal/config/loader.go`) applies these inference rules after unmarshaling:
+
+**Service name defaulting** (C-3):
+- If `ExportedService.Service` is empty, set it to the map key from `exported_services`
+- Example: `exported_services.web` with no `service:` field defaults to Compose service `"web"`
+
+**Port inference** (C-2):
+- If `Port.Port` is zero (omitted), infer from the Compose service's `ports:` configuration
+- If the Compose service has exactly one port, use that port
+- If the Compose service has multiple ports, return a clear error:
+  ```
+  Error: Port must be specified for exported service "web"
+    Application: app-one
+    Compose service "web" has multiple ports: 80, 443, 9229
+    Specify which port to use in application.yaml
+  ```
+
+**Compose file existence validation** (A-10):
+- At `generate` time, validate that all files in `Flavor.ComposeFiles` exist on disk
+- If a file is missing, return a clear error:
+  ```
+  Error: Flavor "full" references non-existent file: docker-compose.worker.yaml
+    Application: app-two
+    Available compose files: docker-compose.yaml, docker-compose.dev.yaml
+  ```
 
 ### Step 9: Create Entry Point
 

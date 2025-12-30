@@ -129,10 +129,10 @@ Error: Flavor "full" references non-existent file: docker-compose.worker.yaml
 
 ## Checklist
 
-- [ ] Update `Port` struct field validation in Go Stack
-- [ ] Document port inference logic in Tech Spec and Go Stack
-- [ ] Update `Service` struct field validation in Go Stack
-- [ ] Document service name defaulting behavior
-- [ ] Decide on Traefik router collision handling
-- [ ] Decide on compose file existence validation timing
-- [ ] Update Tech Spec with validation behavior
+- [x] Update `Port` struct field validation in Go Stack (changed to `omitempty`)
+- [x] Document port inference logic in Tech Spec and Go Stack
+- [x] Update `Service` struct field validation in Go Stack (changed to `omitempty`)
+- [x] Document service name defaulting behavior (in Go Stack)
+- [x] Document Traefik router collision warning in Tech Spec Naming Conventions
+- [x] Document compose file existence validation timing (at `generate` time)
+- [x] Update Tech Spec Generation Logic with validation steps
