@@ -67,3 +67,9 @@ rootCmd.PersistentFlags().BoolVarP(&quiet, "quiet", "q", false, "minimal output,
 - [x] ~~Add `appExecCmd` to command mapping table~~ Removed `contrail app exec` from CLI Reference (use `contrail-compose exec` instead)
 - [x] ~~Add `flavorResetCmd` to command mapping table~~ Removed `contrail flavor reset` from CLI Reference (not needed)
 - [x] Fix `BoolVarP` typo on line 335
+
+---
+
+## Archived
+
+This issue was archived on 2025-12-31 at 10:03:30.

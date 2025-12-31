@@ -50,3 +50,9 @@ Update the architecture diagram in contrail-technical-spec.md line 32 to change 
 |-------|----------|----------|
 | N-19: Proxy network name in diagram | Low | ✅ Fixed |
 
+
+---
+
+## Archived
+
+This issue was archived on 2025-12-31 at 10:03:30.

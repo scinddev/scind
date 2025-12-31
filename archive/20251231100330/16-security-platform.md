@@ -74,3 +74,9 @@ Windows developers using Docker Desktop may expect Contrail to work.
 
 - [x] Resolve Traefik dashboard security posture — added `dashboard.enabled` config with future password note
 - [x] Document platform support scope in PRD — Windows non-goal already added
+
+---
+
+## Archived
+
+This issue was archived on 2025-12-31 at 10:03:30.

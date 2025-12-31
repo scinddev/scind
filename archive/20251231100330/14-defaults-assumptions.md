@@ -115,3 +115,9 @@ workspace:
 - [x] Clarify protocol requirement/default for proxied ports — now required for `type: proxied` in Tech Spec and Go Stack
 - [x] Clarify Traefik version pinning strategy — configurable via `proxy.yaml` with pinned default `v3.2.3`
 - [x] Clarify single-app workspace naming rules — added note to CLI Reference about independent naming
+
+---
+
+## Archived
+
+This issue was archived on 2025-12-31 at 10:03:30.

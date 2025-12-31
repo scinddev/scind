@@ -100,3 +100,9 @@ These issues involve aligning the PRD and Technical Spec on fundamental concepts
 - [x] Align PRD and Tech Spec on network creation timing (updated Tech Spec to "lazy at `workspace up`")
 - [x] Add rationale for HTTPS-default in base environment variables (added to Tech Spec)
 - [x] Document visibility field's purpose (Docker labels for external tools like Servlo)
+
+---
+
+## Archived
+
+This issue was archived on 2025-12-31 at 10:03:30.

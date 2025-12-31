@@ -57,3 +57,9 @@ Decide whether to add a `--keep-apps` flag to `workspace destroy`.
 |-------|----------|----------|
 | N-27: Missing --keep-apps flag | Low | ✅ Added `--keep-apps` flag to Tech Spec and CLI Reference |
 
+
+---
+
+## Archived
+
+This issue was archived on 2025-12-31 at 10:03:30.

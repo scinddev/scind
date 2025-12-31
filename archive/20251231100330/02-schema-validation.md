@@ -136,3 +136,9 @@ Error: Flavor "full" references non-existent file: docker-compose.worker.yaml
 - [x] Document Traefik router collision warning in Tech Spec Naming Conventions
 - [x] Document compose file existence validation timing (at `generate` time)
 - [x] Update Tech Spec Generation Logic with validation steps
+
+---
+
+## Archived
+
+This issue was archived on 2025-12-31 at 10:03:30.

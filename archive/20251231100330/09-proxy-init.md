@@ -161,3 +161,9 @@ Use --force to overwrite, or --path to create elsewhere.
 > - All wiring should happen via Docker labels on workspaces and applications
 > - The `--domain` flag should be included with `contrail.test` as default, allowing users to specify a custom domain (e.g., for wildcard DNS they want to share externally)
 > - If proxy config already exists, error by default; allow `--force` to overwrite (useful as a recovery mechanism if manual edits break things)
+
+---
+
+## Archived
+
+This issue was archived on 2025-12-31 at 10:03:30.

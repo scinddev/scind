@@ -125,3 +125,9 @@ Update `detectAndSetContext` implementation notes:
 - [x] Add algorithm details to Tech Spec
 - [x] Update Go Stack implementation notes
 - [ ] Add test cases for edge scenarios to testdata/ (deferred to implementation)
+
+---
+
+## Archived
+
+This issue was archived on 2025-12-31 at 10:03:30.

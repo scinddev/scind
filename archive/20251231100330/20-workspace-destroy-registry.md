@@ -50,3 +50,9 @@ Add a step to the CLI Reference's `workspace destroy` behavior to mention removi
 |-------|----------|----------|
 | N-20: Registry removal missing from CLI docs | Low | ✅ Fixed |
 
+
+---
+
+## Archived
+
+This issue was archived on 2025-12-31 at 10:03:30.

@@ -57,3 +57,9 @@ Add scaffolding for app commands to the Go Stack specification.
 |-------|----------|----------|
 | N-28: Missing app commands scaffolding | Low | ✅ Added `internal/cli/app.go` scaffolding with all app commands and flags |
 
+
+---
+
+## Archived
+
+This issue was archived on 2025-12-31 at 10:03:30.

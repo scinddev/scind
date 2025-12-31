@@ -56,3 +56,9 @@ Update the CLI to Cobra Command Mapping to include all 6 port commands.
 |-------|----------|----------|
 | N-29: Missing port commands in mapping | Low | ✅ Added `port show`, `port assign`, `port scan` to Go Stack mapping |
 
+
+---
+
+## Archived
+
+This issue was archived on 2025-12-31 at 10:03:30.

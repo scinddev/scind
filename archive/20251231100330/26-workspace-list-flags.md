@@ -53,3 +53,9 @@ Add the `--validate` and `--rebuild` flags to the `workspaceListCmd` in the Go S
 |-------|----------|----------|
 | N-26: Missing workspace list flags in Go Stack | Low | ✅ Added `--validate` and `--rebuild` flags to `workspaceListCmd` |
 
+
+---
+
+## Archived
+
+This issue was archived on 2025-12-31 at 10:03:30.

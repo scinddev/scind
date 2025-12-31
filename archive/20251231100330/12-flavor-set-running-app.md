@@ -89,3 +89,9 @@ contrail flavor set debug  # debug flavor sets DEBUG=true
 - [x] Document orphaned service handling (`--remove-orphans` on `contrail up`)
 - [ ] Consider adding `--restart` flag (optional enhancement, deferred to implementation)
 
+
+---
+
+## Archived
+
+This issue was archived on 2025-12-31 at 10:03:30.

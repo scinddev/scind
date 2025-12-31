@@ -150,3 +150,9 @@ If base resolves but wildcard doesn't, warn:
 - [x] Document `--app` flag behavior with context detection
 - [x] Add explicit documentation about explicit flags overriding context
 - [x] Enhance `doctor` DNS check to verify wildcard resolution
+
+---
+
+## Archived
+
+This issue was archived on 2025-12-31 at 10:03:30.

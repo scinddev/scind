@@ -137,3 +137,9 @@ Error: Exported service "api" references non-existent Compose service: backend
 - [x] Add Docker availability check guidance — added Error Messages section to CLI Reference
 - [x] Document Compose service validation approach — added to Tech Spec Generation Logic
 - [x] Clarify port garbage collection timing — added to PRD Known Limitations
+
+---
+
+## Archived
+
+This issue was archived on 2025-12-31 at 10:03:30.

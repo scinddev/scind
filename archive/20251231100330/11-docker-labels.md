@@ -88,3 +88,9 @@ Add a "Docker Labels" section to the Technical Spec that formally specifies:
 - [x] Add Docker Labels section to Technical Spec
 - [x] Update generated override example with new labels
 - [x] Add label documentation for external tool integration
+
+---
+
+## Archived
+
+This issue was archived on 2025-12-31 at 10:03:30.

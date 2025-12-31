@@ -108,3 +108,9 @@ Meanwhile, the Go Stack aliases.go description (line 182) mentions "logs" in the
 - [x] Resolve `--keep-apps` flag documentation — removed from Tech Spec
 - [x] Resolve `config edit` command documentation — added to CLI Reference
 - [x] Resolve `proxy logs` command status — removed from CLI Reference, fixed Go Stack aliases comment
+
+---
+
+## Archived
+
+This issue was archived on 2025-12-31 at 10:03:30.

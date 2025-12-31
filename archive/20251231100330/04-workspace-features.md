@@ -166,3 +166,9 @@ Both would write to `assigned_ports.dev.*` in global state.
 - [x] Document workspace name uniqueness enforcement in `workspace init`
 - [x] Add `workspace.path` label to generated override examples
 - [x] Add `workspacePruneCmd` to Go Stack command scaffolding
+
+---
+
+## Archived
+
+This issue was archived on 2025-12-31 at 10:03:30.

@@ -123,3 +123,9 @@ Example entries:
 - CLI Reference: "Specification review: aligned proxy commands, added --since examples"
 - Shell Integration: "Specification review: removed -f flag collision, added exit codes"
 - Go Stack: "Specification review: fixed validation rules, added missing commands"
+
+---
+
+## Archived
+
+This issue was archived on 2025-12-31 at 10:03:30.

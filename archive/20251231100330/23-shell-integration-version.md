@@ -46,3 +46,9 @@ Update the version in the document header to match the revision history.
 |-------|----------|----------|
 | N-23: Version header mismatch | Low | ✅ Fixed |
 
+
+---
+
+## Archived
+
+This issue was archived on 2025-12-31 at 10:03:30.

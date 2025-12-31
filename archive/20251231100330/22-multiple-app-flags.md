@@ -55,3 +55,9 @@ Change the `--app` flag from `StringVarP` to `StringSliceVarP` to support repeat
 |-------|----------|----------|
 | N-22: Repeatable --app flag implementation | Medium | ✅ Fixed |
 
+
+---
+
+## Archived
+
+This issue was archived on 2025-12-31 at 10:03:30.

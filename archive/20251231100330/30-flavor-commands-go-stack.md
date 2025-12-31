@@ -52,3 +52,9 @@ Add scaffolding for flavor commands to the Go Stack specification.
 |-------|----------|----------|
 | N-30: Missing flavor commands scaffolding | Low | ✅ Added `internal/cli/flavor.go` scaffolding with all flavor commands |
 
+
+---
+
+## Archived
+
+This issue was archived on 2025-12-31 at 10:03:30.

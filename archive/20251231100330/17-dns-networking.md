@@ -91,3 +91,9 @@ But what if the `proxy` network already exists and was created by a different to
 - [x] Document DNS resolution behavior in doctor command — added to CLI Reference
 - [x] Expand naming collision warning to cover volumes/networks — added to Tech Spec Naming Conventions
 - [x] Document existing proxy network handling — added `--recreate` flag, renamed network to `contrail-proxy`
+
+---
+
+## Archived
+
+This issue was archived on 2025-12-31 at 10:03:30.

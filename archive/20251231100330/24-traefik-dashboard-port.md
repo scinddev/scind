@@ -73,3 +73,9 @@ Decide on the default dashboard behavior and update both proxy configuration sec
 |-------|----------|----------|
 | N-24: Dashboard port configuration inconsistency | Medium | ✅ Fixed |
 
+
+---
+
+## Archived
+
+This issue was archived on 2025-12-31 at 10:03:30.

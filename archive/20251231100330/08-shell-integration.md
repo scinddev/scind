@@ -126,3 +126,9 @@ the command to display the error message.
 - [x] Update Go Stack flag registration
 - [x] Add exit code documentation to Shell Integration
 - [x] Create new issue (Group 12) for flavor set behavior when app is running
+
+---
+
+## Archived
+
+This issue was archived on 2025-12-31 at 10:03:30.

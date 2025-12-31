@@ -57,3 +57,9 @@ Document whether `contrail app exec` is intentionally absent (because `contrail-
 |-------|----------|----------|
 | N-21: Missing `app exec` clarification | Low | ✅ No action needed |
 
+
+---
+
+## Archived
+
+This issue was archived on 2025-12-31 at 10:03:30.

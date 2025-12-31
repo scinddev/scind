@@ -196,3 +196,9 @@ checksums:
 - [x] Add `workspace destroy` sequence to Tech Spec Operations
 - [x] Document port availability checking method
 - [x] Document manual override preservation and merge order
+
+---
+
+## Archived
+
+This issue was archived on 2025-12-31 at 10:03:30.

@@ -51,3 +51,9 @@ Add the `--dry-run` flag to the `workspacePruneCmd` in the Go Stack scaffolding.
 |-------|----------|----------|
 | N-25: Missing --dry-run flag in Go Stack | Low | ✅ Added `--dry-run` flag to `workspacePruneCmd` in Go Stack |
 
+
+---
+
+## Archived
+
+This issue was archived on 2025-12-31 at 10:03:30.

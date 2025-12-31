@@ -48,3 +48,9 @@ docker logs $(docker ps -q --filter "label=contrail.workspace.name=dev")
 ## Checklist
 
 - [x] Fix Docker label prefix in Operations section examples — corrected to `contrail.workspace.name` and `contrail.app.name`
+
+---
+
+## Archived
+
+This issue was archived on 2025-12-31 at 10:03:30.
