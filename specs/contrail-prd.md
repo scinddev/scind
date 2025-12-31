@@ -1,7 +1,7 @@
 # Contrail: Product Requirements Document
 
-**Version**: 0.5.0-draft  
-**Date**: December 2024  
+**Version**: 0.5.2-draft
+**Date**: December 2024
 **Status**: Design Phase
 
 ---
@@ -98,7 +98,7 @@ Services not listed in `exported_services` remain **private**—only accessible 
 
 ### Visibility
 
-Each port can have a `visibility` of `public` or `protected`. This is primarily **documentation** to communicate intent to collaborators—it does not change Contrail's core behavior. Both public and protected proxied services route through Traefik.
+Each port can have a `visibility` of `public` or `protected` (defaults to `protected` if not specified). This is primarily **documentation** to communicate intent to collaborators—it does not change Contrail's core behavior. Both public and protected proxied services route through Traefik.
 
 Visibility is exposed via Docker labels (`workspace.visibility`), enabling external tools like Servlo to distinguish between public and protected services for display or filtering purposes.
 
@@ -119,7 +119,7 @@ A named configuration that specifies which Docker Compose files to use when runn
 │  ┌─────────────────────────────────────────────────────────────────┐   │
 │  │                        PROXY LAYER                               │   │
 │  │  ┌──────────┐                                                    │   │
-│  │  │ Traefik  │◄─────── proxy (external network)                   │   │
+│  │  │ Traefik  │◄─────── contrail-proxy (external network)                   │   │
 │  │  │(proxied  │              │                                     │   │
 │  │  │  types)  │              │                                     │   │
 │  │  └──────────┘              │                                     │   │
@@ -172,7 +172,7 @@ The proxy is implemented as a Docker Compose project managed by Contrail. Users 
 **Context**: Services need both external access (via reverse proxy) and internal access (between applications).
 
 **Decision**: 
-- `proxy` network: Host-wide, connects Traefik to public services
+- `contrail-proxy` network: Host-wide, connects Traefik to public services
 - `{workspace}-internal` network: Per-workspace, connects all applications for internal communication
 
 **Rationale**: Separating concerns allows public services to be routable via Traefik while protected services remain internal. The workspace-internal network provides isolation between workspaces.
@@ -547,6 +547,14 @@ workspace:
 4. **GUI**: CLI-first; GUI could be added later
 5. **Image building**: Uses existing images; doesn't manage builds
 6. **Secret management**: Uses Docker Compose's existing mechanisms
+7. **Windows native support**: Initial release targets macOS and Linux. Windows users should use WSL2.
+
+---
+
+## Known Limitations (v1)
+
+1. **Concurrent operations**: Running multiple Contrail commands simultaneously (e.g., two terminals running `workspace up`) may cause race conditions. Use one terminal per workspace for operations.
+2. **Port garbage collection**: Ports from workspaces deleted via filesystem (not `workspace destroy`) require manual cleanup with `contrail port gc`.
 
 ---
 
@@ -622,3 +630,4 @@ Default templates:
 | 0.4.0-draft | Dec 2024 | CLI redesign (options-based, context detection, up/down semantics), single-app workspace support, extracted CLI reference document |
 | 0.5.0-draft | Dec 2024 | Added `contrail-compose` shell function concept to product vision; linked shell integration specification |
 | 0.5.1-draft | Dec 2024 | Spec review: network creation timing, workspace discovery, proxy init, removed logs command |
+| 0.5.2-draft | Dec 2024 | Spec review: renamed proxy network to contrail-proxy |

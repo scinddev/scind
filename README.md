@@ -24,22 +24,30 @@ contrail-spec-review/
     ├── 07-cli-commands.md
     ├── 08-shell-integration.md
     ├── 09-proxy-init.md
-    └── 10-documentation-polish.md
+    ├── 10-documentation-polish.md
+    ├── 11-docker-labels.md
+    ├── 12-flavor-set-running-app.md
+    ├── 13-cli-tech-spec-alignment.md
+    ├── 14-defaults-assumptions.md
+    ├── 15-error-handling.md
+    ├── 16-security-platform.md
+    ├── 17-dns-networking.md
+    └── 18-docker-label-consistency.md
 ```
 
 ## Getting Started
 
 1. Read `issues/00-index.md` for an overview of all findings
-2. Work through issue groups in order (1-10)
+2. Work through issue groups in order (1-18)
 3. Each issue file has response sections for your decisions
 4. Update specs as you resolve issues
 
 ## Summary
 
-- **27 total issues** identified
+- **47 total issues** identified across 18 groups
 - **7 high severity** (should resolve before implementation)
-- **10 medium severity** (resolve during implementation)
-- **10 low severity** (nice-to-haves)
+- **15 medium severity** (resolve during implementation)
+- **25 low severity** (nice-to-haves)
 
 ## Recommended Order
 
@@ -55,3 +63,11 @@ contrail-spec-review/
 | 8 | Shell Integration | Shell function concerns |
 | 9 | Proxy Init | New feature addition |
 | 10 | Documentation Polish | Final cleanup |
+| 11 | Docker Labels | Docker label schema formalization |
+| 12 | Flavor Set Running App | Flavor set behavior with running apps |
+| 13 | CLI & Tech Spec Alignment | Command/flag documentation sync |
+| 14 | Defaults & Assumptions | Unspecified default values |
+| 15 | Error Handling | Edge cases and error scenarios |
+| 16 | Security & Platform | Dashboard security, platform scope |
+| 17 | DNS & Networking | DNS resolution, naming collisions |
+| 18 | Docker Label Consistency | Minor label prefix fix |

@@ -20,6 +20,8 @@ When modifying spec documents in the `specs/` directory:
 2. **Update at session end** — At the end of a session where changes are made to spec documents, increment the patch version (e.g., 0.5.0 → 0.5.1) for each modified document
 3. **Update revision history** — Add an entry to the Revision History table at the bottom of each modified document with a brief description of changes
 
+**Note on version mismatches**: Different version numbers across documents are intentional and expected. Each document evolves independently based on its own change history. Version mismatches are NOT contradictions—do not flag them as issues during spec reviews.
+
 Example revision history entry:
 ```markdown
 | 0.5.1-draft | Dec 2024 | Removed logs command, deferred to contrail-compose |

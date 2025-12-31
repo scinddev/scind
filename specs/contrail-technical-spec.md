@@ -1,7 +1,7 @@
 # Contrail Technical Specification
 
-**Version**: 0.5.0-draft  
-**Date**: December 2024  
+**Version**: 0.5.2-draft
+**Date**: December 2024
 **Status**: Design Phase
 
 ---
@@ -72,7 +72,7 @@ A **workspace** is a logical grouping of Docker Compose-based applications that 
 
 ### Proxy Network
 
-- **Name**: `proxy`
+- **Name**: `contrail-proxy`
 - **Scope**: Host-level, shared across all workspaces
 - **Purpose**: Connects Traefik to services that need external access
 - **Created by**: Proxy layer setup (once per host)
@@ -111,7 +111,7 @@ Exported services declare ports with a `type` that determines how the port is ro
 
 ### Protocol (for proxied type)
 
-When `type: proxied`, the `protocol` field specifies how Traefik routes the traffic:
+When `type: proxied`, the `protocol` field is **required** and specifies how Traefik routes the traffic:
 
 - **https**: Routes through Traefik's `websecure` entrypoint (port 443) with TLS termination
 - **http**: Routes through Traefik's `web` entrypoint (port 80)
@@ -119,10 +119,10 @@ When `type: proxied`, the `protocol` field specifies how Traefik routes the traf
 
 ### Visibility
 
-Each port can have a `visibility` of `public` or `protected`. This is primarily **documentation** to communicate intent to collaborators:
+Each port can have a `visibility` of `public` or `protected` (defaults to `protected` if not specified). This is primarily **documentation** to communicate intent to collaborators:
 
 - **public**: This port is intended for external/production use
-- **protected**: This port exists for development/debugging but should not be depended on in production
+- **protected** (default): This port exists for development/debugging but should not be depended on in production
 
 Visibility does not change Contrail's core behavior—all exported services receive internal network aliases and environment variables regardless of visibility. Both public and protected proxied services route through Traefik.
 
@@ -235,7 +235,11 @@ The system uses three schema types, separating structure (configuration) from st
 ```yaml
 proxy:
   domain: contrail.test                  # TLD for generated hostnames
-  # Future: Traefik-specific settings, TLS, entrypoints, etc.
+  traefik_image: traefik:v3.2.3          # Traefik Docker image (defaults to pinned version)
+  dashboard:
+    enabled: true                        # Enable/disable Traefik dashboard (default: true)
+    # Future: password support via environment variable
+  # Future: TLS settings, entrypoints, etc.
 ```
 
 ### Proxy Infrastructure
@@ -259,7 +263,7 @@ name: contrail-proxy
 
 services:
   traefik:
-    image: traefik:v3.0
+    image: ${TRAEFIK_IMAGE:-traefik:v3.2.3}  # Configurable via proxy.yaml
     command:
       - "--configFile=/etc/traefik/traefik.yaml"
     ports:
@@ -278,7 +282,7 @@ services:
       - "contrail.component=proxy"
 
 networks:
-  proxy:
+  contrail-proxy:
     external: true
 ```
 
@@ -296,7 +300,7 @@ entryPoints:
 providers:
   docker:
     exposedByDefault: false
-    network: proxy
+    network: contrail-proxy
   file:
     directory: /etc/traefik/dynamic
     watch: true
@@ -304,7 +308,7 @@ providers:
 
 **Lifecycle**:
 - `proxy init`: Creates the directory structure and configuration files
-- `proxy up`: Starts the Traefik container (creates `proxy` network if needed)
+- `proxy up`: Starts the Traefik container (creates `contrail-proxy` network if needed)
 - `proxy down`: Stops the Traefik container
 - `workspace up`: Automatically runs `proxy up` if proxy is not running
 
@@ -744,7 +748,7 @@ services:
       dev-internal:
         aliases:
           - app-one-web
-      proxy: {}                           # Connected to proxy for Traefik routing
+      contrail-proxy: {}                   # Connected to proxy for Traefik routing
     labels:
       # Traefik HTTPS router
       - "traefik.enable=true"
@@ -795,7 +799,7 @@ services:
 networks:
   dev-internal:
     external: true
-  proxy:
+  contrail-proxy:
     external: true
 ```
 
@@ -991,7 +995,7 @@ const dbPort = process.env.CONTRAIL_APP_ONE_DB_PORT || '5432';
 ```yaml
 services:
   traefik:
-    image: traefik:v3.0
+    image: ${TRAEFIK_IMAGE:-traefik:v3.2.3}  # Configurable via proxy.yaml
     container_name: traefik
     restart: unless-stopped
     command:
@@ -999,7 +1003,7 @@ services:
       - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
-      - "--providers.docker.network=proxy"
+      - "--providers.docker.network=contrail-proxy"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
     ports:
@@ -1009,11 +1013,11 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
-      - proxy
+      - contrail-proxy
 
 networks:
-  proxy:
-    name: proxy
+  contrail-proxy:
+    name: contrail-proxy
     driver: bridge
 ```
 
@@ -1141,12 +1145,18 @@ Contrail uses **mtime comparison** to determine if generated override files need
      Application: app-two
      Available compose files: docker-compose.yaml, docker-compose.dev.yaml
    ```
-4. **Infer port values** for any exported services with omitted `port:` field (see Port Configuration)
-5. **Default service names** for any exported services with omitted `service:` field
-6. **Collect all exported services** across all applications in workspace
-7. **Generate override file** with networks, aliases, labels, and environment variables
-8. **Update state file** with resolved flavors
-9. **Update manifest** with computed values
+4. **Validate service references** in `exported_services` point to actual Compose services:
+   ```
+   Error: Exported service "api" references non-existent Compose service: backend
+     Application: my-app
+     Available services in docker-compose.yaml: web, db, redis
+   ```
+5. **Infer port values** for any exported services with omitted `port:` field (see Port Configuration)
+6. **Default service names** for any exported services with omitted `service:` field
+7. **Collect all exported services** across all applications in workspace
+8. **Generate override file** with networks, aliases, labels, and environment variables
+9. **Update state file** with resolved flavors
+10. **Update manifest** with computed values
 
 ### Shutdown Sequence (`workspace down`)
 
@@ -1168,7 +1178,6 @@ Completely removes a workspace and optionally its application directories:
 
 **Flags**:
 - `--force`: Skip confirmation prompts for application directory removal
-- `--keep-apps`: Preserve application directories (only remove workspace configuration)
 
 ### Viewing Logs
 
@@ -1193,7 +1202,7 @@ docker compose -p dev-app-two logs -f
 docker compose -p dev-app-two logs -f web
 
 # All containers in a workspace (using labels)
-docker logs $(docker ps -q --filter "label=workspace.name=dev")
+docker logs $(docker ps -q --filter "label=contrail.workspace.name=dev")
 ```
 
 ### Listing Workspace Status
@@ -1207,10 +1216,10 @@ contrail-compose -a app-two ps
 Using raw Docker Compose:
 ```bash
 # All containers in a workspace
-docker ps --filter "label=workspace.name=dev"
+docker ps --filter "label=contrail.workspace.name=dev"
 
 # All containers for an application
-docker ps --filter "label=workspace.application=app-two"
+docker ps --filter "label=contrail.app.name=app-two"
 ```
 
 ---
@@ -1254,7 +1263,14 @@ Application developers should update `application.yaml` when:
 - **Environment variables**: `CONTRAIL_{APPLICATION}_{EXPORTED_SERVICE}_{SUFFIX}` in SCREAMING_SNAKE_CASE
 - **Traefik router names**: `{workspace}-{application}-{exported_service}-{protocol}` (e.g., `dev-app-one-web-https`)
 
-**Collision warning**: Traefik router names are derived from the naming pattern above. Creative naming that produces identical router names (e.g., workspace `dev-app` with app `one-web` vs. workspace `dev` with app `app-one-web`) could cause routing conflicts. Follow the lowercase-alphanumeric-with-hyphens convention and avoid names that could produce ambiguous concatenations.
+**Collision warning**: Docker Compose project names, Traefik router names, volume names, and network names are derived from the naming patterns above. Creative naming that produces identical project names could cause conflicts:
+- **Traefik routers**: Conflicting router names cause routing failures
+- **Docker volumes**: Conflicting volume names (e.g., `dev-app-one_postgres_data`) could cause data to be shared unexpectedly or overwritten
+- **Docker networks**: Conflicting network names could connect unrelated services
+
+Example collision: workspace `dev-app` with app `one` and workspace `dev` with app `app-one` both produce project name `dev-app-one`.
+
+Follow the lowercase-alphanumeric-with-hyphens convention and avoid names that could produce ambiguous concatenations.
 
 ### Git Strategy
 
@@ -1353,3 +1369,4 @@ applications:
 | 0.4.0-draft | Dec 2024 | Single-app workspace support, CLI redesign reference, extracted CLI documentation |
 | 0.5.0-draft | Dec 2024 | Updated operations examples to show `contrail-compose` usage; linked shell integration specification |
 | 0.5.1-draft | Dec 2024 | Spec review: validation rules, staleness detection, context detection algorithm, proxy init, Docker labels, flavor set behavior |
+| 0.5.2-draft | Dec 2024 | Spec review: renamed proxy network to contrail-proxy, expanded collision warning, fixed Docker label prefixes |

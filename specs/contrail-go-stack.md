@@ -1,7 +1,7 @@
 # Contrail Go Stack Specification
 
-**Version**: 0.1.0-draft  
-**Date**: December 2024  
+**Version**: 0.1.2-draft
+**Date**: December 2024
 **Status**: Design Phase
 
 This document defines the Go technology stack for Contrail and provides scaffolding instructions for the initial project structure.
@@ -179,7 +179,7 @@ contrail/
 │   │   ├── port.go                 # port subcommands
 │   │   ├── proxy.go                # proxy subcommands
 │   │   ├── config.go               # config subcommands
-│   │   ├── aliases.go              # Top-level aliases (up, down, ps, logs)
+│   │   ├── aliases.go              # Top-level aliases (up, down, ps, generate)
 │   │   ├── compose_prefix.go       # compose-prefix command
 │   │   ├── init_shell.go           # init-shell command
 │   │   ├── completion.go           # completion command
@@ -689,7 +689,7 @@ var proxyInitCmd = &cobra.Command{
 
         // Create directory structure
         // Create docker-compose.yaml, traefik.yaml, dynamic/, certs/
-        // Create proxy network if needed
+        // Create contrail-proxy network if needed
         // Output next steps
 
         return nil
@@ -700,9 +700,14 @@ var proxyUpCmd = &cobra.Command{
     Use:   "up",
     Short: "Start the Traefik proxy",
     RunE: func(cmd *cobra.Command, args []string) error {
+        recreate, _ := cmd.Flags().GetBool("recreate")
+
         // Run proxy init if config doesn't exist
-        // Create proxy network if needed
+        // Create contrail-proxy network if needed
+        // If recreate flag is set, remove and recreate the network
+        // Validate existing network configuration
         // Start containers via docker compose
+        _ = recreate // TODO: implement
         return nil
     },
 }
@@ -746,6 +751,9 @@ func init() {
     proxyInitCmd.Flags().Bool("force", false, "overwrite existing configuration")
     proxyInitCmd.Flags().String("domain", "contrail.test", "proxy domain for generated hostnames")
     proxyInitCmd.Flags().String("path", defaultProxyPath(), "directory to create proxy in")
+
+    // proxy up flags
+    proxyUpCmd.Flags().Bool("recreate", false, "recreate the proxy network even if it exists")
 }
 
 func defaultProxyPath() string {
@@ -804,9 +812,9 @@ type ExportedService struct {
 
 type Port struct {
     Type       string `yaml:"type" validate:"required,oneof=proxied assigned"`
-    Protocol   string `yaml:"protocol,omitempty" validate:"omitempty,oneof=http https tcp postgresql mysql"`
+    Protocol   string `yaml:"protocol,omitempty" validate:"required_if=Type proxied,omitempty,oneof=http https tcp postgresql mysql"`
     Port       int    `yaml:"port,omitempty" validate:"omitempty,min=1,max=65535"`  // Optional: inferred from Compose service
-    Visibility string `yaml:"visibility,omitempty" validate:"omitempty,oneof=public protected"`
+    Visibility string `yaml:"visibility,omitempty" validate:"omitempty,oneof=public protected"`  // Defaults to "protected"
 }
 
 type Flavor struct {
@@ -996,3 +1004,4 @@ Use Docker-in-Docker or testcontainers for integration tests that verify actual 
 |---------|------|---------|
 | 0.1.0-draft | Dec 2024 | Initial Go stack specification |
 | 0.1.1-draft | Dec 2024 | Spec review: fixed validation rules, added missing commands, proxy commands, removed logs command |
+| 0.1.2-draft | Dec 2024 | Spec review: added proxy up --recreate flag, renamed proxy network to contrail-proxy |

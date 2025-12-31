@@ -1,7 +1,7 @@
 # Contrail CLI Reference
 
-**Version**: 0.2.0-draft  
-**Date**: December 2024  
+**Version**: 0.2.2-draft
+**Date**: December 2024
 **Status**: Design Phase
 
 This document is the authoritative reference for Contrail's command-line interface. It defines command structure, arguments, flags, and behaviors.
@@ -318,6 +318,11 @@ contrail workspace clone [flags]
 - Skips applications that already exist locally
 - **Skips applications with `path: .`** (single-app workspaces where the application is the workspace root)
 
+**Error handling**:
+- On clone failure (network error, auth failure, invalid URL), aborts immediately
+- Partial clones are cleaned up on failure
+- Exit code 1 on any failure
+
 **Single-app workspace handling**:
 ```bash
 contrail workspace clone
@@ -373,7 +378,7 @@ contrail workspace up [flags]
 1. Detect or require workspace context
 2. Check if override files are stale; regenerate if needed
 3. Ensure workspace network (`{workspace}-internal`) exists
-4. Ensure proxy network exists and proxy is running
+4. Ensure `contrail-proxy` network exists and proxy is running
 5. For each application (or specified apps):
    - Resolve active flavor
    - Execute `docker compose up -d` with appropriate files
@@ -576,6 +581,8 @@ contrail app add [flags]
 - Adds application entry to `workspace.yaml`
 - If `--repo` provided, clones repository to path
 - If `--path=.`, configures app to use workspace root (single-app workspace)
+
+**Single-app workspace naming**: The workspace name and app name are independent. You can have workspace `dev` with app `myapi`, or create multiple workspaces (`dev`, `review`, `feature-x`) each containing the same app name (`myapi`). The app name comes from `--app`; the workspace name comes from `workspace init --workspace`.
 
 **Example**:
 ```bash
@@ -913,7 +920,7 @@ contrail proxy init [flags]
    - If exists and no `--force`: error with message
    - If exists and `--force`: backup existing config and overwrite
 2. Create proxy directory structure (`docker-compose.yaml`, `traefik.yaml`, `dynamic/`, `certs/`)
-3. Create `proxy` Docker network if it doesn't exist
+3. Create `contrail-proxy` Docker network if it doesn't exist
 4. Output next steps (DNS setup, starting proxy)
 
 **Example**:
@@ -950,13 +957,29 @@ Domain set to: mydev.local
 Start the Traefik proxy.
 
 ```bash
-contrail proxy up
+contrail proxy up [flags]
 ```
 
+**Flags**:
+| Flag | Description |
+|------|-------------|
+| `--recreate` | Recreate the proxy network even if it exists |
+
 **Behavior**:
-- Creates `proxy` network if it doesn't exist
+- Creates `contrail-proxy` network if it doesn't exist
+- Validates existing network configuration matches expected settings
 - Starts Traefik container from proxy configuration
 - If proxy configuration doesn't exist, runs `proxy init` first
+
+**Network conflict handling**:
+If the `contrail-proxy` network exists but was created by a different tool or has incompatible settings, `proxy up` will warn:
+```
+Warning: Network 'contrail-proxy' exists but may not have been created by Contrail.
+  Driver: bridge (expected: bridge) ✓
+  Labels: contrail.managed not found ⚠
+
+Use 'contrail proxy up --recreate' to recreate the network.
+```
 
 **Note**: Users rarely need to call this directly. `workspace up` automatically starts the proxy if it's not running.
 
@@ -993,28 +1016,12 @@ contrail proxy status
 **Output**:
 ```
 Proxy: running
-Network: proxy (created)
+Network: contrail-proxy (created)
 Dashboard: http://localhost:8080
 Entrypoints:
   - web: :80
   - websecure: :443
 ```
-
----
-
-### `contrail proxy logs`
-
-View Traefik proxy logs.
-
-```bash
-contrail proxy logs [flags]
-```
-
-**Flags**:
-| Flag | Description |
-|------|-------------|
-| `-f, --follow` | Follow log output |
-| `--tail` | Number of lines from end |
 
 ---
 
@@ -1085,6 +1092,20 @@ contrail config path
 Global config: ~/.config/contrail/proxy.yaml
 Global state:  ~/.config/contrail/state.yaml
 ```
+
+---
+
+### `contrail config edit`
+
+Open the global configuration file in your default editor.
+
+```bash
+contrail config edit
+```
+
+**Behavior**:
+- Opens `~/.config/contrail/proxy.yaml` in `$EDITOR` (or `$VISUAL`, or falls back to `vi`)
+- Creates the config file with defaults if it doesn't exist
 
 ---
 
@@ -1241,9 +1262,13 @@ All checks passed.
 ```
 
 **DNS checking behavior**:
+- Uses the **system DNS resolver** (respects `/etc/hosts` and `/etc/resolv.conf`)
+- Timeout: **5 seconds** per query
 - Checks base domain (`contrail.test`) resolution
 - If workspaces exist, checks all public proxied hostnames from workspace manifests
 - If no workspaces exist, checks a test subdomain (`check-{timestamp}.contrail.test`) to verify wildcard configuration
+
+**Offline/air-gapped environments**: DNS checks may fail in environments without network access. Use `/etc/hosts` entries or a local dnsmasq configuration for offline development.
 
 **Wildcard DNS warning** (when base resolves but subdomains don't):
 ```
@@ -1397,6 +1422,21 @@ This provides:
 
 ---
 
+## Error Messages
+
+### Docker Not Available
+
+Commands that require Docker check for availability upfront. If Docker is not installed or not running:
+
+```
+Error: Docker is not installed or not running.
+Run 'contrail doctor' for setup guidance.
+```
+
+Exit code: 4
+
+---
+
 ## Examples
 
 ### New workspace from scratch
@@ -1503,3 +1543,4 @@ contrail port gc               # Clean up stale assignments
 | 0.1.0-draft | Dec 2024 | Initial CLI reference |
 | 0.2.0-draft | Dec 2024 | Added `compose-prefix`, `init-shell` commands; expanded shell completion documentation; added `contrail-compose` examples |
 | 0.2.1-draft | Dec 2024 | Spec review: proxy commands, context detection, doctor DNS checks, proxy init, flavor set behavior, removed logs command |
+| 0.2.2-draft | Dec 2024 | Spec review: DNS resolver documentation, proxy up --recreate flag, renamed proxy network to contrail-proxy |
