@@ -1,6 +1,6 @@
 # Contrail Go Stack Specification
 
-**Version**: 0.1.2-draft
+**Version**: 0.1.3-draft
 **Date**: December 2024
 **Status**: Design Phase
 
@@ -296,7 +296,7 @@ import (
 var (
     cfgFile   string
     workspace string
-    app       string
+    apps      []string
     quiet     bool
     verbose   bool
     jsonOut   bool
@@ -331,7 +331,7 @@ func init() {
     // Global flags
     rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.config/contrail/proxy.yaml)")
     rootCmd.PersistentFlags().StringVarP(&workspace, "workspace", "w", "", "specify workspace (overrides context detection)")
-    rootCmd.PersistentFlags().StringVarP(&app, "app", "a", "", "specify application (overrides context detection)")
+    rootCmd.PersistentFlags().StringSliceVarP(&apps, "app", "a", nil, "specify application(s) (repeatable, overrides context detection)")
     rootCmd.PersistentFlags().BoolVarP(&quiet, "quiet", "q", false, "minimal output, suppress context indicators")
     rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "detailed output")
     rootCmd.PersistentFlags().BoolVar(&jsonOut, "json", false, "output in JSON format")
@@ -525,6 +525,10 @@ func init() {
     workspaceCmd.AddCommand(workspaceRestartCmd)
     workspaceCmd.AddCommand(workspaceStatusCmd)
 
+    // workspace list flags
+    workspaceListCmd.Flags().Bool("validate", false, "check that registered paths still contain workspace.yaml")
+    workspaceListCmd.Flags().Bool("rebuild", false, "rebuild registry from Docker labels")
+
     // workspace init flags
     workspaceInitCmd.Flags().String("path", "", "directory to create workspace in")
 
@@ -539,10 +543,198 @@ func init() {
 
     // workspace generate flags
     workspaceGenerateCmd.Flags().Bool("force", false, "regenerate even if up-to-date")
+
+    // workspace prune flags
+    workspacePruneCmd.Flags().Bool("dry-run", false, "show what would be removed without making changes")
 }
 ```
 
-### Step 6: Scaffold Top-Level Aliases
+### Step 6: Scaffold App Commands
+
+Create `internal/cli/app.go`:
+
+```go
+package cli
+
+import (
+    "github.com/spf13/cobra"
+)
+
+var appCmd = &cobra.Command{
+    Use:   "app",
+    Short: "Manage applications",
+    Long:  `Manage applications within workspaces.`,
+}
+
+var appListCmd = &cobra.Command{
+    Use:   "list",
+    Short: "List applications in a workspace",
+    RunE: func(cmd *cobra.Command, args []string) error {
+        // Implementation
+        return nil
+    },
+}
+
+var appShowCmd = &cobra.Command{
+    Use:   "show",
+    Short: "Show application details",
+    RunE: func(cmd *cobra.Command, args []string) error {
+        // Implementation
+        return nil
+    },
+}
+
+var appInitCmd = &cobra.Command{
+    Use:   "init",
+    Short: "Initialize an application configuration",
+    RunE: func(cmd *cobra.Command, args []string) error {
+        // Implementation
+        return nil
+    },
+}
+
+var appAddCmd = &cobra.Command{
+    Use:   "add",
+    Short: "Add an application to a workspace",
+    RunE: func(cmd *cobra.Command, args []string) error {
+        // Implementation
+        return nil
+    },
+}
+
+var appRemoveCmd = &cobra.Command{
+    Use:   "remove",
+    Short: "Remove an application from a workspace",
+    RunE: func(cmd *cobra.Command, args []string) error {
+        // Implementation
+        return nil
+    },
+}
+
+var appUpCmd = &cobra.Command{
+    Use:   "up",
+    Short: "Bring up an application",
+    RunE: func(cmd *cobra.Command, args []string) error {
+        // Implementation
+        return nil
+    },
+}
+
+var appDownCmd = &cobra.Command{
+    Use:   "down",
+    Short: "Tear down an application",
+    RunE: func(cmd *cobra.Command, args []string) error {
+        // Implementation
+        return nil
+    },
+}
+
+var appRestartCmd = &cobra.Command{
+    Use:   "restart",
+    Short: "Restart an application",
+    RunE: func(cmd *cobra.Command, args []string) error {
+        // Implementation
+        return nil
+    },
+}
+
+var appStatusCmd = &cobra.Command{
+    Use:   "status",
+    Short: "Show application status",
+    RunE: func(cmd *cobra.Command, args []string) error {
+        // Implementation
+        return nil
+    },
+}
+
+func init() {
+    rootCmd.AddCommand(appCmd)
+
+    appCmd.AddCommand(appListCmd)
+    appCmd.AddCommand(appShowCmd)
+    appCmd.AddCommand(appInitCmd)
+    appCmd.AddCommand(appAddCmd)
+    appCmd.AddCommand(appRemoveCmd)
+    appCmd.AddCommand(appUpCmd)
+    appCmd.AddCommand(appDownCmd)
+    appCmd.AddCommand(appRestartCmd)
+    appCmd.AddCommand(appStatusCmd)
+
+    // app init flags
+    appInitCmd.Flags().StringP("app", "a", "", "application name (default: current directory name)")
+
+    // app add flags
+    appAddCmd.Flags().StringP("app", "a", "", "application name (required)")
+    appAddCmd.Flags().String("repo", "", "git repository URL to clone")
+    appAddCmd.Flags().String("path", "", "custom path relative to workspace")
+    appAddCmd.MarkFlagRequired("app")
+
+    // app remove flags
+    appRemoveCmd.Flags().Bool("force", false, "skip confirmation, also remove directory")
+
+    // app down flags
+    appDownCmd.Flags().Bool("volumes", false, "also remove volumes")
+}
+```
+
+### Step 6b: Scaffold Flavor Commands
+
+Create `internal/cli/flavor.go`:
+
+```go
+package cli
+
+import (
+    "github.com/spf13/cobra"
+)
+
+var flavorCmd = &cobra.Command{
+    Use:   "flavor",
+    Short: "Manage application flavors",
+    Long:  `Manage application flavors (named configurations).`,
+}
+
+var flavorListCmd = &cobra.Command{
+    Use:   "list",
+    Short: "List available flavors",
+    RunE: func(cmd *cobra.Command, args []string) error {
+        // Implementation
+        return nil
+    },
+}
+
+var flavorShowCmd = &cobra.Command{
+    Use:   "show",
+    Short: "Show current active flavor",
+    RunE: func(cmd *cobra.Command, args []string) error {
+        // Implementation
+        return nil
+    },
+}
+
+var flavorSetCmd = &cobra.Command{
+    Use:   "set <flavor>",
+    Short: "Set the active flavor",
+    Args:  cobra.ExactArgs(1),
+    RunE: func(cmd *cobra.Command, args []string) error {
+        // args[0] contains the flavor name
+        // Implementation
+        return nil
+    },
+}
+
+func init() {
+    rootCmd.AddCommand(flavorCmd)
+
+    flavorCmd.AddCommand(flavorListCmd)
+    flavorCmd.AddCommand(flavorShowCmd)
+    flavorCmd.AddCommand(flavorSetCmd)
+
+    // Note: -w/--workspace and -a/--app flags are inherited from root command
+}
+```
+
+### Step 7: Scaffold Top-Level Aliases
 
 Create `internal/cli/aliases.go`:
 
@@ -591,7 +783,7 @@ func init() {
 }
 ```
 
-### Step 7: Scaffold compose-prefix Command
+### Step 8: Scaffold compose-prefix Command
 
 Create `internal/cli/compose_prefix.go`:
 
@@ -649,7 +841,7 @@ func getComposeFilesForApp(workspace, app string) ([]string, error) {
 }
 ```
 
-### Step 7b: Scaffold Proxy Commands
+### Step 8b: Scaffold Proxy Commands
 
 Create `internal/cli/proxy.go`:
 
@@ -762,7 +954,7 @@ func defaultProxyPath() string {
 }
 ```
 
-### Step 8: Scaffold Config Types
+### Step 9: Scaffold Config Types
 
 Create `internal/config/workspace.go`:
 
@@ -850,7 +1042,7 @@ The config loader (`internal/config/loader.go`) applies these inference rules af
     Available compose files: docker-compose.yaml, docker-compose.dev.yaml
   ```
 
-### Step 9: Create Entry Point
+### Step 10: Create Entry Point
 
 Create `cmd/contrail/main.go`:
 
@@ -864,7 +1056,7 @@ func main() {
 }
 ```
 
-### Step 10: Build and Verify
+### Step 11: Build and Verify
 
 ```bash
 go build -o contrail ./cmd/contrail
@@ -900,8 +1092,11 @@ go build -o contrail ./cmd/contrail
 | `contrail flavor show` | `flavorCmd` → `flavorShowCmd` | |
 | `contrail flavor set` | `flavorCmd` → `flavorSetCmd` | |
 | `contrail port list` | `portCmd` → `portListCmd` | Global (no context) |
+| `contrail port show` | `portCmd` → `portShowCmd` | Global (no context) |
 | `contrail port release` | `portCmd` → `portReleaseCmd` | Global (no context) |
+| `contrail port assign` | `portCmd` → `portAssignCmd` | Global (no context) |
 | `contrail port gc` | `portCmd` → `portGcCmd` | Global (no context) |
+| `contrail port scan` | `portCmd` → `portScanCmd` | Global (no context) |
 | `contrail proxy init` | `proxyCmd` → `proxyInitCmd` | Global (no context) |
 | `contrail proxy status` | `proxyCmd` → `proxyStatusCmd` | Global (no context) |
 | `contrail proxy up` | `proxyCmd` → `proxyUpCmd` | Global (no context) |
@@ -1005,3 +1200,4 @@ Use Docker-in-Docker or testcontainers for integration tests that verify actual 
 | 0.1.0-draft | Dec 2024 | Initial Go stack specification |
 | 0.1.1-draft | Dec 2024 | Spec review: fixed validation rules, added missing commands, proxy commands, removed logs command |
 | 0.1.2-draft | Dec 2024 | Spec review: added proxy up --recreate flag, renamed proxy network to contrail-proxy |
+| 0.1.3-draft | Dec 2024 | Spec review: completed issues 19-30 (app exec clarification, repeatable flags, missing commands scaffolding) |

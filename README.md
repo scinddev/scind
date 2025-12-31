@@ -32,22 +32,34 @@ contrail-spec-review/
     ├── 15-error-handling.md
     ├── 16-security-platform.md
     ├── 17-dns-networking.md
-    └── 18-docker-label-consistency.md
+    ├── 18-docker-label-consistency.md
+    ├── 19-proxy-network-naming.md
+    ├── 20-workspace-destroy-registry.md
+    ├── 21-go-stack-missing-app-exec.md
+    ├── 22-multiple-app-flags.md
+    ├── 23-shell-integration-version.md
+    ├── 24-traefik-dashboard-port.md
+    ├── 25-workspace-prune-go-stack.md
+    ├── 26-workspace-list-flags.md
+    ├── 27-keep-apps-flag.md
+    ├── 28-app-commands-go-stack.md
+    ├── 29-port-commands-go-stack.md
+    └── 30-flavor-commands-go-stack.md
 ```
 
 ## Getting Started
 
 1. Read `issues/00-index.md` for an overview of all findings
-2. Work through issue groups in order (1-18)
+2. Work through issue groups in order (1-30)
 3. Each issue file has response sections for your decisions
 4. Update specs as you resolve issues
 
 ## Summary
 
-- **47 total issues** identified across 18 groups
+- **59 total issues** identified across 30 groups
 - **7 high severity** (should resolve before implementation)
-- **15 medium severity** (resolve during implementation)
-- **25 low severity** (nice-to-haves)
+- **17 medium severity** (resolve during implementation)
+- **35 low severity** (nice-to-haves)
 
 ## Recommended Order
 
@@ -71,3 +83,15 @@ contrail-spec-review/
 | 16 | Security & Platform | Dashboard security, platform scope |
 | 17 | DNS & Networking | DNS resolution, naming collisions |
 | 18 | Docker Label Consistency | Minor label prefix fix |
+| 19 | Proxy Network Naming | Architecture diagram inconsistency |
+| 20 | Workspace Destroy Registry | Missing registry step in CLI docs |
+| 21 | Go Stack Missing App Exec | Clarify app exec design decision |
+| 22 | Multiple App Flags | Repeatable --app flag implementation |
+| 23 | Shell Integration Version | Version header mismatch |
+| 24 | Traefik Dashboard Port | Dashboard configuration inconsistency |
+| 25 | Workspace Prune Go Stack | Missing --dry-run flag |
+| 26 | Workspace List Flags | Missing flags in Go Stack |
+| 27 | Keep Apps Flag | Consider adding --keep-apps |
+| 28 | App Commands Go Stack | Missing app command scaffolding |
+| 29 | Port Commands Go Stack | Missing port commands in mapping |
+| 30 | Flavor Commands Go Stack | Missing flavor command scaffolding |

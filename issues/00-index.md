@@ -1,8 +1,8 @@
 # Contrail Specification Issues — Index
 
 **Created**: December 2024
-**Total Issues**: 47
-**Groups**: 18
+**Total Issues**: 59
+**Groups**: 30
 
 ---
 
@@ -28,6 +28,18 @@
 | 16 | `16-security-platform.md` | 2 | PRD, Tech Spec | Small | ✅ COMPLETED |
 | 17 | `17-dns-networking.md` | 3 | Tech Spec, CLI Ref | Small | ✅ COMPLETED |
 | 18 | `18-docker-label-consistency.md` | 1 | Tech Spec | Small | ✅ COMPLETED |
+| 19 | `19-proxy-network-naming.md` | 1 | Tech Spec, PRD | Small | ✅ COMPLETED |
+| 20 | `20-workspace-destroy-registry.md` | 1 | Tech Spec, CLI Ref | Small | ✅ COMPLETED |
+| 21 | `21-go-stack-missing-app-exec.md` | 1 | Go Stack, CLI Ref | Small | ✅ COMPLETED |
+| 22 | `22-multiple-app-flags.md` | 1 | Go Stack, CLI Ref | Small | ✅ COMPLETED |
+| 23 | `23-shell-integration-version.md` | 1 | Shell Integration | Small | ✅ COMPLETED |
+| 24 | `24-traefik-dashboard-port.md` | 1 | Tech Spec, CLI Ref | Small | ✅ COMPLETED |
+| 25 | `25-workspace-prune-go-stack.md` | 1 | Go Stack, CLI Ref | Small | ✅ COMPLETED |
+| 26 | `26-workspace-list-flags.md` | 1 | Go Stack, CLI Ref | Small | ✅ COMPLETED |
+| 27 | `27-keep-apps-flag.md` | 1 | Tech Spec, CLI Ref | Small | ✅ COMPLETED |
+| 28 | `28-app-commands-go-stack.md` | 1 | Go Stack, CLI Ref | Small | ✅ COMPLETED |
+| 29 | `29-port-commands-go-stack.md` | 1 | Go Stack, CLI Ref | Small | ✅ COMPLETED |
+| 30 | `30-flavor-commands-go-stack.md` | 1 | Go Stack, CLI Ref | Small | ✅ COMPLETED |
 
 ---
 
@@ -43,7 +55,7 @@
 | M-7: Workspace name collisions | 4 | `04-workspace-features.md` |
 | A-1: Staleness detection undefined | 5 | `05-operations-generation.md` |
 
-### Medium Severity (15 issues)
+### Medium Severity (17 issues)
 | Issue | Group | File |
 |-------|-------|------|
 | C-4: Proxy command naming | 7 | `07-cli-commands.md` |
@@ -62,8 +74,10 @@
 | N-8: Concurrent operations undefined | 15 | `15-error-handling.md` |
 | N-11: Non-existent Compose service | 15 | `15-error-handling.md` |
 | N-13: Traefik dashboard security | 16 | `16-security-platform.md` |
+| N-22: Repeatable --app flag implementation | 22 | `22-multiple-app-flags.md` |
+| N-24: Dashboard port configuration | 24 | `24-traefik-dashboard-port.md` |
 
-### Low Severity (25 issues)
+### Low Severity (35 issues)
 | Issue | Group | File |
 |-------|-------|------|
 | C-1: Version desync | 10 | `10-documentation-polish.md` |
@@ -91,6 +105,16 @@
 | N-16: Volume naming collision | 17 | `17-dns-networking.md` |
 | N-17: Existing proxy network | 17 | `17-dns-networking.md` |
 | N-18: Docker label prefix inconsistency | 18 | `18-docker-label-consistency.md` |
+| N-19: Proxy network name in diagram | 19 | `19-proxy-network-naming.md` |
+| N-20: Registry removal missing from CLI docs | 20 | `20-workspace-destroy-registry.md` |
+| N-21: Missing app exec clarification | 21 | `21-go-stack-missing-app-exec.md` |
+| N-23: Version header mismatch | 23 | `23-shell-integration-version.md` |
+| N-25: Missing --dry-run flag in Go Stack | 25 | `25-workspace-prune-go-stack.md` |
+| N-26: Missing workspace list flags in Go Stack | 26 | `26-workspace-list-flags.md` |
+| N-27: Missing --keep-apps flag | 27 | `27-keep-apps-flag.md` |
+| N-28: Missing app commands scaffolding | 28 | `28-app-commands-go-stack.md` |
+| N-29: Missing port commands in mapping | 29 | `29-port-commands-go-stack.md` |
+| N-30: Missing flavor commands scaffolding | 30 | `30-flavor-commands-go-stack.md` |
 
 ---
 
@@ -136,6 +160,26 @@
 ### Technical Spec Only
 - `18-docker-label-consistency.md` (1 issue)
 
+### Technical Spec + PRD
+- `19-proxy-network-naming.md` (1 issue)
+
+### Technical Spec + CLI Reference (new)
+- `20-workspace-destroy-registry.md` (1 issue)
+- `24-traefik-dashboard-port.md` (1 issue)
+- `27-keep-apps-flag.md` (1 issue)
+
+### Go Stack + CLI Reference
+- `21-go-stack-missing-app-exec.md` (1 issue)
+- `22-multiple-app-flags.md` (1 issue)
+- `25-workspace-prune-go-stack.md` (1 issue)
+- `26-workspace-list-flags.md` (1 issue)
+- `28-app-commands-go-stack.md` (1 issue)
+- `29-port-commands-go-stack.md` (1 issue)
+- `30-flavor-commands-go-stack.md` (1 issue)
+
+### Shell Integration Only
+- `23-shell-integration-version.md` (1 issue)
+
 ---
 
 ## Quick Start
@@ -155,6 +199,12 @@
    - **Group 16**: Security and platform scope decisions
    - **Group 17**: DNS and networking details
    - **Group 18**: Single fix for label prefix consistency
+10. **Groups 19-30** are new issues from third review pass:
+   - **Groups 19-20**: Minor consistency fixes (Tech Spec/CLI alignment)
+   - **Groups 21-22**: Go Stack implementation details (app exec, repeatable flags)
+   - **Group 23**: Shell Integration version header fix
+   - **Group 24**: Traefik dashboard configuration inconsistency
+   - **Groups 25-30**: Go Stack scaffolding completeness (missing flags, commands)
 
 ---
 
@@ -180,5 +230,17 @@ issues/
 ├── 15-error-handling.md           # Error scenarios
 ├── 16-security-platform.md        # Security & platform
 ├── 17-dns-networking.md           # DNS & networking
-└── 18-docker-label-consistency.md # Label prefix fix
+├── 18-docker-label-consistency.md # Label prefix fix
+├── 19-proxy-network-naming.md     # Diagram inconsistency
+├── 20-workspace-destroy-registry.md  # Registry step missing
+├── 21-go-stack-missing-app-exec.md   # App exec design
+├── 22-multiple-app-flags.md       # Repeatable --app flag
+├── 23-shell-integration-version.md   # Version header
+├── 24-traefik-dashboard-port.md   # Dashboard config
+├── 25-workspace-prune-go-stack.md # Missing --dry-run
+├── 26-workspace-list-flags.md     # Missing list flags
+├── 27-keep-apps-flag.md           # --keep-apps flag
+├── 28-app-commands-go-stack.md    # App scaffolding
+├── 29-port-commands-go-stack.md   # Port commands
+└── 30-flavor-commands-go-stack.md # Flavor scaffolding
 ```

@@ -1,6 +1,6 @@
 # Contrail CLI Reference
 
-**Version**: 0.2.2-draft
+**Version**: 0.2.3-draft
 **Date**: December 2024
 **Status**: Design Phase
 
@@ -475,16 +475,18 @@ contrail workspace destroy [flags]
 | Flag | Description |
 |------|-------------|
 | `-w, --workspace` | Target workspace (or use context) |
-| `--force` | Skip all confirmation prompts |
+| `--force` | Skip confirmation prompts and remove application directories |
+| `--keep-apps` | Preserve application directories without prompting |
 
 **Behavior**:
 1. Run `workspace down --volumes`
 2. Remove `.generated/` directory
-3. Prompt before removing application directories (unless `--force`)
+3. Prompt before removing application directories (unless `--force` or `--keep-apps`)
 4. Remove `workspace.yaml`
 5. Release any assigned ports
+6. Remove workspace from registry (`~/.config/contrail/workspaces.yaml`)
 
-**Warning**: This is destructive. Without `--force`, prompts for confirmation showing what will be removed.
+**Warning**: This is destructive. Without `--force` or `--keep-apps`, prompts for confirmation showing what will be removed.
 
 ---
 
@@ -1013,7 +1015,7 @@ Show proxy status.
 contrail proxy status
 ```
 
-**Output**:
+**Output** (dashboard enabled):
 ```
 Proxy: running
 Network: contrail-proxy (created)
@@ -1022,6 +1024,18 @@ Entrypoints:
   - web: :80
   - websecure: :443
 ```
+
+**Output** (dashboard disabled):
+```
+Proxy: running
+Network: contrail-proxy (created)
+Dashboard: disabled
+Entrypoints:
+  - web: :80
+  - websecure: :443
+```
+
+**Note**: The dashboard URL reflects the configured port from `proxy.yaml` (`dashboard.port`, default 8080). If `dashboard.enabled` is false, the dashboard line shows "disabled".
 
 ---
 
@@ -1544,3 +1558,4 @@ contrail port gc               # Clean up stale assignments
 | 0.2.0-draft | Dec 2024 | Added `compose-prefix`, `init-shell` commands; expanded shell completion documentation; added `contrail-compose` examples |
 | 0.2.1-draft | Dec 2024 | Spec review: proxy commands, context detection, doctor DNS checks, proxy init, flavor set behavior, removed logs command |
 | 0.2.2-draft | Dec 2024 | Spec review: DNS resolver documentation, proxy up --recreate flag, renamed proxy network to contrail-proxy |
+| 0.2.3-draft | Dec 2024 | Spec review: completed issues 19-30 (registry removal, app exec, flags, commands scaffolding) |

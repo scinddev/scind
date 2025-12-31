@@ -1,6 +1,6 @@
 # Contrail Technical Specification
 
-**Version**: 0.5.2-draft
+**Version**: 0.5.3-draft
 **Date**: December 2024
 **Status**: Design Phase
 
@@ -29,7 +29,7 @@ A **workspace** is a logical grouping of Docker Compose-based applications that 
 │  ┌─────────────────────────────────────────────────────────────────┐   │
 │  │                        PROXY LAYER                               │   │
 │  │  ┌──────────┐                                                    │   │
-│  │  │ Traefik  │◄─────── proxy (external network)                   │   │
+│  │  │ Traefik  │◄─────── contrail-proxy (external network)           │   │
 │  │  └──────────┘              │                                     │   │
 │  └────────────────────────────┼─────────────────────────────────────┘   │
 │                               │                                         │
@@ -238,6 +238,7 @@ proxy:
   traefik_image: traefik:v3.2.3          # Traefik Docker image (defaults to pinned version)
   dashboard:
     enabled: true                        # Enable/disable Traefik dashboard (default: true)
+    port: 8080                           # Dashboard port (default: 8080)
     # Future: password support via environment variable
   # Future: TLS settings, entrypoints, etc.
 ```
@@ -266,9 +267,11 @@ services:
     image: ${TRAEFIK_IMAGE:-traefik:v3.2.3}  # Configurable via proxy.yaml
     command:
       - "--configFile=/etc/traefik/traefik.yaml"
+      - "--api.dashboard=true"               # Set to false if dashboard.enabled: false
     ports:
       - "80:80"
       - "443:443"
+      - "8080:8080"                          # Only included if dashboard.enabled: true (port from dashboard.port)
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik.yaml:/etc/traefik/traefik.yaml:ro
@@ -289,7 +292,7 @@ networks:
 **traefik.yaml** (generated):
 ```yaml
 api:
-  dashboard: false
+  dashboard: true                          # Set based on proxy.yaml dashboard.enabled (default: true)
 
 entryPoints:
   web:
@@ -992,34 +995,8 @@ const dbPort = process.env.CONTRAIL_APP_ONE_DB_PORT || '5432';
 ### Traefik Configuration
 
 **proxy/docker-compose.yaml:**
-```yaml
-services:
-  traefik:
-    image: ${TRAEFIK_IMAGE:-traefik:v3.2.3}  # Configurable via proxy.yaml
-    container_name: traefik
-    restart: unless-stopped
-    command:
-      - "--api.dashboard=true"
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--providers.docker.network=contrail-proxy"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-    ports:
-      - "80:80"
-      - "443:443"
-      - "8080:8080"  # Dashboard
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    networks:
-      - contrail-proxy
 
-networks:
-  contrail-proxy:
-    name: contrail-proxy
-    driver: bridge
-```
+See [Proxy Infrastructure](#proxy-infrastructure) for the generated docker-compose.yaml structure. The dashboard port (`8080:8080`) is only included when `proxy.dashboard.enabled` is true (default). The `--api.dashboard` flag is set based on the same configuration.
 
 ### DNS Configuration
 
@@ -1171,13 +1148,14 @@ Completely removes a workspace and optionally its application directories:
 
 1. Run `workspace down --volumes` to stop all containers and remove volumes
 2. Remove `.generated/` directory
-3. Prompt before removing application directories (unless `--force`)
+3. Prompt before removing application directories (unless `--force` or `--keep-apps`)
 4. Remove `workspace.yaml`
 5. Release any assigned ports from global state
 6. Remove workspace from registry (`~/.config/contrail/workspaces.yaml`)
 
 **Flags**:
-- `--force`: Skip confirmation prompts for application directory removal
+- `--force`: Skip confirmation prompts and remove application directories
+- `--keep-apps`: Preserve application directories without prompting
 
 ### Viewing Logs
 
@@ -1370,3 +1348,4 @@ applications:
 | 0.5.0-draft | Dec 2024 | Updated operations examples to show `contrail-compose` usage; linked shell integration specification |
 | 0.5.1-draft | Dec 2024 | Spec review: validation rules, staleness detection, context detection algorithm, proxy init, Docker labels, flavor set behavior |
 | 0.5.2-draft | Dec 2024 | Spec review: renamed proxy network to contrail-proxy, expanded collision warning, fixed Docker label prefixes |
+| 0.5.3-draft | Dec 2024 | Spec review: completed issues 19-30 (registry removal, dashboard port, --keep-apps flag consideration) |

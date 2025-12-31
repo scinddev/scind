@@ -1,6 +1,6 @@
 # Contrail Shell Integration Specification
 
-**Version**: 0.1.0-draft  
+**Version**: 0.1.2-draft  
 **Date**: December 2024  
 **Status**: Design Phase
 
@@ -840,3 +840,4 @@ php     nginx   postgres    worker
 |---------|------|---------|
 | 0.1.0-draft | Dec 2024 | Initial shell integration specification |
 | 0.1.1-draft | Dec 2024 | Spec review: removed --flavor flag from compose-prefix, added exit codes documentation |
+| 0.1.2-draft | Dec 2024 | Spec review: fixed version header to match document version |
