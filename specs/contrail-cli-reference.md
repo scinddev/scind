@@ -170,12 +170,46 @@ These flags are available on all commands:
 |------|-------|-------------|
 | `--workspace` | `-w` | Specify workspace (overrides context detection) |
 | `--app` | `-a` | Specify application (overrides context detection) |
-| `--quiet` | `-q` | Minimal output, suppress context indicators |
+| `--quiet` | `-q` | Minimal output, suppress context indicators and progress |
 | `--verbose` | `-v` | Detailed output |
 | `--json` | | Output in JSON format |
 | `--yaml` | | Output in YAML format |
+| `--color` | | Color output: `auto` (default), `always`, or `never` |
 | `--help` | `-h` | Show help for command |
 | `--version` | | Show Contrail version |
+
+### Output Behavior
+
+**Progress output**: Multi-application operations show per-application progress by default:
+```
+Starting app-one... done
+Starting app-two... done
+Starting app-three... done
+```
+
+**`--quiet` behavior**:
+- Suppresses context indicators ("Using workspace: dev")
+- Suppresses progress messages ("Starting app-one... done")
+- Status commands output just the value: `running`
+- List commands output names only, one per line
+- Errors are always shown regardless of `--quiet`
+
+```bash
+# Normal output
+$ contrail workspace list
+NAME    PATH                      APPS   STATUS
+dev     ~/workspaces/dev          3      running
+staging ~/workspaces/staging      2      stopped
+
+# Quiet output (machine-readable)
+$ contrail workspace list -q
+dev
+staging
+
+# Status with quiet
+$ contrail app status -q
+running
+```
 
 ---
 
@@ -432,7 +466,7 @@ contrail workspace restart [flags]
 | `-w, --workspace` | Target workspace (or use context) |
 | `-a, --app` | Restart specific app(s) only (repeatable) |
 
-**Behavior**: Equivalent to `down` followed by `up`.
+**Behavior**: Equivalent to `down` followed by `up`. Volumes are always preserved (the internal `down` does not use `--volumes`).
 
 ---
 
@@ -667,6 +701,8 @@ contrail app restart [flags]
 |------|-------------|
 | `-w, --workspace` | Target workspace (or use context) |
 | `-a, --app` | Target application (or use context) |
+
+**Behavior**: Equivalent to `app down` followed by `app up`. Volumes are always preserved.
 
 ---
 
@@ -1559,3 +1595,4 @@ contrail port gc               # Clean up stale assignments
 | 0.2.1-draft | Dec 2024 | Spec review: proxy commands, context detection, doctor DNS checks, proxy init, flavor set behavior, removed logs command |
 | 0.2.2-draft | Dec 2024 | Spec review: DNS resolver documentation, proxy up --recreate flag, renamed proxy network to contrail-proxy |
 | 0.2.3-draft | Dec 2024 | Spec review: completed issues 19-30 (registry removal, app exec, flags, commands scaffolding) |
+| 0.2.4-draft | Dec 2024 | Spec review: restart volume preservation, --color flag, --quiet behavior with examples, progress output documentation |

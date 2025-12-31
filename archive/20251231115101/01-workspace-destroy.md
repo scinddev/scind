@@ -32,3 +32,9 @@ The `workspace destroy` command is documented in CLI Reference and Technical Spe
 ## Checklist
 
 - [x] Add `workspace destroy` to PRD Quick Reference section (line ~325)
+
+---
+
+## Archived
+
+This issue was archived on 2024-12-31 at 11:51:01.

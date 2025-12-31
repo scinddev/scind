@@ -1,6 +1,6 @@
 # Contrail Go Stack Specification
 
-**Version**: 0.1.3-draft
+**Version**: 0.1.4-draft
 **Date**: December 2024
 **Status**: Design Phase
 
@@ -145,6 +145,26 @@ var fishScript string
 ### Docker Interaction Strategy
 
 **Primary approach**: Shell out to `docker compose` via `exec.Command`. This is simpler, maintains full Docker Compose compatibility, and is what the specs describe.
+
+**Error handling**: Use pass-through with context prefix. Capture both stdout and stderr from docker compose, and on non-zero exit:
+1. Print a context line: `"Failed to start {app-name}:"` or `"Failed to stop {app-name}:"`
+2. Print the full docker compose output (stdout + stderr) unmodified
+3. Return an appropriate exit code
+
+```go
+// Example: Running docker compose with error handling
+func runCompose(appName string, args ...string) error {
+    cmd := exec.Command("docker", append([]string{"compose"}, args...)...)
+    output, err := cmd.CombinedOutput()
+    if err != nil {
+        fmt.Fprintf(os.Stderr, "Failed to %s %s:\n", args[0], appName)
+        fmt.Fprint(os.Stderr, string(output))
+        return err
+    }
+    fmt.Print(string(output))
+    return nil
+}
+```
 
 **Docker SDK usage**: For operations that don't map to compose commands:
 - Network creation/inspection (`{workspace}-internal`)
@@ -301,6 +321,7 @@ var (
     verbose   bool
     jsonOut   bool
     yamlOut   bool
+    colorMode string  // auto, always, never
 )
 
 var rootCmd = &cobra.Command{
@@ -332,10 +353,11 @@ func init() {
     rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.config/contrail/proxy.yaml)")
     rootCmd.PersistentFlags().StringVarP(&workspace, "workspace", "w", "", "specify workspace (overrides context detection)")
     rootCmd.PersistentFlags().StringSliceVarP(&apps, "app", "a", nil, "specify application(s) (repeatable, overrides context detection)")
-    rootCmd.PersistentFlags().BoolVarP(&quiet, "quiet", "q", false, "minimal output, suppress context indicators")
+    rootCmd.PersistentFlags().BoolVarP(&quiet, "quiet", "q", false, "minimal output, suppress context indicators and progress")
     rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "detailed output")
     rootCmd.PersistentFlags().BoolVar(&jsonOut, "json", false, "output in JSON format")
     rootCmd.PersistentFlags().BoolVar(&yamlOut, "yaml", false, "output in YAML format")
+    rootCmd.PersistentFlags().StringVar(&colorMode, "color", "auto", "color output: auto, always, or never")
 
     // Register flag completion
     rootCmd.RegisterFlagCompletionFunc("workspace", completeWorkspace)
@@ -746,28 +768,37 @@ import (
 )
 
 // Top-level aliases for common operations
+// These call shared implementation functions to ensure proper context handling
 var upCmd = &cobra.Command{
     Use:   "up",
     Short: "Alias for 'workspace up'",
-    RunE:  workspaceUpCmd.RunE,
+    RunE: func(cmd *cobra.Command, args []string) error {
+        return runWorkspaceUp(cmd, args)
+    },
 }
 
 var downCmd = &cobra.Command{
     Use:   "down",
     Short: "Alias for 'workspace down'",
-    RunE:  workspaceDownCmd.RunE,
+    RunE: func(cmd *cobra.Command, args []string) error {
+        return runWorkspaceDown(cmd, args)
+    },
 }
 
 var psCmd = &cobra.Command{
     Use:   "ps",
     Short: "Alias for 'workspace status'",
-    RunE:  workspaceStatusCmd.RunE,
+    RunE: func(cmd *cobra.Command, args []string) error {
+        return runWorkspaceStatus(cmd, args)
+    },
 }
 
 var generateCmd = &cobra.Command{
     Use:   "generate",
     Short: "Alias for 'workspace generate'",
-    RunE:  workspaceGenerateCmd.RunE,
+    RunE: func(cmd *cobra.Command, args []string) error {
+        return runWorkspaceGenerate(cmd, args)
+    },
 }
 
 func init() {
@@ -781,7 +812,32 @@ func init() {
     downCmd.Flags().AddFlagSet(workspaceDownCmd.Flags())
     generateCmd.Flags().AddFlagSet(workspaceGenerateCmd.Flags())
 }
+
+// Shared implementation functions (called by both workspace commands and aliases)
+// These are defined here but the actual implementation lives in workspace.go
+
+func runWorkspaceUp(cmd *cobra.Command, args []string) error {
+    // Implementation: generate overrides, start containers
+    return nil
+}
+
+func runWorkspaceDown(cmd *cobra.Command, args []string) error {
+    // Implementation: stop containers, optionally remove volumes
+    return nil
+}
+
+func runWorkspaceStatus(cmd *cobra.Command, args []string) error {
+    // Implementation: aggregate status from all apps
+    return nil
+}
+
+func runWorkspaceGenerate(cmd *cobra.Command, args []string) error {
+    // Implementation: generate override files
+    return nil
+}
 ```
+
+Note: The workspace commands in `workspace.go` should call these same `runWorkspace*` functions to ensure consistent behavior between the full command and alias forms.
 
 ### Step 8: Scaffold compose-prefix Command
 
@@ -953,6 +1009,360 @@ func defaultProxyPath() string {
     return filepath.Join(home, ".config", "contrail", "proxy")
 }
 ```
+
+### Step 8c: Scaffold Port Commands
+
+Create `internal/cli/port.go`:
+
+```go
+package cli
+
+import (
+    "github.com/spf13/cobra"
+)
+
+var portCmd = &cobra.Command{
+    Use:   "port",
+    Short: "Manage port assignments",
+    Long:  `View and manage port assignments across all workspaces.`,
+}
+
+var portListCmd = &cobra.Command{
+    Use:   "list",
+    Short: "List all port assignments",
+    RunE: func(cmd *cobra.Command, args []string) error {
+        // Implementation
+        return nil
+    },
+}
+
+var portShowCmd = &cobra.Command{
+    Use:   "show <port>",
+    Short: "Show details for a specific port",
+    Args:  cobra.ExactArgs(1),
+    RunE: func(cmd *cobra.Command, args []string) error {
+        // args[0] contains the port number
+        return nil
+    },
+}
+
+var portReleaseCmd = &cobra.Command{
+    Use:   "release <port>",
+    Short: "Release a port assignment",
+    Args:  cobra.ExactArgs(1),
+    RunE: func(cmd *cobra.Command, args []string) error {
+        // Implementation
+        return nil
+    },
+}
+
+var portAssignCmd = &cobra.Command{
+    Use:   "assign",
+    Short: "Manually assign a port",
+    RunE: func(cmd *cobra.Command, args []string) error {
+        // Implementation
+        return nil
+    },
+}
+
+var portGcCmd = &cobra.Command{
+    Use:   "gc",
+    Short: "Garbage collect stale port assignments",
+    RunE: func(cmd *cobra.Command, args []string) error {
+        // Implementation
+        return nil
+    },
+}
+
+var portScanCmd = &cobra.Command{
+    Use:   "scan",
+    Short: "Scan for port conflicts",
+    RunE: func(cmd *cobra.Command, args []string) error {
+        // Implementation
+        return nil
+    },
+}
+
+func init() {
+    rootCmd.AddCommand(portCmd)
+
+    portCmd.AddCommand(portListCmd)
+    portCmd.AddCommand(portShowCmd)
+    portCmd.AddCommand(portReleaseCmd)
+    portCmd.AddCommand(portAssignCmd)
+    portCmd.AddCommand(portGcCmd)
+    portCmd.AddCommand(portScanCmd)
+
+    // port release flags
+    portReleaseCmd.Flags().Bool("force", false, "release even if container is running")
+
+    // port assign flags
+    portAssignCmd.Flags().Int("port", 0, "specific port to assign (required)")
+    portAssignCmd.Flags().StringP("workspace", "w", "", "workspace name (required)")
+    portAssignCmd.Flags().StringP("app", "a", "", "application name (required)")
+    portAssignCmd.Flags().String("service", "", "service name (required)")
+    portAssignCmd.MarkFlagRequired("port")
+    portAssignCmd.MarkFlagRequired("workspace")
+    portAssignCmd.MarkFlagRequired("app")
+    portAssignCmd.MarkFlagRequired("service")
+
+    // port gc flags
+    portGcCmd.Flags().Bool("dry-run", false, "show what would be released without making changes")
+
+    // port scan flags
+    portScanCmd.Flags().Bool("fix", false, "attempt to resolve conflicts automatically")
+}
+```
+
+### Step 8d: Scaffold Config Commands
+
+Create `internal/cli/config.go`:
+
+```go
+package cli
+
+import (
+    "github.com/spf13/cobra"
+)
+
+var configCmd = &cobra.Command{
+    Use:   "config",
+    Short: "Manage Contrail configuration",
+    Long:  `View and modify Contrail configuration settings.`,
+}
+
+var configShowCmd = &cobra.Command{
+    Use:   "show",
+    Short: "Show current configuration",
+    RunE: func(cmd *cobra.Command, args []string) error {
+        // Implementation
+        return nil
+    },
+}
+
+var configGetCmd = &cobra.Command{
+    Use:   "get <key>",
+    Short: "Get a configuration value",
+    Args:  cobra.ExactArgs(1),
+    RunE: func(cmd *cobra.Command, args []string) error {
+        // args[0] contains the key
+        return nil
+    },
+}
+
+var configSetCmd = &cobra.Command{
+    Use:   "set <key> <value>",
+    Short: "Set a configuration value",
+    Args:  cobra.ExactArgs(2),
+    RunE: func(cmd *cobra.Command, args []string) error {
+        // args[0] = key, args[1] = value
+        return nil
+    },
+}
+
+var configPathCmd = &cobra.Command{
+    Use:   "path",
+    Short: "Show configuration file paths",
+    RunE: func(cmd *cobra.Command, args []string) error {
+        // Implementation
+        return nil
+    },
+}
+
+var configEditCmd = &cobra.Command{
+    Use:   "edit",
+    Short: "Open configuration in editor",
+    RunE: func(cmd *cobra.Command, args []string) error {
+        // Implementation: open $EDITOR or default editor
+        return nil
+    },
+}
+
+func init() {
+    rootCmd.AddCommand(configCmd)
+
+    configCmd.AddCommand(configShowCmd)
+    configCmd.AddCommand(configGetCmd)
+    configCmd.AddCommand(configSetCmd)
+    configCmd.AddCommand(configPathCmd)
+    configCmd.AddCommand(configEditCmd)
+
+    // config show flags
+    configShowCmd.Flags().Bool("resolved", false, "show fully resolved configuration with all defaults")
+
+    // config edit flags
+    configEditCmd.Flags().String("file", "proxy", "which config to edit: proxy, workspace, or application")
+}
+```
+
+### Step 8e: Scaffold Utility Commands
+
+Create `internal/cli/validate.go`:
+
+```go
+package cli
+
+import (
+    "github.com/spf13/cobra"
+)
+
+var validateCmd = &cobra.Command{
+    Use:   "validate",
+    Short: "Validate configuration files",
+    Long:  `Validate workspace.yaml and application.yaml files for correctness.`,
+    RunE: func(cmd *cobra.Command, args []string) error {
+        // Implementation: validate schemas, check references
+        return nil
+    },
+}
+
+func init() {
+    rootCmd.AddCommand(validateCmd)
+
+    validateCmd.Flags().Bool("strict", false, "treat warnings as errors")
+}
+```
+
+Create `internal/cli/doctor.go`:
+
+```go
+package cli
+
+import (
+    "github.com/spf13/cobra"
+)
+
+var doctorCmd = &cobra.Command{
+    Use:   "doctor",
+    Short: "Check system health and dependencies",
+    Long:  `Verify that Docker, Docker Compose, and other dependencies are properly configured.`,
+    RunE: func(cmd *cobra.Command, args []string) error {
+        // Implementation: check Docker, network, proxy status
+        return nil
+    },
+}
+
+func init() {
+    rootCmd.AddCommand(doctorCmd)
+
+    doctorCmd.Flags().Bool("fix", false, "attempt to fix issues automatically")
+}
+```
+
+Create `internal/cli/open.go`:
+
+```go
+package cli
+
+import (
+    "github.com/spf13/cobra"
+)
+
+var openCmd = &cobra.Command{
+    Use:   "open [service]",
+    Short: "Open service URL in browser",
+    Long:  `Open the URL for a proxied service in the default browser.`,
+    Args:  cobra.MaximumNArgs(1),
+    RunE: func(cmd *cobra.Command, args []string) error {
+        // Implementation: resolve URL, open browser
+        return nil
+    },
+}
+
+func init() {
+    rootCmd.AddCommand(openCmd)
+
+    openCmd.Flags().Bool("print", false, "print URL instead of opening browser")
+}
+```
+
+Create `internal/cli/urls.go`:
+
+```go
+package cli
+
+import (
+    "github.com/spf13/cobra"
+)
+
+var urlsCmd = &cobra.Command{
+    Use:   "urls",
+    Short: "List all service URLs",
+    Long:  `Display URLs for all proxied services in the current context.`,
+    RunE: func(cmd *cobra.Command, args []string) error {
+        // Implementation: list all proxied URLs
+        return nil
+    },
+}
+
+func init() {
+    rootCmd.AddCommand(urlsCmd)
+}
+```
+
+### Step 8f: Scaffold init-shell Command
+
+Create `internal/cli/init_shell.go`:
+
+```go
+package cli
+
+import (
+    _ "embed"
+    "fmt"
+
+    "github.com/spf13/cobra"
+)
+
+//go:embed scripts/bash.sh
+var bashScript string
+
+//go:embed scripts/zsh.zsh
+var zshScript string
+
+//go:embed scripts/fish.fish
+var fishScript string
+
+var initShellCmd = &cobra.Command{
+    Use:   "init-shell <shell>",
+    Short: "Output shell integration script",
+    Long: `Output shell integration script for the specified shell.
+
+Supported shells: bash, zsh, fish
+
+Add to your shell configuration:
+  # Bash
+  contrail init-shell bash >> ~/.bashrc
+
+  # Zsh
+  contrail init-shell zsh >> ~/.zshrc
+
+  # Fish
+  contrail init-shell fish >> ~/.config/fish/conf.d/contrail.fish`,
+    Args:      cobra.ExactArgs(1),
+    ValidArgs: []string{"bash", "zsh", "fish"},
+    RunE: func(cmd *cobra.Command, args []string) error {
+        shell := args[0]
+        switch shell {
+        case "bash":
+            fmt.Print(bashScript)
+        case "zsh":
+            fmt.Print(zshScript)
+        case "fish":
+            fmt.Print(fishScript)
+        default:
+            return fmt.Errorf("unsupported shell: %s (supported: bash, zsh, fish)", shell)
+        }
+        return nil
+    },
+}
+
+func init() {
+    rootCmd.AddCommand(initShellCmd)
+}
+```
+
+Note: The embedded shell scripts (`scripts/bash.sh`, `scripts/zsh.zsh`, `scripts/fish.fish`) contain the shell integration code from the [Shell Integration Specification](./contrail-shell-integration.md).
 
 ### Step 9: Scaffold Config Types
 
@@ -1201,3 +1611,5 @@ Use Docker-in-Docker or testcontainers for integration tests that verify actual 
 | 0.1.1-draft | Dec 2024 | Spec review: fixed validation rules, added missing commands, proxy commands, removed logs command |
 | 0.1.2-draft | Dec 2024 | Spec review: added proxy up --recreate flag, renamed proxy network to contrail-proxy |
 | 0.1.3-draft | Dec 2024 | Spec review: completed issues 19-30 (app exec clarification, repeatable flags, missing commands scaffolding) |
+| 0.1.4-draft | Dec 2024 | Spec review: added port, config, utility, and init-shell command scaffolds; fixed alias pattern to use shared helper functions |
+| 0.1.5-draft | Dec 2024 | Spec review: docker compose error handling pattern, --color flag, --quiet description, removed --available from port list |

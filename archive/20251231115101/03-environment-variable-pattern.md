@@ -39,3 +39,9 @@ The examples in PRD (lines 429-443) show `CONTRAIL_APP_ONE_WEB_HOST` for applica
 
 - [x] Add hyphen-to-underscore conversion rule to PRD Service Discovery section
 - [x] Add hyphen-to-underscore conversion rule to Technical Spec Environment Variable Injection section
+
+---
+
+## Archived
+
+This issue was archived on 2024-12-31 at 11:51:01.

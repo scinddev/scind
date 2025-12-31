@@ -36,3 +36,9 @@ This is a mismatch—the service should reference `contrail-proxy` to match the 
 ## Checklist
 
 - [x] Fix network reference in Technical Spec proxy docker-compose.yaml example (line 281)
+
+---
+
+## Archived
+
+This issue was archived on 2024-12-31 at 11:51:01.

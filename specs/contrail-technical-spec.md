@@ -1,6 +1,6 @@
 # Contrail Technical Specification
 
-**Version**: 0.5.3-draft
+**Version**: 0.5.4-draft
 **Date**: December 2024
 **Status**: Design Phase
 
@@ -240,8 +240,26 @@ proxy:
     enabled: true                        # Enable/disable Traefik dashboard (default: true)
     port: 8080                           # Dashboard port (default: 8080)
     # Future: password support via environment variable
-  # Future: TLS settings, entrypoints, etc.
+  tls:
+    mode: auto                           # auto | custom | disabled
+    # For mode: custom (e.g., enterprise CA certificates)
+    cert_file: ~/.config/contrail/certs/wildcard.crt
+    key_file: ~/.config/contrail/certs/wildcard.key
 ```
+
+**TLS Modes**:
+
+| Mode | Behavior |
+|------|----------|
+| `auto` | Uses mkcert if available to generate locally-trusted certificates; falls back to Traefik's default self-signed certificate (browser warnings) |
+| `custom` | Uses user-provided certificate and key files (for enterprise CA or manually generated certs) |
+| `disabled` | HTTP only, no HTTPS entrypoint (not recommended for production-like testing) |
+
+**Certificate Setup by Mode**:
+
+- **auto with mkcert**: Run `mkcert -install` once per machine to add the local CA to your trust store, then `mkcert "*.contrail.test"` to generate a wildcard certificate. Contrail will detect and use these automatically.
+- **custom (enterprise CA)**: Obtain a wildcard certificate signed by your enterprise CA for `*.contrail.test` (or your configured domain). Place the cert and key files at the configured paths.
+- **auto without mkcert**: Traefik serves its default self-signed certificate. Browsers will show security warnings.
 
 ### Proxy Infrastructure
 
@@ -255,7 +273,8 @@ The proxy is implemented as a Docker Compose project managed by Contrail. It run
 ├── docker-compose.yaml    # Traefik service definition
 ├── traefik.yaml          # Traefik static configuration
 ├── dynamic/              # Dynamic configuration (auto-discovered)
-└── certs/                # TLS certificates (future)
+│   └── tls.yaml          # TLS certificate configuration (generated)
+└── certs/                # TLS certificates (copied or generated here)
 ```
 
 **docker-compose.yaml** (generated):
@@ -399,6 +418,20 @@ port_inventory:
 2. If unavailable, increment and try again
 3. Record the assignment in `assigned_ports` and `port_inventory`
 4. Subsequent runs use the recorded port (sticky assignment)
+5. The `--force` flag on `workspace generate` regenerates override files but preserves existing port assignments
+
+**Port conflict at startup**: If a previously assigned port has become unavailable (e.g., taken by an external process) when `workspace up` runs, Contrail fails with a clear error:
+```
+Error: Port conflict detected for app-one
+
+Port 5432 is assigned to app-one/postgres but is no longer available.
+Another process may be using this port.
+
+To resolve:
+  contrail port scan       # Check which ports are conflicting
+  contrail port release 5432   # Release the conflicting assignment
+  contrail generate --force    # Regenerate with new port assignment
+```
 
 **Port status transitions**:
 - `unavailable` → `assigned`: Port became free, Contrail claimed it
@@ -472,8 +505,10 @@ workspace:
 | `%APPLICATION_FLAVOR%` | Application | Resolved flavor | `default` |
 | `%EXPORTED_SERVICE%` | Export | Key from `exported_services` | `web-debug` |
 | `%SERVICE_NAME%` | Export | Underlying Compose service | `web` |
-| `%SERVICE_PORT%` | Export | Container port number | `8080` |
+| `%SERVICE_PORT%` | Export | Container port number (see note) | `8080` |
 | `%SERVICE_PROTOCOL%` | Export | Protocol (for proxied) | `https` |
+
+**Note on `%SERVICE_PORT%`**: This variable provides the container's internal port number. While not used in the default templates, it's available for advanced customization such as adding debugging labels or custom routing rules that need to reference the original container port (e.g., `contrail.debug.port=%SERVICE_PORT%`).
 
 ### Template Resolution Timing
 
@@ -1094,9 +1129,13 @@ contrail-compose -a app-two ps
 1. Ensure proxy is running
 2. Create workspace network if it doesn't exist
 3. Check if override files are stale; regenerate if needed (see Staleness Detection)
-4. For each application:
+4. For each application (or specified apps if `-a` flag used):
    - Resolve active flavor
-   - Execute `docker compose up -d` with compose files + override
+   - Execute `docker compose up -d --remove-orphans` with compose files + override
+
+**Notes**:
+- The `--remove-orphans` flag is always passed to `docker compose up`. This ensures that containers from services removed by flavor changes, manual compose file edits, or renamed services are automatically stopped and removed.
+- The workspace network is always created if it doesn't exist, even when starting a single application with `-a`. This ensures cross-application communication is available when other apps are started later.
 
 ### Staleness Detection
 
@@ -1139,10 +1178,12 @@ Contrail uses **mtime comparison** to determine if generated override files need
 
 ### Shutdown Sequence (`workspace down`)
 
-1. For each application:
+1. For each application (or specified apps if `-a` flag used):
    - Execute `docker compose down`
-2. Optionally remove workspace network
+2. If full workspace teardown (no `-a` flag): remove workspace network
 3. If `--volumes` specified, remove associated volumes
+
+**Network removal timing**: The workspace network (`{workspace}-internal`) is only removed during a full workspace teardown (i.e., `workspace down` without the `-a` flag). When stopping individual applications with `-a`, the network is preserved to allow other running applications to continue communicating.
 
 ### Destroy Sequence (`workspace destroy`)
 
@@ -1296,17 +1337,18 @@ applications:
 
 Integration with Docker health checks to wait for dependent services.
 
-### HTTPS Support
+### Per-Workspace TLS Overrides
 
-Automatic TLS certificate generation for local development:
+Allow workspaces to override the global TLS configuration (e.g., for testing with different certificates):
 
 ```yaml
 # workspace.yaml
 workspace:
   name: dev
   tls:
-    enabled: true
-    provider: mkcert  # or: self-signed, acme
+    mode: custom
+    cert_file: ./certs/dev.crt
+    key_file: ./certs/dev.key
 ```
 
 ### Volume Sharing
@@ -1351,3 +1393,5 @@ applications:
 | 0.5.1-draft | Dec 2024 | Spec review: validation rules, staleness detection, context detection algorithm, proxy init, Docker labels, flavor set behavior |
 | 0.5.2-draft | Dec 2024 | Spec review: renamed proxy network to contrail-proxy, expanded collision warning, fixed Docker label prefixes |
 | 0.5.3-draft | Dec 2024 | Spec review: completed issues 19-30 (registry removal, dashboard port, --keep-apps flag consideration) |
+| 0.5.4-draft | Dec 2024 | Spec review: fixed proxy network reference, added TLS configuration schema, env var naming rule, SERVICE_PORT documentation |
+| 0.5.5-draft | Dec 2024 | Spec review: docker compose error handling, --remove-orphans always on up, network lifecycle timing, port conflict at startup, --force preserves ports |

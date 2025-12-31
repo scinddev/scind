@@ -33,11 +33,25 @@ This creates ambiguity: Can HTTPS work today? Does Traefik auto-generate self-si
 **Suggested Resolution**: Add a note in the Technical Spec's Proxy Layer section clarifying the current TLS status—either documenting that Traefik will use its default self-signed certificate, or noting that HTTPS requires manual cert configuration until the mkcert feature is implemented.
 
 **Response**:
-> _[Your response here]_
+> Implemented flexible TLS configuration with three modes:
+> - `auto`: Uses mkcert if available, falls back to Traefik's self-signed certificate
+> - `custom`: User-provided cert/key files (supports enterprise CA certificates)
+> - `disabled`: HTTP only
+>
+> Added TLS schema to proxy.yaml, updated proxy directory structure, and added decision record to PRD. Enterprise CA certificates are fully supported via `custom` mode by providing cert/key paths.
 
 ---
 
 ## Checklist
 
-- [ ] Clarify current TLS/HTTPS status in Technical Spec Proxy Layer section
-- [ ] Consider adding a "Known Limitations" note about TLS in PRD if manual setup required
+- [x] Clarify current TLS/HTTPS status in Technical Spec Proxy Layer section
+- [x] Add TLS configuration schema to proxy.yaml in Technical Spec
+- [x] Update proxy directory structure to include certs/ and dynamic/tls.yaml
+- [x] Move "HTTPS Support" from Future Enhancements to implemented (now "Per-Workspace TLS Overrides" as future)
+- [x] Add TLS decision record to PRD Architecture Decisions section
+
+---
+
+## Archived
+
+This issue was archived on 2024-12-31 at 11:51:01.

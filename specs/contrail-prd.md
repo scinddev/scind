@@ -270,6 +270,23 @@ exported_services:
 
 **Rationale**: Traefik's Docker integration allows dynamic routing without config file changes. Labels on containers (added via generated overrides) define routing rules.
 
+#### Decision: Flexible TLS Configuration
+
+**Context**: HTTPS support for local development requires TLS certificates. Different environments have different constraints (personal dev machines, enterprise networks with managed CAs).
+
+**Decision**: Support three TLS modes via `proxy.yaml`:
+
+| Mode | Use Case |
+|------|----------|
+| `auto` | Personal development—uses mkcert if available, falls back to self-signed |
+| `custom` | Enterprise environments—user provides cert/key signed by enterprise CA |
+| `disabled` | HTTP-only development (not recommended) |
+
+**Rationale**:
+- `auto` provides zero-config HTTPS for most users with mkcert installed
+- `custom` supports enterprise environments where developers already have CA-signed certs
+- Avoids mandating a specific certificate tool while still enabling secure-by-default development
+
 #### Decision: `up`/`down` Command Semantics
 
 **Context**: Commands could use `start`/`stop` or `up`/`down` terminology.
@@ -382,7 +399,7 @@ workspace:
 ### Application Configuration Example
 
 ```yaml
-default_flavor: default
+default_flavor: default  # Optional. Falls back to "default" if omitted
 
 flavors:
   default:
@@ -464,7 +481,7 @@ project-root/
 ├── dev/                              # Workspace
 │   ├── workspace.yaml                # Workspace configuration
 │   ├── overrides/                    # Manual overrides (optional)
-│   │   └── app-one.yaml
+│   │   └── app-one.yaml              # Named {application-name}.yaml
 │   ├── .generated/                   # Generated files (gitignored)
 │   │   ├── state.yaml                # Flavor choices
 │   │   ├── manifest.yaml             # Computed values (read-only)
@@ -601,12 +618,14 @@ workspace:
 
 ## Appendix: Template Customization (Advanced)
 
-While Contrail provides sensible defaults for hostname and alias generation, advanced users can customize templates at the workspace level. See the Technical Specification for details on available template variables.
+While Contrail provides sensible defaults for hostname and alias generation, advanced users can customize templates at the workspace level. See the Technical Specification for details on available template variables and the actual `%VARIABLE%` syntax used in configuration.
 
-Default templates:
+**Conceptual patterns** (simplified for readability):
 - Hostname: `{workspace}-{app}-{export}.{domain}` → `dev-app-one-web.contrail.test`
 - Alias: `{app}-{export}` → `app-one-web`
 - Project name: `{workspace}-{app}` → `dev-app-one`
+
+**Note**: The simplified `{placeholder}` syntax shown above is for illustration. The actual template syntax uses `%VARIABLE_NAME%` placeholders (e.g., `%WORKSPACE_NAME%`, `%APPLICATION_NAME%`). See the Technical Specification for the complete list of available variables.
 
 ---
 
@@ -634,3 +653,5 @@ Default templates:
 | 0.5.0-draft | Dec 2024 | Added `contrail-compose` shell function concept to product vision; linked shell integration specification |
 | 0.5.1-draft | Dec 2024 | Spec review: network creation timing, workspace discovery, proxy init, removed logs command |
 | 0.5.2-draft | Dec 2024 | Spec review: renamed proxy network to contrail-proxy |
+| 0.5.3-draft | Dec 2024 | Spec review: added workspace destroy to Quick Reference, TLS configuration decision, env var naming rule, template syntax clarification |
+| 0.5.4-draft | Dec 2024 | Spec review: default_flavor optional comment, override file naming convention |
