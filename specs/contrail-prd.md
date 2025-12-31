@@ -323,6 +323,7 @@ For complete CLI documentation, see **[Contrail CLI Reference](./contrail-cli-re
 contrail workspace init --workspace=dev
 contrail workspace up [-w NAME]
 contrail workspace down [-w NAME]
+contrail workspace destroy [-w NAME]
 contrail workspace status [-w NAME]
 
 # Application management
@@ -415,6 +416,8 @@ All exported services receive environment variables for discovering other servic
 **Base pattern**: `CONTRAIL_{APP}_{EXPORTED_SERVICE}_{SUFFIX}`
 
 **Protocol-specific pattern**: `CONTRAIL_{APP}_{EXPORTED_SERVICE}_{PROTOCOL}_{SUFFIX}`
+
+**Name transformation**: Hyphens in application and exported service names are converted to underscores (e.g., `app-one` becomes `APP_ONE`).
 
 **Variables by port type**:
 

@@ -278,7 +278,7 @@ services:
       - ./dynamic:/etc/traefik/dynamic:ro
       - ./certs:/etc/traefik/certs:ro
     networks:
-      - proxy
+      - contrail-proxy
     restart: unless-stopped
     labels:
       - "contrail.managed=true"
@@ -926,6 +926,8 @@ All exported services receive environment variables for service discovery. This 
 ### Naming Convention
 
 Environment variables use a `CONTRAIL_` prefix to avoid conflicts with application-defined variables.
+
+**Name transformation**: Hyphens in application and exported service names are converted to underscores, and names are uppercased (e.g., `app-one` becomes `APP_ONE`, `web-debug` becomes `WEB_DEBUG`).
 
 **Base variables** (always generated for each exported service):
 ```
