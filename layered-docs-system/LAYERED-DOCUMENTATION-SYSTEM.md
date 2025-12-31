@@ -9,18 +9,30 @@
 
 ### For AI Agents
 
-To install this system into a project, use:
-
+**Fresh install** (empty templates):
 ```
 Execute @path/to/layered-docs-system/install.md and install to @docs/
 ```
 
+**Migration install** (reorganize existing docs):
+```
+Execute @path/to/layered-docs-system/install.md and install to @docs/ from existing docs in @specs/
+```
+
+**Interactive** (prompts for all options):
+```
+Execute @path/to/layered-docs-system/install.md
+```
+
 The installer will:
-1. Ask which layers and templates to include
-2. Ask which tooling tier to set up
-3. Create a customized directory structure
-4. Generate a project-specific documentation guide
-5. Copy only the selected templates
+1. Determine install location (or ask)
+2. Detect existing documentation to migrate (or ask)
+3. If migrating: analyze content and map to layers
+4. Ask which layers and templates to include
+5. Ask which tooling tier to set up
+6. Create directory structure and migrate/copy content
+7. Generate a project-specific documentation guide
+8. Add cross-layer links (for migrations)
 
 ### For Humans
 
