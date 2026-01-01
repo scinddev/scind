@@ -44,9 +44,11 @@ The installer will:
 
 ## Overview
 
-This system organizes documentation into six distinct layers, each with a specific purpose, ownership model, and lifecycle. The goal is to prevent drift between documents by ensuring each piece of information has exactly one canonical source.
+This system organizes documentation into seven distinct layers, each with a specific purpose, ownership model, and lifecycle. The goal is to prevent drift between documents by ensuring each piece of information has exactly one canonical source.
 
-### The Six Layers
+**Note**: This entire system is **design documentation for developers**—not end-user documentation. The layers separate different types of design artifacts: Layers 1-6 describe *what to build*, while Layer 7 describes *how to build it*.
+
+### The Seven Layers
 
 | Layer | Purpose | Stability | Audience |
 |-------|---------|-----------|----------|
@@ -54,8 +56,9 @@ This system organizes documentation into six distinct layers, each with a specif
 | **2. Vision** | Define *what* we're building and *why* | Stable, rarely changes | All stakeholders |
 | **3. Architecture** | Show *how* components relate | Evolves with design | Engineers, architects |
 | **4. Specifications** | Detail *how* features work | Living, evolves with implementation | Engineers |
-| **5. Reference** | Provide lookup information | Generated or hand-maintained | Users, developers |
+| **5. Reference** | Provide lookup information | Generated or hand-maintained | Engineers |
 | **6. Behaviors** | Verify system meets expectations | Executable, tied to tests | QA, engineers |
+| **7. Implementation** | Describe *how to build* the system | Short-lived, absorbed into code | Engineers implementing |
 
 ### Core Principles
 
@@ -473,6 +476,69 @@ features/
 
 ---
 
+## Layer 7: Implementation Guides
+
+### Purpose
+
+Describe *how to build* the system—technology stack, scaffolding, code templates, and implementation priorities. These are consumed during implementation and then archived or absorbed into code.
+
+### Characteristics
+
+- **Short-lived**: Consumed during implementation, then archived
+- **Code-adjacent**: Contains executable code, templates, scaffolding
+- **Version-specific**: Includes dependency versions, project structure
+- **Actionable**: Step-by-step instructions for building
+
+### What Belongs Here
+
+- Technology stack with specific versions
+- Project structure and directory layout
+- Code scaffolding and templates
+- Dependency rationale (why this library over that one)
+- Implementation priority phases
+- Build and development setup instructions
+
+### What Does NOT Belong Here
+
+- Behavioral specifications (Layer 4)
+- Architecture decisions rationale (Layer 1: ADR)
+- API reference (Layer 5)
+
+### Directory Structure
+
+```
+docs/implementation/
+├── tech-stack.md              # Dependencies, versions, rationale
+├── scaffolding.md             # Project structure, initial code
+├── shell-scripts.md           # Embedded scripts (for CLI tools)
+└── build-setup.md             # Development environment setup
+```
+
+### Lifecycle
+
+```
+Draft → Active (during implementation) → Archived/Absorbed
+```
+
+Implementation guides are unique in that they have a planned end-of-life:
+- Once implementation is complete, the content either:
+  - Gets **archived** (moved to an `archive/` folder or deleted)
+  - Gets **absorbed** into the codebase (as README files in packages, code comments, etc.)
+
+### Classification Heuristics
+
+| Signal | → Implementation Layer |
+|--------|----------------------|
+| "Install these dependencies..." | ✓ |
+| "The project structure is..." | ✓ |
+| "Use this code template..." | ✓ |
+| "We chose library X because..." | ✓ (or ADR if significant) |
+| "Implementation phases are..." | ✓ |
+| "When X happens, the system does Y..." | ✗ (Specification) |
+| "The architecture uses..." | ✗ (Architecture) |
+
+---
+
 ## Classification Decision Tree
 
 Use this flowchart to classify content:
@@ -500,6 +566,10 @@ Is this a lookup table (commands, options, codes)?
 
 Is this a concrete scenario that should be verified?
 ├─ YES → Layer 6: Behaviors
+└─ NO ↓
+
+Is this implementation scaffolding, code templates, or dependency lists?
+├─ YES → Layer 7: Implementation Guides
 └─ NO → Reconsider: may not need documentation
 ```
 
@@ -531,6 +601,8 @@ This scenario verifies the workspace lifecycle described in [Workspace Lifecycle
 | Architecture | Specification | Deep-diving into component behavior |
 | Behavior | Specification | Referencing the spec being verified |
 | Reference | Specification | Providing conceptual context |
+| Implementation | Specification | Referencing the spec being implemented |
+| Implementation | ADR | Explaining technology choice rationale |
 
 ---
 
@@ -546,6 +618,8 @@ This scenario verifies the workspace lifecycle described in [Workspace Lifecycle
 | Feature implementation | Update Specification (Layer 4) |
 | CLI/API changes | Update Reference (Layer 5) |
 | Bug fix for critical path | Update Behavior (Layer 6) |
+| Starting implementation | Create/update Implementation (Layer 7) |
+| Implementation complete | Archive or absorb Implementation (Layer 7) |
 
 ### Version Management
 
@@ -554,6 +628,7 @@ This scenario verifies the workspace lifecycle described in [Workspace Lifecycle
 - **Architecture/Specs**: Semantic versioning (MAJOR.MINOR.PATCH)
 - **Reference**: Version matches software version or is unversioned
 - **Behaviors**: Tied to test suite, no separate versioning
+- **Implementation**: Version matches implementation phase; archived when complete
 
 ### Review Checklist
 
@@ -623,6 +698,12 @@ project/
 ├── features/                # Layer 6: Behaviors (optional)
 │   └── [feature].feature
 └── ...
+
+# Within docs/:
+docs/implementation/         # Layer 7: Implementation Guides
+├── tech-stack.md
+├── scaffolding.md
+└── ...
 ```
 
 ---
@@ -661,5 +742,6 @@ layered-docs-system/
     ├── spec-rfc.md                    # Specification template (proposals)
     ├── reference-cli.md               # Reference template (CLI)
     ├── reference-config.md            # Reference template (configuration)
-    └── behavior-gherkin.feature       # Behavior template (Gherkin)
+    ├── behavior-gherkin.feature       # Behavior template (Gherkin)
+    └── implementation-tech-stack.md   # Implementation template (tech stack)
 ```

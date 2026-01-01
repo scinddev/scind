@@ -1,6 +1,6 @@
 # Contrail Documentation Guide
 
-**Version**: 1.0.0
+**Version**: 1.1.0
 **Date**: December 2024
 
 This documentation was migrated from `specs/` on December 2024 using the Layered Documentation System.
@@ -9,7 +9,9 @@ This documentation was migrated from `specs/` on December 2024 using the Layered
 
 ## Overview
 
-This guide explains how the Contrail documentation is organized and how to maintain it. The documentation follows a layered approach that separates different types of information by their purpose and stability.
+This guide explains how the Contrail documentation is organized and how to maintain it.
+
+**Audience**: This entire `docs/` directory is **design documentation for developers building Contrail**—not end-user documentation. The layers separate different types of design artifacts by their purpose and stability, helping developers understand *what to build* (Layers 1-6) and *how to build it* (Layer 7).
 
 ---
 
@@ -65,7 +67,9 @@ Specifications describe *what* the system does in detail—state machines, data 
 - `environment-variables.md` — Injected environment variables
 - `workspace-lifecycle.md` — Startup, shutdown, generation sequences
 - `context-detection.md` — Directory-based context detection
-- `shell-integration.md` — Shell function and completion
+- `shell-integration.md` — Shell function and completion architecture
+- `naming-conventions.md` — Naming patterns and collision warnings
+- `proxy-infrastructure.md` — Traefik proxy setup and configuration
 
 **Template**: `docs/specs/_template-feature.md`
 
@@ -93,25 +97,39 @@ Behavior specifications define expected behavior in Given/When/Then format. Thes
 
 **Template**: `features/_template.feature`
 
-### Layer 7: Implementation Guides (Outside docs/)
+### Layer 7: Implementation Guides
 
-**Location**: `specs/` (project root, not `docs/specs/`)
+**Location**: `docs/implementation/`
 **Purpose**: Technical scaffolding and implementation details for developers building Contrail
 
-Implementation guides are **not user documentation**—they are internal technical references for contributors. They contain:
+Implementation guides describe *how to build* the system. They have a shorter lifespan than other layers—consumed during implementation, then potentially archived or absorbed into code.
+
+**Contents**:
 - Technology stack decisions with version numbers
 - Project structure and scaffolding
 - Executable code examples and templates
 - Dependency rationale
 - Implementation priority phases
 
-**Why separate from docs/**: Implementation guides change frequently during development, contain executable code that could become outdated, and are not relevant to users of Contrail—only to developers building it.
-
-**Current files**:
-- `specs/contrail-go-stack.md` — Go dependencies, project structure, Cobra scaffolding, testing strategy
-- `specs/contrail-shell-integration.md` — Complete shell scripts for Bash/Zsh/Fish (code, not documentation)
+**Files**:
+- `go-stack.md` — Go dependencies, project structure, Cobra scaffolding, testing strategy
+- `shell-scripts.md` — Complete shell scripts for Bash/Zsh/Fish (embedded code)
 
 **Lifecycle**: These files may be archived or moved into the codebase itself (as comments, `internal/` docs, or README files in relevant packages) once implementation is complete.
+
+---
+
+## Layer Summary
+
+| Layer | What to Build | How to Build It |
+|-------|---------------|-----------------|
+| 1. Decisions | Why we chose this approach | — |
+| 2. Vision | What problem we're solving | — |
+| 3. Architecture | How components relate | — |
+| 4. Specifications | How features behave | — |
+| 5. Reference | What commands/options exist | — |
+| 6. Behaviors | What scenarios must work | — |
+| 7. Implementation | — | Technology stack, scaffolding, code templates |
 
 ---
 
@@ -159,7 +177,7 @@ Is this a testable scenario?
 └─ No ↓
 
 Is this implementation scaffolding, code templates, or dependency lists?
-├─ Yes → Layer 7: Implementation Guides (specs/ at project root)
+├─ Yes → Layer 7: Implementation Guides
 └─ No → Probably doesn't belong in docs
 ```
 
@@ -172,6 +190,7 @@ Documents should link to related content in other layers:
 - **Specifications → ADRs**: Link to decisions that explain *why* a behavior exists
 - **Architecture → Specifications**: Link to specs for detailed behavioral descriptions
 - **Reference → Specifications**: Link to specs for context beyond the quick-reference
+- **Implementation → Specifications**: Link to specs that the code implements
 
 Example:
 ```markdown
@@ -250,21 +269,17 @@ docs/
 │   ├── shell-integration.md
 │   ├── naming-conventions.md
 │   └── proxy-infrastructure.md
-└── reference/                       # Layer 5: Reference
-    ├── _template-cli.md
-    ├── _template-config.md
-    ├── cli.md
-    └── configuration.md
+├── reference/                       # Layer 5: Reference
+│   ├── _template-cli.md
+│   ├── _template-config.md
+│   ├── cli.md
+│   └── configuration.md
+└── implementation/                  # Layer 7: Implementation Guides
+    ├── go-stack.md
+    └── shell-scripts.md
 
 features/                            # Layer 6: Behaviors (project root)
 └── _template.feature
-
-specs/                               # Layer 7: Implementation Guides (project root)
-├── contrail-go-stack.md             # Go technology stack and scaffolding
-├── contrail-shell-integration.md    # Full shell scripts (executable code)
-├── contrail-prd.md                  # Original PRD (reference, mostly migrated)
-├── contrail-technical-spec.md       # Original tech spec (reference, mostly migrated)
-└── contrail-cli-reference.md        # Original CLI ref (reference, mostly migrated)
 ```
 
 ---
@@ -276,6 +291,7 @@ specs/                               # Layer 7: Implementation Guides (project r
 3. **Update all affected layers**: A feature change may require updates to specs, reference, and behaviors
 4. **ADRs are immutable**: Supersede rather than edit accepted ADRs
 5. **Templates are guides**: Use templates for consistency, but adapt as needed
+6. **Implementation guides have short lifespans**: Archive or migrate to code once implementation is complete
 
 ---
 
@@ -288,25 +304,7 @@ The following files were migrated from the original `specs/` directory:
 | `contrail-prd.md` | Decisions (11 ADRs), Vision, Architecture, Specs |
 | `contrail-technical-spec.md` | Architecture, Specs (multiple) |
 | `contrail-cli-reference.md` | Reference (`cli.md`), Specs (`context-detection.md`) |
-| `contrail-shell-integration.md` | Specs (`shell-integration.md`) |
-| `contrail-go-stack.md` | Layer 7: Implementation Guides (kept in `specs/` at project root) |
+| `contrail-shell-integration.md` | Specs (`shell-integration.md`), Implementation (`shell-scripts.md`) |
+| `contrail-go-stack.md` | Implementation (`go-stack.md`) |
 
-**Original files are preserved** in `specs/` at project root. The Go stack and detailed shell scripts are intentionally kept as Layer 7 implementation guides, not migrated to `docs/`.
-
-### Layer 7 Rationale
-
-Some content from `@specs` was intentionally **not migrated** to `docs/`:
-
-| Content | Why Not Migrated | Where It Lives |
-|---------|------------------|----------------|
-| Go dependency versions (Cobra v1.10.2, etc.) | Changes with implementation | `specs/contrail-go-stack.md` |
-| Complete shell scripts (200+ lines each) | Executable code, not documentation | `specs/contrail-shell-integration.md` |
-| Cobra scaffolding examples | Implementation scaffolding | `specs/contrail-go-stack.md` |
-| Project structure (`cmd/`, `internal/`, `pkg/`) | Build/development artifact | `specs/contrail-go-stack.md` |
-| Implementation priority phases | Project management, not specification | `specs/contrail-go-stack.md` |
-
-These are **developer-facing implementation guides**, not user-facing documentation. They belong at the project root level, not in `docs/`, because:
-
-1. They change frequently during development
-2. They contain executable code that will eventually move into the actual codebase
-3. They're not relevant to users of Contrail—only to developers building it
+**Original files are preserved** in `specs/` at project root for reference during the transition period.
