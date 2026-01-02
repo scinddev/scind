@@ -42,7 +42,7 @@ Reference documentation is often generated from code or should match code exactl
 
 #### 1a: CLI Reference Audit
 
-Compare `docs/reference/cli/README.md` and `docs/reference/cli/appendices/` against actual CLI:
+Compare `docs/reference/cli.md` and `docs/reference/appendices/cli/` against actual CLI:
 
 ```bash
 # Get actual CLI help
@@ -76,9 +76,9 @@ Record discrepancies:
 
 #### 1b: Configuration Reference Audit
 
-Compare `docs/reference/configuration/README.md` and `docs/reference/configuration/appendices/` against actual config handling:
+Compare `docs/reference/configuration.md` and `docs/reference/appendices/configuration/` against actual config handling:
 
-For main `README.md`:
+For main `configuration.md`:
 - All config sections listed
 - Links to detailed appendices work
 
@@ -93,11 +93,11 @@ Record discrepancies similarly.
 
 #### 1c: API Reference Audit (if applicable)
 
-If API documentation exists (`docs/reference/api/README.md` and `appendices/`):
+If API documentation exists (`docs/reference/api.md` and `appendices/api/`):
 - Compare against OpenAPI spec (if generated)
 - Verify all endpoints are documented in main doc or appendices
 - Check request/response schemas in appendices for accuracy
-- Verify links from README to detailed endpoint docs
+- Verify links from main doc to detailed endpoint docs
 
 ---
 
@@ -166,11 +166,11 @@ Record broken links:
 
 ### Step 4: Check Specifications Against Implementation
 
-For each specification in `docs/specs/` (including `README.md` and `appendices/`):
+For each specification in `docs/specs/` (main `.md` files and `appendices/`):
 
 #### 4a: Read the Specification
 
-Read both `docs/specs/{topic}/README.md` and any `appendices/` files.
+Read both `docs/specs/{topic}.md` and any `appendices/{topic}/` files.
 
 Identify key behavioral claims:
 - "When X happens, Y occurs"
@@ -193,14 +193,14 @@ Note the file path precisely (main doc vs. appendix):
 >
 > | Specification | Claim | Actual Behavior |
 > |---------------|-------|-----------------|
-> | `port-assignment/README.md` | "Ports start at 8000" | Ports start at 9000 |
-> | `workspace-lifecycle/appendices/states.md` | "Error if workspace exists" | Warning only, continues |
+> | `port-assignment.md` | "Ports start at 8000" | Ports start at 9000 |
+> | `appendices/workspace-lifecycle/states.md` | "Error if workspace exists" | Warning only, continues |
 
 ---
 
 ### Step 5: Review ADR Currency
 
-For each ADR in `docs/decisions/` (check both `README.md` and any `appendices/`):
+For each ADR in `docs/decisions/` (ADRs are simple single files, no appendices):
 
 #### 5a: Check Status
 
@@ -254,10 +254,10 @@ Group similar fixes:
 > **Resolutions Needed**
 >
 > **Documentation Updates**:
-> - [ ] Update `cli/README.md` with 3 new options
-> - [ ] Update `cli/appendices/workspace-commands.md` with detailed examples
-> - [ ] Update `port-assignment/README.md` default port value
-> - [ ] Fix 2 broken links in `architecture/overview/README.md`
+> - [ ] Update `cli.md` with 3 new options
+> - [ ] Update `appendices/cli/workspace-commands.md` with detailed examples
+> - [ ] Update `port-assignment.md` default port value
+> - [ ] Fix 2 broken links in `architecture/overview.md`
 >
 > **Implementation Bugs**:
 > - [ ] File bug: Workspace error handling doesn't match spec
@@ -336,9 +336,9 @@ Create an audit report:
 >
 > | Document | Changes | New Version |
 > |----------|---------|-------------|
-> | `docs/reference/cli/README.md` | Added 3 options, fixed 2 defaults | — |
-> | `docs/reference/cli/appendices/workspace-commands.md` | Updated examples | — |
-> | `docs/specs/port-assignment/README.md` | Corrected default port | 0.5.2 |
+> | `docs/reference/cli.md` | Added 3 options, fixed 2 defaults | — |
+> | `docs/reference/appendices/cli/workspace-commands.md` | Updated examples | — |
+> | `docs/specs/port-assignment.md` | Corrected default port | 0.5.2 |
 >
 > ## Bugs Filed
 >
@@ -390,14 +390,12 @@ When auditing, check both main documents and appendices:
 
 ```
 docs/
-├── decisions/NNNN-{topic}/
-│   ├── README.md           # Check status, implementation
-│   └── appendices/         # Check detailed context, examples
-├── specs/{feature}/
-│   ├── README.md           # Check behavior claims
-│   └── appendices/         # Check schemas, examples, edge cases
-├── reference/{topic}/
-│   ├── README.md           # Check command/option lists
-│   └── appendices/         # Check detailed examples, catalogs
+├── decisions/NNNN-{topic}.md   # Check status, implementation (simple files)
+├── specs/
+│   ├── {feature}.md            # Check behavior claims
+│   └── appendices/{feature}/   # Check schemas, examples, edge cases
+├── reference/
+│   ├── {topic}.md              # Check command/option lists
+│   └── appendices/{topic}/     # Check detailed examples, catalogs
 └── ...
 ```

@@ -131,30 +131,32 @@ Based on `TARGET_LAYER`, use the appropriate template:
 
 ### Step 4: Determine File Location
 
-Based on `TARGET_LAYER`, determine the file path using the `README.md` + `appendices/` pattern:
+Based on `TARGET_LAYER`, determine the file path using the flat file structure with shared `appendices/` directory:
 
 | Layer | Directory Structure |
 |-------|---------------------|
-| Decisions | `docs/decisions/NNNN-{title}/README.md` |
-| Vision | `docs/product/{topic}/README.md` |
-| Architecture | `docs/architecture/{topic}/README.md` |
-| Specifications | `docs/specs/{feature-name}/README.md` |
-| Reference | `docs/reference/{topic}/README.md` |
+| Decisions | `docs/decisions/NNNN-{title}.md` (simple single files) |
+| Vision | `docs/product/{topic}.md` |
+| Architecture | `docs/architecture/{topic}.md` |
+| Specifications | `docs/specs/{feature-name}.md` |
+| Reference | `docs/reference/{topic}.md` |
 | Behaviors | `features/{feature}.feature` |
-| Implementation | `docs/implementation/{topic}/README.md` |
+| Implementation | `docs/implementation/{topic}.md` |
 
 For ADRs, find the next available number:
 ```bash
-ls -d docs/decisions/[0-9]*/ | sort | tail -1
-# If last is 0005-*, next is 0006-*
+ls docs/decisions/[0-9]*.md | sort | tail -1
+# If last is 0005-*.md, next is 0006-*.md
 ```
 
 **Directory structure**:
 ```
-docs/{layer}/{topic}/
-├── README.md              # Main document
+docs/{layer}/
+├── README.md              # Auto-generated layer index
+├── {topic}.md             # Main document
 └── appendices/            # Only if needed (see Step 5b)
-    └── {appendix-name}.md
+    └── {topic}/           # Matches main document basename
+        └── {appendix-name}.md
 ```
 
 ---
@@ -163,8 +165,8 @@ docs/{layer}/{topic}/
 
 #### 5a: Copy Template Structure
 
-1. Create the directory: `docs/{layer}/{topic}/`
-2. Create `README.md` using the appropriate template
+1. Create the file: `docs/{layer}/{topic}.md`
+2. Use the appropriate template structure
 3. Fill in:
    - Title/heading
    - Version (start at 0.1.0 for new docs)
@@ -185,15 +187,15 @@ Before writing, read the thresholds from `DOCUMENTATION-GUIDE.md`:
 | `SHELL_SCRIPT_ALWAYS_APPENDIX` | true | Always in `appendices/` |
 
 **If your content will exceed thresholds**:
-1. Create the `appendices/` subdirectory
-2. Create appropriately named appendix files
-3. Link from main README.md to appendices
+1. Create the `appendices/{topic}/` subdirectory (where `{topic}` matches your main document's basename)
+2. Create appropriately named appendix files in that directory
+3. Link from main document to appendices
 
 **Appendix file structure**:
 ```markdown
 # [Appendix Title]
 
-> **Parent**: [Link to main README.md](../README.md)
+> **Parent**: [Link to main document](../../{topic}.md)
 > **Purpose**: [What this appendix contains]
 
 ## Content
@@ -202,7 +204,7 @@ Before writing, read the thresholds from `DOCUMENTATION-GUIDE.md`:
 
 ---
 
-*This appendix supports [Main Document Name](../README.md).*
+*This appendix supports [{Topic} Document](../../{topic}.md).*
 ```
 
 #### 5c: Write Content
@@ -237,7 +239,7 @@ Follow the template sections. Key guidelines:
 
 ### Step 6: Add Cross-Layer Links
 
-Add links to related documents in other layers, using the directory-based structure:
+Add links to related documents in other layers:
 
 #### From Specifications → ADRs
 
@@ -245,8 +247,8 @@ Add links to related documents in other layers, using the directory-based struct
 ## Design Rationale
 
 This specification implements the decisions from:
-- [ADR-0003: Pure Overlay Design](../../decisions/0003-pure-overlay-design/README.md)
-- [ADR-0007: Port Type System](../../decisions/0007-port-type-system/README.md)
+- [ADR-0003: Pure Overlay Design](../decisions/0003-pure-overlay-design.md)
+- [ADR-0007: Port Type System](../decisions/0007-port-type-system.md)
 ```
 
 #### From Main Document → Appendix
@@ -255,7 +257,7 @@ This specification implements the decisions from:
 ## Examples
 
 For basic usage, see below. For complete workflow examples,
-see [Detailed Examples](./appendices/detailed-examples.md).
+see [Detailed Examples](./appendices/workspace-lifecycle/detailed-examples.md).
 ```
 
 #### From Specifications → Reference
@@ -263,14 +265,14 @@ see [Detailed Examples](./appendices/detailed-examples.md).
 ```markdown
 ## Related Reference
 
-For CLI command details, see [CLI Reference](../reference/cli/README.md#workspace-up).
+For CLI command details, see [CLI Reference](../reference/cli.md#workspace-up).
 ```
 
 #### From Behaviors → Specifications
 
 ```markdown
 # This feature verifies behavior defined in:
-# - docs/specs/workspace-lifecycle/README.md
+# - docs/specs/workspace-lifecycle.md
 
 Feature: Workspace Lifecycle
   ...
@@ -280,7 +282,7 @@ Feature: Workspace Lifecycle
 
 ```markdown
 For detailed behavior of the proxy component, see:
-- [Proxy Integration Spec](../specs/proxy-integration/README.md)
+- [Proxy Integration Spec](../specs/proxy-integration.md)
 ```
 
 ---
@@ -292,7 +294,7 @@ Before finalizing, run through this checklist:
 - [ ] **Correct layer**: Content matches the layer's purpose
 - [ ] **No conflicts**: Doesn't contradict ADRs or existing specs
 - [ ] **Template followed**: All required sections completed
-- [ ] **Directory structure**: Using `{topic}/README.md` pattern
+- [ ] **File structure**: Using `{topic}.md` with `appendices/{topic}/` if needed
 - [ ] **Thresholds respected**: Large content in appendices
 - [ ] **Cross-links added**: References to related documents and appendices
 - [ ] **No duplication**: Information not copied from other sources

@@ -21,8 +21,8 @@
 3. **Search across the entire documentation directory** using grep for key terms before concluding something is missing
 
 **Why this matters**: Migrated content is reorganized, not reduced. Content that was in one large file may now be split across:
-- Main README.md files (overview, key concepts)
-- Appendix files (detailed examples, code scaffolding, complete scripts)
+- Main `{topic}.md` files (overview, key concepts)
+- Appendix files in `appendices/{topic}/` (detailed examples, code scaffolding, complete scripts)
 - Multiple specification files (one per feature instead of one monolithic doc)
 
 A successful migration should have **approximately the same or greater total line count** as the source.
@@ -57,8 +57,8 @@ MIGRATED_INVENTORY = {
   total_lines: N,
   files: [
     { path: "{docs}/decisions/0001-example.md", lines: N },
-    { path: "{docs}/specs/feature/README.md", lines: N },
-    { path: "{docs}/specs/feature/appendices/details.md", lines: N },
+    { path: "{docs}/specs/feature.md", lines: N },
+    { path: "{docs}/specs/appendices/feature/details.md", lines: N },
     ...
   ]
 }
@@ -97,7 +97,7 @@ For key terms and concepts from the source, search the migrated documentation:
 CONTENT_CHECK = [
   {
     source_term: "Shell Integration",
-    search_results: ["specs/shell-integration/README.md", "specs/shell-integration/appendices/..."],
+    search_results: ["specs/shell-integration.md", "specs/appendices/shell-integration/..."],
     status: "found"
   },
   {
@@ -172,8 +172,8 @@ Execute the common audit process for full content inventory.
 | File | Lines |
 |------|-------|
 | {docs}/decisions/0001-example.md | {N} |
-| {docs}/specs/feature/README.md | {N} |
-| {docs}/specs/feature/appendices/details.md | {N} |
+| {docs}/specs/feature.md | {N} |
+| {docs}/specs/appendices/feature/details.md | {N} |
 | ... | ... |
 | **Total** | **{M}** |
 

@@ -105,7 +105,7 @@ Is this implementation scaffolding?
 
 For each misplacement:
 1. Extract the content from current location
-2. Create or update document in correct layer (using `{topic}/README.md` structure)
+2. Create or update document in correct layer (using `{topic}.md` structure)
 3. Replace original content with a link to new location
 4. Update cross-references
 
@@ -139,22 +139,22 @@ For each document, check:
 >
 > | Document | Issue | Should Be |
 > |----------|-------|-----------|
-> | `specs/ports/README.md` | 80-line code example | Move to `appendices/` |
-> | `reference/cli/README.md` | Full error catalog inline | Move to `appendices/errors.md` |
+> | `specs/ports.md` | 80-line code example | Move to `appendices/ports/` |
+> | `reference/cli.md` | Full error catalog inline | Move to `appendices/cli/errors.md` |
 
 #### 3c: Resolve Structure Issues
 
 For each violation:
-1. Create `appendices/` directory if needed
+1. Create `appendices/{topic}/` directory if needed (where `{topic}` matches the main document basename)
 2. Move content to appropriately named appendix file
-3. Add brief summary in main README.md
-4. Add link from README to appendix:
+3. Add brief summary in main document
+4. Add link from main document to appendix:
    ```markdown
-   For detailed examples, see [Complete Examples](./appendices/examples.md).
+   For detailed examples, see [Complete Examples](./appendices/ports/examples.md).
    ```
 5. Add back-link in appendix:
    ```markdown
-   > **Parent**: [Main Document](../README.md)
+   > **Parent**: [Main Document](../../ports.md)
    ```
 
 ---
@@ -170,7 +170,7 @@ Check for information that appears in multiple places (SSOT violations).
 | Decision rationale in specs | "We chose X because Y" in spec | Move to ADR, link from spec |
 | Config details in specs | Full schema in specification | Move to reference, link from spec |
 | Behavior details in reference | "When X happens" in CLI docs | Keep in spec, simplify reference |
-| Repeated glossary | Terms defined in multiple docs | Centralize in `concepts.md` |
+| Repeated glossary | Terms defined in multiple docs | Centralize in `product/concepts.md` |
 
 #### 4b: Find Duplicates
 
@@ -185,7 +185,7 @@ Search for similar content across documents:
 > | Content | Appears In | Canonical Source |
 > |---------|------------|------------------|
 > | Port assignment algorithm | `specs/ports.md`, `architecture/overview.md` | `specs/ports.md` |
-> | Workspace definition | `product/vision.md`, `specs/workspace.md` | `product/vision.md` |
+> | Workspace definition | `product/vision.md`, `specs/workspace-lifecycle.md` | `product/vision.md` |
 
 #### 4c: Resolve Duplicates
 
@@ -194,7 +194,7 @@ For each duplicate:
 2. Keep full content in canonical source (with large content in appendices)
 3. Replace duplicate with link:
    ```markdown
-   For the port assignment algorithm, see [Port Assignment](../specs/ports/README.md#algorithm).
+   For the port assignment algorithm, see [Port Assignment](../specs/ports.md#algorithm).
    ```
 4. Optionally keep a brief summary with the link
 
@@ -221,8 +221,8 @@ Ensure documents are properly interconnected.
 
 For each document, check:
 - [ ] Links to related documents exist
-- [ ] Links follow expected patterns (using `{topic}/README.md`)
-- [ ] Links from README.md to appendices work
+- [ ] Links follow expected patterns (using `{topic}.md` with `appendices/{topic}/`)
+- [ ] Links from main document to appendices work
 - [ ] No orphan documents (nothing links to them)
 - [ ] No dead-end documents (they link to nothing)
 
@@ -230,9 +230,9 @@ For each document, check:
 >
 > | Document | Missing Link | Should Link To |
 > |----------|--------------|----------------|
-> | `specs/proxy/README.md` | No ADR reference | Should link to ADR-0008 (Traefik) |
-> | `features/workspace.feature` | No spec reference | Should reference `specs/workspace-lifecycle/README.md` |
-> | `specs/ports/README.md` | No appendix link | Should link to `appendices/examples.md` |
+> | `specs/proxy.md` | No ADR reference | Should link to ADR-0008 (Traefik) |
+> | `features/workspace.feature` | No spec reference | Should reference `specs/workspace-lifecycle.md` |
+> | `specs/ports.md` | No appendix link | Should link to `appendices/ports/examples.md` |
 
 #### 5c: Add Missing Links
 
@@ -240,13 +240,13 @@ Add links using standard format:
 ```markdown
 ## Related Documents
 
-- [ADR-0008: Traefik Reverse Proxy](../decisions/0008-traefik-reverse-proxy/README.md) — Design rationale
-- [CLI Reference: workspace commands](../reference/cli/README.md#workspace) — Command syntax
+- [ADR-0008: Traefik Reverse Proxy](../decisions/0008-traefik-reverse-proxy.md) — Design rationale
+- [CLI Reference: workspace commands](../reference/cli.md#workspace) — Command syntax
 
 ## Appendices
 
-- [Detailed Examples](./appendices/examples.md) — Complete workflow scenarios
-- [Error Catalog](./appendices/errors.md) — Full error message reference
+- [Detailed Examples](./appendices/ports/examples.md) — Complete workflow scenarios
+- [Error Catalog](./appendices/ports/errors.md) — Full error message reference
 ```
 
 ---
@@ -444,24 +444,24 @@ For each change:
 >
 > | Document | Changes |
 > |----------|---------|
-> | `specs/ports/README.md` | Moved decision to ADR, added link, improved clarity |
-> | `specs/ports/appendices/examples.md` | Created for large code examples |
-> | `architecture/overview/README.md` | Removed duplicate content, restructured |
+> | `specs/ports.md` | Moved decision to ADR, added link, improved clarity |
+> | `specs/appendices/ports/examples.md` | Created for large code examples |
+> | `architecture/overview.md` | Removed duplicate content, restructured |
 >
 > ## Documents Created
 >
-> - `decisions/0012-two-layer-networking/README.md` — Extracted from spec
-> - `specs/flavor-switching/README.md` — Stub for missing spec
+> - `decisions/0012-two-layer-networking.md` — Extracted from spec
+> - `specs/flavor-switching.md` — Stub for missing spec
 >
 > ## Appendices Created
 >
-> - `specs/ports/appendices/examples.md` — Moved 80-line examples
-> - `reference/cli/appendices/errors.md` — Moved error catalog
+> - `specs/appendices/ports/examples.md` — Moved 80-line examples
+> - `reference/appendices/cli/errors.md` — Moved error catalog
 >
 > ## Remaining Items
 >
-> - [ ] Complete `specs/flavor-switching/README.md` content
-> - [ ] Add examples to `reference/configuration/appendices/`
+> - [ ] Complete `specs/flavor-switching.md` content
+> - [ ] Add examples to `reference/appendices/configuration/`
 
 ---
 
@@ -489,8 +489,8 @@ For each change:
 | Long paragraph | Convert to bullet list |
 | Vague term | Replace with specific value |
 | Missing example | Add concrete code/command example |
-| Error catalog inline | Move to `appendices/errors.md` |
-| Complete file example | Move to `appendices/examples.md` |
+| Error catalog inline | Move to `appendices/{topic}/errors.md` |
+| Complete file example | Move to `appendices/{topic}/examples.md` |
 
 ### Layer Authority (for deduplication)
 

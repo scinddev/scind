@@ -1,19 +1,21 @@
 # Reference Documentation
 
-This directory contains lookup documentation for Contrail.
+This directory contains reference documentation for quick lookup of commands, options, and configuration.
 
-## Index
+## Documents
 
-| Reference | Description |
-|-----------|-------------|
-| [CLI Reference](./cli/README.md) | Complete command-line interface documentation |
-| [Configuration Reference](./configuration/README.md) | Configuration file schemas and options |
+| Document | Description |
+|----------|-------------|
+| [CLI Reference](./cli.md) | Command-line interface documentation |
+| [Configuration Reference](./configuration.md) | Configuration file schemas and options |
 
-## About Reference Documentation
+## Appendices
 
-Reference documentation provides quick lookup for specific commands, options, or configuration values. It should be:
+Large content is stored in:
+- `appendices/cli/` — Detailed examples, error messages
+- `appendices/configuration/` — Complete examples, schemas
 
-- **Complete**: Cover all available options
-- **Accurate**: Reflect current implementation
-- **Scannable**: Easy to find specific information
-- **Consistent**: Follow standard formatting
+## Related Documents
+
+- [Specifications](../specs/) — Detailed behavior specifications
+- [Architecture](../architecture/overview.md) — System architecture

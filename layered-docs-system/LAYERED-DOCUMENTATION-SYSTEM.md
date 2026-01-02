@@ -85,18 +85,21 @@ This system organizes documentation into seven distinct layers, each with a spec
 
 ## Directory Structure
 
-All layers use a consistent directory-based structure with `README.md` as the main document and `appendices/` for supporting content.
+Layers use a flat file structure where main documents are siblings in the layer directory, with appendices organized in a shared `appendices/` directory.
 
 ### Standard Pattern
 
 ```
 docs/{layer}/
-├── {topic}/
-│   ├── README.md              # Main document
-│   └── appendices/            # Large/detailed supporting content
-│       ├── examples.md
-│       ├── code-samples.md
-│       └── error-catalog.md
+├── README.md              # Auto-generated layer index
+├── {topic}.md             # Main document for topic
+├── {another-topic}.md     # Main document for another topic
+└── appendices/            # Shared appendices directory
+    ├── {topic}/           # Appendices for {topic}.md
+    │   ├── examples.md
+    │   └── code-samples.md
+    └── {another-topic}/   # Appendices for {another-topic}.md
+        └── error-catalog.md
 ```
 
 ### Examples
@@ -111,23 +114,22 @@ docs/
 │   └── 0002-networking-model.md           # Include code examples inline
 │
 ├── reference/                 # Layer 5: Reference
-│   ├── README.md              # Index of reference docs
-│   ├── cli/
-│   │   ├── README.md          # CLI reference (commands, flags, descriptions)
-│   │   └── appendices/
-│   │       ├── detailed-examples.md    # Complete workflow examples
-│   │       ├── error-messages.md       # Full error message catalog
-│   │       └── output-formats.md       # Detailed output examples
-│   └── configuration/
-│       ├── README.md          # Config reference (options, defaults)
-│       └── appendices/
-│           └── complete-schemas.md     # Full YAML/JSON schema examples
+│   ├── README.md              # Auto-generated index
+│   ├── cli.md                 # CLI reference (commands, flags, descriptions)
+│   ├── configuration.md       # Config reference (options, defaults)
+│   └── appendices/
+│       ├── cli/                       # Appendices for cli.md
+│       │   ├── detailed-examples.md   # Complete workflow examples
+│       │   ├── error-messages.md      # Full error message catalog
+│       │   └── output-formats.md      # Detailed output examples
+│       └── configuration/             # Appendices for configuration.md
+│           └── complete-schemas.md    # Full YAML/JSON schema examples
 │
 ├── implementation/            # Layer 7: Implementation Guides
-│   ├── README.md              # Index
-│   └── tech-stack/
-│       ├── README.md          # Tech stack overview
-│       └── appendices/
+│   ├── README.md              # Auto-generated index
+│   ├── tech-stack.md          # Tech stack overview
+│   └── appendices/
+│       └── tech-stack/                 # Appendices for tech-stack.md
 │           ├── go-scaffolding/         # Complete code scaffolding
 │           │   ├── cmd-main.go.md
 │           │   ├── cli-root.go.md
@@ -147,15 +149,19 @@ docs/
     └── {source-filename}.md   # Raw content dump with source attribution
 ```
 
-### When to Create Directories vs Single Files
+### Layer README.md Files
 
-| Situation | Structure |
-|-----------|-----------|
-| Simple document, no appendices needed | Single file: `vision.md` |
-| Document with appendices | Directory: `cli/README.md` + `cli/appendices/` |
-| For consistency (recommended) | Always use directory structure |
+Each layer has an auto-generated `README.md` that serves as an index. This file:
+- Lists all documents in the layer
+- Provides brief guidance on when to create documents of this type
+- Links to `DOCUMENTATION-GUIDE.md` for authoritative instructions
 
-**Recommendation**: Always use the directory structure for consistency. A `README.md` with no `appendices/` directory is cleaner than mixing single files and directories.
+### Appendix Naming Convention
+
+Appendices are stored in `appendices/{basename}/` where `{basename}` matches the main document's filename (without `.md`):
+- `cli.md` → `appendices/cli/`
+- `tech-stack.md` → `appendices/tech-stack/`
+- `workspace-lifecycle.md` → `appendices/workspace-lifecycle/`
 
 ---
 
@@ -189,7 +195,7 @@ Each appendix file should be self-contained and reference-able:
 ```markdown
 # [Appendix Title]
 
-> **Parent**: [Link to main README.md](../README.md)
+> **Parent**: [Link to main document](../../{topic}.md)
 > **Purpose**: [What this appendix contains]
 
 ## Content
@@ -198,7 +204,7 @@ Each appendix file should be self-contained and reference-able:
 
 ---
 
-*This appendix supports [Main Document Name](../README.md).*
+*This appendix supports [{Topic} Document](../../{topic}.md).*
 ```
 
 ### Linking to Appendices
@@ -209,7 +215,7 @@ From main documents, link to appendices for detail:
 ## Command Examples
 
 For basic usage, see the examples below. For complete workflow examples
-including error handling, see [Detailed Examples](./appendices/detailed-examples.md).
+including error handling, see [Detailed Examples](./appendices/cli/detailed-examples.md).
 
 ### Basic Example
 
@@ -217,6 +223,8 @@ including error handling, see [Detailed Examples](./appendices/detailed-examples
 contrail workspace up
 \`\`\`
 ```
+
+Note the path structure: from `cli.md`, appendices are at `./appendices/cli/`.
 
 ---
 
@@ -504,17 +512,15 @@ Define the product's purpose, goals, and constraints. This is the stable foundat
 
 ```
 docs/product/
-├── README.md              # Index
-├── vision/
-│   └── README.md          # Problem, solution, success criteria
+├── README.md              # Auto-generated index
+├── vision.md              # Problem, solution, success criteria
 ├── comparison.md          # How this compares to alternatives (optional)
 ├── roadmap.md             # Future considerations and planned enhancements (optional)
-├── concepts/
-│   ├── README.md          # Core concepts and glossary
-│   └── appendices/
-│       └── glossary-full.md  # Extended glossary if needed
-└── personas/
-    └── README.md          # User personas and use cases (optional)
+├── concepts.md            # Core concepts and glossary
+├── personas.md            # User personas and use cases (optional)
+└── appendices/
+    └── concepts/
+        └── glossary-full.md  # Extended glossary if needed
 ```
 
 ### Template Options
@@ -601,18 +607,15 @@ Show how the system's components relate to each other and to external systems. P
 
 ```
 docs/architecture/
-├── README.md              # Index
-├── overview/
-│   ├── README.md          # System context, key containers
-│   └── appendices/
-│       └── c4-diagrams.md        # Full diagram source/exports
-├── networking/
-│   └── README.md          # Network topology, communication patterns
-├── data-flow/
-│   └── README.md          # How data moves through the system
-└── cross-cutting/
-    ├── README.md          # Security, logging, error handling
-    └── appendices/
+├── README.md              # Auto-generated index
+├── overview.md            # System context, key containers
+├── networking.md          # Network topology, communication patterns
+├── data-flow.md           # How data moves through the system
+├── cross-cutting.md       # Security, logging, error handling
+└── appendices/
+    ├── overview/
+    │   └── c4-diagrams.md        # Full diagram source/exports
+    └── cross-cutting/
         └── security-details.md   # Detailed security analysis if needed
 ```
 
@@ -674,21 +677,18 @@ Detail how specific features work. These are living documents that evolve with t
 
 ```
 docs/specs/
-├── README.md                   # Index
-├── workspace-lifecycle/
-│   ├── README.md               # Workspace states and transitions
-│   └── appendices/
-│       └── state-diagrams.md   # Detailed state machine diagrams
-├── port-assignment/
-│   ├── README.md               # Port allocation algorithm
-│   └── appendices/
-│       └── algorithm-details.md  # Full algorithm pseudocode
-├── overlay-generation/
-│   ├── README.md               # How overlays are generated
-│   └── appendices/
-│       └── complete-examples.md  # Full override file examples
-└── proxy-integration/
-    └── README.md               # Traefik integration details
+├── README.md                   # Auto-generated index
+├── workspace-lifecycle.md      # Workspace states and transitions
+├── port-assignment.md          # Port allocation algorithm
+├── overlay-generation.md       # How overlays are generated
+├── proxy-integration.md        # Traefik integration details
+└── appendices/
+    ├── workspace-lifecycle/
+    │   └── state-diagrams.md   # Detailed state machine diagrams
+    ├── port-assignment/
+    │   └── algorithm-details.md  # Full algorithm pseudocode
+    └── overlay-generation/
+        └── complete-examples.md  # Full override file examples
 ```
 
 ### Template Options
@@ -745,24 +745,20 @@ Provide lookup information for users and developers. Quick answers to "what are 
 
 ```
 docs/reference/
-├── README.md              # Index
-├── cli/
-│   ├── README.md          # Command reference (commands, flags, basics)
-│   └── appendices/
-│       ├── detailed-examples.md     # Complete workflow examples
-│       ├── error-messages.md        # Full error message catalog
-│       └── output-formats.md        # Detailed output examples
-├── configuration/
-│   ├── README.md          # Config file options (schemas, defaults)
-│   └── appendices/
-│       └── complete-schemas.md      # Full YAML/JSON schema examples
-├── environment/
-│   └── README.md          # Environment variables
-├── labels/
-│   └── README.md          # Docker labels reference
-└── errors/
-    ├── README.md          # Error codes and meanings (summary)
-    └── appendices/
+├── README.md              # Auto-generated index
+├── cli.md                 # Command reference (commands, flags, basics)
+├── configuration.md       # Config file options (schemas, defaults)
+├── environment.md         # Environment variables
+├── labels.md              # Docker labels reference
+├── errors.md              # Error codes and meanings (summary)
+└── appendices/
+    ├── cli/
+    │   ├── detailed-examples.md     # Complete workflow examples
+    │   ├── error-messages.md        # Full error message catalog
+    │   └── output-formats.md        # Detailed output examples
+    ├── configuration/
+    │   └── complete-schemas.md      # Full YAML/JSON schema examples
+    └── errors/
         └── full-catalog.md          # Complete error catalog
 ```
 
@@ -905,25 +901,23 @@ Describe *how to build* the system—technology stack, scaffolding, code templat
 
 ```
 docs/implementation/
-├── README.md                  # Index
-├── tech-stack/
-│   ├── README.md              # Dependencies, versions, rationale (overview)
-│   └── appendices/
-│       ├── go-scaffolding/              # Complete code scaffolding
-│       │   ├── cmd-main.go.md
-│       │   ├── cli-root.go.md
-│       │   ├── cli-workspace.go.md
-│       │   └── cli-commands.go.md
-│       └── shell-scripts/               # Complete shell scripts
-│           ├── bash.sh.md
-│           ├── zsh.zsh.md
-│           └── fish.fish.md
-├── scaffolding/
-│   ├── README.md              # Project structure explanation
-│   └── appendices/
-│       └── directory-tree.md  # Full project structure with explanations
-└── build-setup/
-    └── README.md              # Development environment setup
+├── README.md                  # Auto-generated index
+├── tech-stack.md              # Dependencies, versions, rationale (overview)
+├── scaffolding.md             # Project structure explanation
+├── build-setup.md             # Development environment setup
+└── appendices/
+    ├── tech-stack/
+    │   ├── go-scaffolding/              # Complete code scaffolding
+    │   │   ├── cmd-main.go.md
+    │   │   ├── cli-root.go.md
+    │   │   ├── cli-workspace.go.md
+    │   │   └── cli-commands.go.md
+    │   └── shell-scripts/               # Complete shell scripts
+    │       ├── bash.sh.md
+    │       ├── zsh.zsh.md
+    │       └── fish.fish.md
+    └── scaffolding/
+        └── directory-tree.md  # Full project structure with explanations
 ```
 
 ### Lifecycle
@@ -1006,10 +1000,13 @@ Use relative Markdown links to connect layers:
 This design follows the overlay pattern. See [ADR-0003](../decisions/0003-pure-overlay-design.md) for rationale.
 
 <!-- In architecture -->
-For command details, see the [CLI Reference](../reference/cli/README.md).
+For command details, see the [CLI Reference](../reference/cli.md).
 
 <!-- In a behavior -->
-This scenario verifies the workspace lifecycle described in [Workspace Lifecycle Spec](../specs/workspace-lifecycle/README.md).
+This scenario verifies the workspace lifecycle described in [Workspace Lifecycle Spec](../specs/workspace-lifecycle.md).
+
+<!-- From main doc to appendix -->
+For complete workflow examples, see [Detailed Examples](./appendices/cli/detailed-examples.md).
 ```
 
 ### Link Direction Guidelines
@@ -1169,33 +1166,33 @@ project/
 │   │   └── 0001-initial-architecture.md   # Single file per ADR
 │   │
 │   ├── product/                 # Layer 2: Vision
-│   │   ├── README.md
-│   │   └── vision/
-│   │       └── README.md
+│   │   ├── README.md            # Auto-generated index
+│   │   ├── vision.md
+│   │   └── appendices/          # Only if needed
 │   │
 │   ├── architecture/            # Layer 3: Architecture
-│   │   ├── README.md
-│   │   └── overview/
-│   │       └── README.md
+│   │   ├── README.md            # Auto-generated index
+│   │   ├── overview.md
+│   │   └── appendices/          # Only if needed
 │   │
 │   ├── specs/                   # Layer 4: Specifications
-│   │   ├── README.md
-│   │   └── [feature]/
-│   │       ├── README.md
-│   │       └── appendices/      # Only if needed
+│   │   ├── README.md            # Auto-generated index
+│   │   ├── [feature].md
+│   │   └── appendices/
+│   │       └── [feature]/       # Appendices for [feature].md
 │   │
 │   ├── reference/               # Layer 5: Reference
-│   │   ├── README.md
-│   │   └── cli/
-│   │       ├── README.md
-│   │       └── appendices/
+│   │   ├── README.md            # Auto-generated index
+│   │   ├── cli.md
+│   │   └── appendices/
+│   │       └── cli/
 │   │           └── detailed-examples.md
 │   │
 │   ├── implementation/          # Layer 7: Implementation Guides
-│   │   ├── README.md
-│   │   └── tech-stack/
-│   │       ├── README.md
-│   │       └── appendices/
+│   │   ├── README.md            # Auto-generated index
+│   │   ├── tech-stack.md
+│   │   └── appendices/
+│   │       └── tech-stack/
 │   │           └── scaffolding/
 │   │
 │   ├── migration/               # Content awaiting final placement

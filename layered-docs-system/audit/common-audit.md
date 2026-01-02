@@ -33,8 +33,8 @@ DOCS_INVENTORY = {
   total_lines: N,
   files: [
     { path: "decisions/0001-example.md", lines: N },
-    { path: "specs/feature/README.md", lines: N },
-    { path: "specs/feature/appendices/details.md", lines: N },
+    { path: "specs/feature.md", lines: N },
+    { path: "specs/appendices/feature/details.md", lines: N },
     ...
   ]
 }
@@ -72,8 +72,8 @@ APPENDIX_INVENTORY = {
   total_files: N,
   total_lines: N,
   by_parent: {
-    "specs/feature-name": { files: N, lines: N },
-    "reference/cli": { files: N, lines: N },
+    "specs/appendices/feature-name": { files: N, lines: N },
+    "reference/appendices/cli": { files: N, lines: N },
     ...
   }
 }

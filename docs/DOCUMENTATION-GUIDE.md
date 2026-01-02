@@ -1,176 +1,231 @@
-# Contrail Documentation Guide
+# Documentation Guide
 
-This guide explains how to navigate and contribute to Contrail's documentation.
+**Project**: Contrail
+**Generated**: 2026-01-02
+**Tooling**: Tier 2 (markdownlint, Vale, Log4brains, Structurizr)
 
 ---
 
-## Documentation Structure
+## Overview
 
-Contrail uses a **7-layer documentation system** that separates concerns by type and audience:
+This documentation follows the Layered Documentation System, organizing content by type and purpose. Each layer serves a specific audience and use case.
+
+---
+
+## Structure
 
 ```
 docs/
-├── DOCUMENTATION-GUIDE.md      # This file
-├── decisions/                  # Layer 1: ADRs
-├── product/                    # Layer 2: Vision
-├── architecture/               # Layer 3: Architecture
-├── specs/                      # Layer 4: Specifications
-├── reference/                  # Layer 5: Reference
-├── implementation/             # Layer 7: Implementation
-└── migration/                  # Migration notes
+├── decisions/          # Layer 1: ADRs (Architectural Decision Records)
+├── product/            # Layer 2: Vision, comparison, roadmap
+├── architecture/       # Layer 3: System architecture and diagrams
+├── specs/              # Layer 4: Detailed feature specifications
+├── reference/          # Layer 5: CLI and configuration reference
+├── implementation/     # Layer 7: Technology stack and patterns
+└── .migration/         # Migration plan (delete after migration)
 
-features/                       # Layer 6: Behaviors (Gherkin)
+features/               # Layer 6: Gherkin behavior scenarios (at project root)
 ```
 
 ---
 
-## Layer Overview
+## Layers
 
-### Layer 1: Decisions (`docs/decisions/`)
+### Layer 1: Decisions (`decisions/`)
 
-**Architectural Decision Records (ADRs)** capture the *why* behind significant technical choices.
+**Purpose**: Capture architectural decisions and their rationale.
 
-- **Format**: MADR Minimal
-- **When to use**: Recording decisions with lasting impact
-- **Key files**: `README.md` (index), `0000-template/` (template)
+**Audience**: Developers, architects, future maintainers.
 
-**Current ADRs**:
-| # | Title | Status |
-|---|-------|--------|
-| 0001 | Docker Compose Project Name Isolation | Accepted |
-| 0002 | Two-Layer Networking | Accepted |
-| 0003 | Pure Overlay Design | Accepted |
-| 0004 | Convention-Based Naming | Accepted |
-| 0005 | Structure vs State Separation | Accepted |
-| 0006 | Three Configuration Schemas | Accepted |
-| 0007 | Port Type System | Accepted |
-| 0008 | Traefik for Reverse Proxy | Accepted |
-| 0009 | Flexible TLS Configuration | Accepted |
-| 0010 | up/down Command Semantics | Accepted |
-| 0011 | Options-Based Targeting with Context Detection | Accepted |
-| 0012 | Layered Documentation System | Accepted |
+**Format**: MADR Minimal (Status, Context, Decision, Consequences).
 
-### Layer 2: Vision (`docs/product/`)
+**When to write**: When making significant architectural or design decisions.
 
-**Product vision and requirements** at the strategic level.
+**Example**: [ADR-0001: Docker Compose Project Name Isolation](./decisions/0001-docker-compose-project-name-isolation.md)
 
-- **Format**: Lean PRD
-- **When to use**: Understanding product goals and scope
-- **Key files**: `vision/README.md`
+### Layer 2: Product (`product/`)
 
-### Layer 3: Architecture (`docs/architecture/`)
+**Purpose**: Communicate vision, value proposition, and roadmap.
 
-**System structure and component relationships**.
+**Audience**: Product managers, stakeholders, new team members.
 
-- **Format**: C4-Lite (Context + Container diagrams)
-- **When to use**: Understanding system design
-- **Key files**: `overview/README.md`
+**Contents**:
+- Vision — Why Contrail exists, core concepts
+- Comparison — How Contrail differs from alternatives
+- Roadmap — Future considerations
 
-### Layer 4: Specifications (`docs/specs/`)
+### Layer 3: Architecture (`architecture/`)
 
-**Precise behavioral definitions** for features.
+**Purpose**: Explain how the system works at a high level.
 
-- **Format**: Feature Spec
-- **When to use**: Implementing or testing specific behaviors
-- **Key files**: See `docs/specs/README.md` for index
+**Audience**: Developers needing system understanding.
 
-**Current specifications**:
-- Configuration Schemas
-- Context Detection
-- Docker Labels
-- Environment Variables
-- Generated Override Files
-- Naming Conventions
-- Port Types
-- Proxy Infrastructure
-- Shell Integration
-- Workspace Lifecycle
+**Contents**:
+- System overview
+- Component diagrams
+- Data flow descriptions
+- Network topology
 
-### Layer 5: Reference (`docs/reference/`)
+**Diagram format**: ASCII (inline) or Structurizr DSL (in appendices).
 
-**Lookup documentation** for commands and configuration.
+### Layer 4: Specifications (`specs/`)
 
-- **Format**: Reference tables and structured lists
-- **When to use**: Quick lookup of specific options
-- **Key files**: `cli/README.md`, `configuration/README.md`
+**Purpose**: Define detailed behavior for implementation.
+
+**Audience**: Developers implementing or maintaining features.
+
+**Format**: Structured template with:
+- Overview
+- Behavior (normal flow)
+- Data Schema (with tables)
+- Examples
+- Edge Cases
+- Error Handling
+
+**When to write**: Before implementing a feature or when documenting existing behavior.
+
+### Layer 5: Reference (`reference/`)
+
+**Purpose**: Quick lookup for commands and configuration.
+
+**Audience**: Users running commands, writing configuration.
+
+**Format**: Dense tables, minimal prose. Optimized for scanning.
+
+**Contents**:
+- CLI reference — All commands, options, exit codes
+- Configuration reference — All config files and fields
 
 ### Layer 6: Behaviors (`features/`)
 
-**Executable specifications** in Gherkin format.
+**Purpose**: Executable specifications in Gherkin.
 
-- **Format**: Standard BDD (Given/When/Then)
-- **When to use**: Defining acceptance criteria
-- **Key files**: `_template.feature`
+**Audience**: QA, developers, stakeholders wanting to understand behavior.
 
-### Layer 7: Implementation (`docs/implementation/`)
+**Location**: `features/` at project root (standard convention).
 
-**Technology stack and implementation guidance**.
+**Format**: Gherkin `.feature` files with Given/When/Then scenarios.
 
-- **Format**: Tech Stack
-- **When to use**: Setting up development environment
-- **Key files**: `go-stack/README.md`
+### Layer 7: Implementation (`implementation/`)
 
----
+**Purpose**: Document technology choices and patterns.
 
-## Finding Information
+**Audience**: Developers working on the codebase.
 
-### "Why was this decision made?"
-→ Check **Layer 1: Decisions** for relevant ADRs
-
-### "What is Contrail trying to solve?"
-→ Check **Layer 2: Vision** for product context
-
-### "How does the system work?"
-→ Check **Layer 3: Architecture** for system design
-
-### "How does this feature behave?"
-→ Check **Layer 4: Specifications** for precise definitions
-
-### "What command should I use?"
-→ Check **Layer 5: Reference** for CLI and config options
-
-### "What should happen in this scenario?"
-→ Check **Layer 6: Behaviors** for Gherkin scenarios
-
-### "How do I build this?"
-→ Check **Layer 7: Implementation** for tech stack details
+**Contents**:
+- Tech stack — Dependencies and rationale
+- Code patterns — Error handling, testing strategy
+- Scaffolding — In appendices
 
 ---
 
-## Contributing to Documentation
+## Content Thresholds
 
-### Adding a New ADR
+Move large content to appendices (`appendices/{feature-name}/`) when:
 
-1. Copy `docs/decisions/0000-template/README.md`
-2. Increment the number
-3. Fill in Context, Decision, Consequences
-4. Update `docs/decisions/README.md` index
-
-### Adding a New Specification
-
-1. Create directory under `docs/specs/{spec-name}/`
-2. Create `README.md` following the spec template
-3. Update `docs/specs/README.md` index
-4. Cross-reference related ADRs
-
-### Adding a New Feature Behavior
-
-1. Copy `features/_template.feature`
-2. Define scenarios using Given/When/Then
-3. Follow Gherkin best practices
+| Content Type | Threshold |
+|--------------|-----------|
+| Code blocks | >50 lines |
+| Step lists | >10 items |
+| Tables | >20 rows |
+| Embedded images | Any (use appendices) |
 
 ---
 
-## Navigation Tips
+## Cross-References
 
-- **Cross-references**: Documents link to related content in other layers
-- **README.md files**: Each directory has an index
-- **Version headers**: Major documents include version and date
+Documents should link to related content:
+
+- ADRs → link to implementing specs
+- Specs → link to motivating ADRs
+- Architecture → links to both ADRs and specs
+- Reference → links to specs for detailed behavior
+
+Use relative paths: `../specs/context-detection.md`
 
 ---
 
-## Maintenance
+## Tooling (Tier 2)
 
-This documentation system was installed using the Layered Documentation System v3.0.
+### markdownlint
 
-For system documentation, see: `layered-docs-system/LAYERED-DOCUMENTATION-SYSTEM.md`
+Enforces Markdown consistency.
+
+```bash
+npx markdownlint-cli2 "docs/**/*.md"
+```
+
+Configuration: `.markdownlint.yaml` or `.markdownlint-cli2.yaml`
+
+### Vale
+
+Prose linting for style and terminology.
+
+```bash
+vale docs/
+```
+
+Configuration: `.vale.ini` and `styles/` directory.
+
+### Log4brains
+
+ADR management and visualization.
+
+```bash
+log4brains preview     # Local preview
+log4brains build       # Static site
+```
+
+Configuration: `.log4brains.yaml`
+
+### Structurizr
+
+Architecture diagrams as code.
+
+```bash
+# Using Structurizr Lite (Docker)
+docker run -it --rm -p 8080:8080 -v $(pwd)/docs/architecture:/usr/local/structurizr structurizr/lite
+```
+
+DSL files: `docs/architecture/appendices/` or `docs/architecture/*.dsl`
+
+---
+
+## Writing Conventions
+
+### Tone
+
+- Technical and direct
+- Use imperative mood for instructions ("Run the command", not "You should run")
+- Avoid marketing language
+
+### Formatting
+
+- Use code fences with language hints
+- Use tables for structured data
+- Keep paragraphs short (3-5 sentences)
+- Use headers to enable scanning
+
+### Naming
+
+- Files: `kebab-case.md`
+- Directories: `kebab-case/`
+- ADRs: `NNNN-title.md` (e.g., `0001-docker-compose-project-name-isolation.md`)
+
+---
+
+## Migration Status
+
+This documentation was migrated from existing specs. See:
+
+- [Migration Plan](./.migration/README.md) — Step-by-step migration instructions
+- [Audit](./audit.md) — Post-migration verification checklist
+
+After migration is complete, delete the `.migration/` directory.
+
+---
+
+## Related
+
+- [Layered Documentation System](../layered-docs-system/LAYERED-DOCUMENTATION-SYSTEM.md) — The system this guide implements
+

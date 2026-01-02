@@ -1,38 +1,73 @@
-# Feature Template
+# Feature: [Feature Name]
 #
-# This file provides a template for writing Gherkin feature specifications.
-# Features describe expected behavior from a user's perspective.
+# This is a Gherkin feature file template for executable specifications.
+# Use this format to define behaviors that can be verified automatically.
+#
+# Gherkin keywords:
+#   Feature: Groups related scenarios
+#   Background: Steps run before each scenario
+#   Scenario: A single test case
+#   Scenario Outline: A parameterized test case
+#   Given: Preconditions (setup)
+#   When: Actions taken
+#   Then: Expected outcomes
+#   And/But: Additional steps (takes meaning from previous keyword)
+#
+# Best practices:
+#   - Write from the user's perspective
+#   - Keep scenarios independent (no shared state)
+#   - Use declarative style (what, not how)
+#   - One behavior per scenario
 
 Feature: [Feature Name]
-  As a [type of user]
-  I want [to perform some action]
-  So that [I can achieve some goal]
+  As a [role/persona]
+  I want [goal/desire]
+  So that [benefit/value]
+
+  # Reference: docs/specs/{feature-name}.md
 
   Background:
-    # Common setup steps that run before each scenario
-    Given a workspace named "dev" exists
-    And the workspace has an application "app-one"
+    # Steps that run before each scenario
+    Given [common precondition]
 
-  Scenario: [Scenario Name]
-    # Describe a specific user flow
-    Given [some precondition]
-    When [some action is taken]
-    Then [some result should occur]
-    And [another result should occur]
+  # ============================================
+  # Happy Path Scenarios
+  # ============================================
 
-  Scenario: [Another Scenario]
-    Given [some different precondition]
-    When [some action is taken]
-    Then [some result should occur]
+  Scenario: [Descriptive name of the happy path]
+    Given [precondition]
+    When [action taken]
+    Then [expected outcome]
 
-  Scenario Outline: [Parameterized Scenario]
-    # Use scenario outlines for testing multiple variations
-    Given a port of type "<type>" with protocol "<protocol>"
-    When the override file is generated
-    Then the environment variable should contain port "<expected_port>"
+  # ============================================
+  # Edge Cases
+  # ============================================
+
+  Scenario: [Edge case name]
+    Given [unusual precondition]
+    When [action taken]
+    Then [expected behavior in edge case]
+
+  # ============================================
+  # Error Handling
+  # ============================================
+
+  Scenario: [Error scenario name]
+    Given [precondition that will cause error]
+    When [action taken]
+    Then [error is handled gracefully]
+    And [appropriate error message is shown]
+
+  # ============================================
+  # Parameterized Scenarios
+  # ============================================
+
+  Scenario Outline: [Parameterized scenario name]
+    Given [precondition with <parameter>]
+    When [action with <parameter>]
+    Then [expected outcome with <expected_result>]
 
     Examples:
-      | type     | protocol | expected_port |
-      | proxied  | https    | 443           |
-      | proxied  | http     | 80            |
-      | assigned | -        | 5432          |
+      | parameter | expected_result |
+      | value1    | result1         |
+      | value2    | result2         |

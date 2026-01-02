@@ -62,17 +62,17 @@ Based on the change type, identify which documents need updating:
 | API changed | Reference (API + appendices), Architecture if contracts changed |
 | Dependencies changed | Implementation (tech-stack + appendices), possibly ADR |
 
-**Note**: Remember to check both main `README.md` files and `appendices/` directories for affected content.
+**Note**: Remember to check both main `{topic}.md` files and `appendices/{topic}/` directories for affected content.
 
 List all potentially affected documents:
 
 > **Potentially Affected Documents**
 >
 > Based on the change, these documents may need updating:
-> - `docs/specs/{feature}/README.md`
-> - `docs/specs/{feature}/appendices/{detail}.md`
-> - `docs/reference/cli/README.md`
-> - `docs/reference/cli/appendices/detailed-examples.md`
+> - `docs/specs/{feature}.md`
+> - `docs/specs/appendices/{feature}/{detail}.md`
+> - `docs/reference/cli.md`
+> - `docs/reference/appendices/cli/detailed-examples.md`
 > - `features/{feature}.feature`
 > - ...
 
@@ -131,8 +131,8 @@ Update the authoritative source document first.
 
 #### For Specification Updates
 
-1. Read the current specification (`docs/specs/{feature}/README.md`)
-2. Also read any appendices in `docs/specs/{feature}/appendices/`
+1. Read the current specification (`docs/specs/{feature}.md`)
+2. Also read any appendices in `docs/specs/appendices/{feature}/`
 3. Locate the section(s) that describe the changed behavior
 4. Update the behavior description to match new implementation
 5. Update any examples that are now incorrect
@@ -147,8 +147,8 @@ Update the authoritative source document first.
 
 #### For Reference Updates
 
-1. Read the current reference document (`docs/reference/{topic}/README.md`)
-2. Also read any appendices in `docs/reference/{topic}/appendices/`
+1. Read the current reference document (`docs/reference/{topic}.md`)
+2. Also read any appendices in `docs/reference/appendices/{topic}/`
 3. Locate the section(s) for the changed command/option
 4. Update syntax, options, defaults as needed
 5. Update examples in main doc (brief) and appendices (detailed)

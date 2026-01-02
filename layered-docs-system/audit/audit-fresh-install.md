@@ -40,7 +40,7 @@ Check that template files exist:
 ```
 Expected templates:
 - [ ] decisions/0000-template.md (if Layer 1)
-- [ ] specs/_template/README.md (if Layer 4)
+- [ ] specs/_template.md (if Layer 4)
 - [ ] Other templates based on selections
 ```
 

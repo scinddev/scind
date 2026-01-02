@@ -6,9 +6,9 @@
 
 ---
 
-> **File Location**: `docs/specs/{feature-name}/README.md`
+> **File Location**: `docs/specs/{feature-name}.md`
 >
-> Create appendices directory at `docs/specs/{feature-name}/appendices/` if large content is needed.
+> Create appendices directory at `docs/specs/appendices/{feature-name}/` if large content is needed.
 
 ---
 
@@ -17,12 +17,12 @@
 [One paragraph describing what this feature does and why it exists.]
 
 **Related Documents**:
-- [ADR-NNNN: Relevant Decision](../../decisions/NNNN-{title}/README.md)
-- [Architecture: Relevant Section](../../architecture/overview/README.md#section)
+- [ADR-NNNN: Relevant Decision](../decisions/NNNN-{title}.md)
+- [Architecture: Relevant Section](../architecture/overview.md#section)
 
 **Appendices** (if applicable):
-- [Detailed Examples](./appendices/examples.md)
-- [Error Catalog](./appendices/errors.md)
+- [Detailed Examples](./appendices/{feature-name}/examples.md)
+- [Error Catalog](./appendices/{feature-name}/errors.md)
 
 ---
 
@@ -114,7 +114,7 @@ field_two:
 
 **Result**: [Expected outcome]
 
-> **Note**: If code blocks exceed 50 lines or you need complete file examples, move to `appendices/examples.md`.
+> **Note**: If code blocks exceed 50 lines or you need complete file examples, move to `appendices/{feature-name}/examples.md`.
 
 ---
 
@@ -145,7 +145,7 @@ field_two:
 | [Condition 1] | [E001] | [User-facing message] | [What user can do] |
 | [Condition 2] | [E002] | [User-facing message] | [What user can do] |
 
-> **Note**: If this table exceeds 20 rows, move the full catalog to `appendices/errors.md`.
+> **Note**: If this table exceeds 20 rows, move the full catalog to `appendices/{feature-name}/errors.md`.
 
 ---
 

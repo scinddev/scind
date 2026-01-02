@@ -5,9 +5,9 @@
 
 ---
 
-> **File Location**: `docs/reference/configuration/README.md`
+> **File Location**: `docs/reference/configuration.md`
 >
-> Create appendices directory at `docs/reference/configuration/appendices/` for:
+> Create appendices directory at `docs/reference/appendices/configuration/` for:
 > - Complete configuration examples (`complete-examples.md`)
 > - Schema definitions (`schema.md`)
 > - Migration guides (`migration-guide.md`)
@@ -155,19 +155,19 @@ section_two:
       - "item2"
 ```
 
-> **Note**: For complete file examples with all options annotated, see `appendices/complete-examples.md`.
+> **Note**: For complete file examples with all options annotated, see `appendices/configuration/complete-examples.md`.
 
 ---
 
 ## Appendices
 
-- [Complete Examples](./appendices/complete-examples.md) — Full annotated configurations
-- [JSON Schema](./appendices/schema.md) — Formal schema definition
-- [Migration Guide](./appendices/migration-guide.md) — Upgrading from previous versions
+- [Complete Examples](./appendices/configuration/complete-examples.md) — Full annotated configurations
+- [JSON Schema](./appendices/configuration/schema.md) — Formal schema definition
+- [Migration Guide](./appendices/configuration/migration-guide.md) — Upgrading from previous versions
 
 ---
 
 ## See Also
 
-- [CLI Reference](../cli/README.md)
-- [Architecture Overview](../../architecture/overview/README.md)
+- [CLI Reference](./cli.md)
+- [Architecture Overview](../architecture/overview.md)

@@ -11,7 +11,7 @@ Before starting, read the complete system documentation:
 - `LAYERED-DOCUMENTATION-SYSTEM.md` — Full system guide with all layers, heuristics, and templates
 
 Pay special attention to:
-- **Directory Structure** — Most layers use `README.md` + `appendices/` pattern; ADRs are simple single files
+- **Directory Structure** — Layers use flat file structure with `{topic}.md` files and shared `appendices/{topic}/` directories; ADRs are simple single files
 - **Appendix System** — Large content goes to appendices (except for ADRs, which include code inline)
 - **Confidence-Based Classification** — Content goes to layers, `migration/`, or `blackhole/`
 - **Content Thresholds** — Default thresholds for appendix classification
@@ -492,7 +492,7 @@ If "no", ask which selections to change.
 
 ### Step 7: Create Directory Structure
 
-Create directories based on selected layers. Note that **ADRs use simple single files** (not directories), while other layers use the `README.md` + `appendices/` pattern:
+Create directories based on selected layers. Note that **ADRs use simple single files** (not directories), while other layers use flat file structure with `{topic}.md` files and shared `appendices/{topic}/` directories:
 
 ```
 {INSTALL_DIR}/
@@ -500,42 +500,38 @@ Create directories based on selected layers. Note that **ADRs use simple single 
 ├── audit.md                         # Always created (audit instructions for this install)
 │
 ├── decisions/                       # If Layer 1 selected (simple files, NOT directories)
-│   ├── README.md                   # Index of all ADRs
+│   ├── README.md                   # Auto-generated index of all ADRs
 │   └── 0000-template.md            # Template ADR (single file)
 │
 ├── product/                         # If Layer 2 selected
-│   ├── README.md                   # Index
-│   ├── vision/
-│   │   └── README.md               # Template or migrated content
+│   ├── README.md                   # Auto-generated index
+│   ├── vision.md                   # Template or migrated content
 │   ├── comparison.md               # Only if comparison content detected (migration)
 │   └── roadmap.md                  # Only if roadmap content detected (migration)
 │
 ├── architecture/                    # If Layer 3 selected
-│   ├── README.md                   # Index
-│   └── overview/
-│       └── README.md               # Template or migrated content
+│   ├── README.md                   # Auto-generated index
+│   └── overview.md                 # Template or migrated content
 │
 ├── specs/                           # If Layer 4 selected
-│   ├── README.md                   # Index
-│   └── _template/
-│       └── README.md               # Template file
+│   ├── README.md                   # Auto-generated index
+│   └── _template.md                # Template file
 │
 ├── reference/                       # If Layer 5 selected
-│   ├── README.md                   # Index
-│   ├── cli/
-│   │   ├── README.md               # CLI reference
-│   │   └── appendices/             # Only if migrating content
-│   │       └── ...
-│   └── configuration/
-│       ├── README.md               # Config reference
-│       └── appendices/             # Only if migrating content
+│   ├── README.md                   # Auto-generated index
+│   ├── cli.md                      # CLI reference
+│   ├── configuration.md            # Config reference
+│   └── appendices/                 # Only if migrating content
+│       ├── cli/                    # Appendices for cli.md
+│       │   └── ...
+│       └── configuration/          # Appendices for configuration.md
 │           └── ...
 │
 ├── implementation/                  # If Layer 7 selected
-│   ├── README.md                   # Index
-│   └── tech-stack/
-│       ├── README.md               # Template or migrated content
-│       └── appendices/             # Only if migrating content
+│   ├── README.md                   # Auto-generated index
+│   ├── tech-stack.md               # Template or migrated content
+│   └── appendices/                 # Only if migrating content
+│       └── tech-stack/             # Appendices for tech-stack.md
 │           └── ...
 │
 ├── migration/                       # Only if MIGRATION_MODE and has medium-confidence content
@@ -621,7 +617,7 @@ Content is referenced using `file:start-end` format:
 
 When creating files, use the templates installed in:
 - `{INSTALL_DIR}/decisions/0000-template.md` for ADRs
-- `{INSTALL_DIR}/specs/_template/README.md` for specifications
+- `{INSTALL_DIR}/specs/_template.md` for specifications
 - Other layer templates as applicable
 
 ## Cross-Layer Links
@@ -753,34 +749,34 @@ Accepted
 
 Create `{INSTALL_DIR}/.migration/02-vision.md`:
 
-1. Target file: `product/vision/README.md`
+1. Target file: `product/vision.md`
 2. Pre-extract content if feasible, otherwise provide section-by-section source pointers
-3. Include appendix file generation if needed (e.g., glossary)
+3. Include appendix file generation if needed (e.g., `appendices/vision/glossary.md`)
 
 #### 8f: Generate Architecture Step File
 
 Create `{INSTALL_DIR}/.migration/03-architecture.md`:
 
-1. Target file: `architecture/overview/README.md`
+1. Target file: `architecture/overview.md`
 2. Preserve diagrams exactly — include as pre-extracted content to avoid corruption
-3. Include appendix file generation if needed
+3. Include appendix file generation if needed (e.g., `appendices/overview/c4-diagrams.md`)
 
 #### 8g: Generate Specifications Step File
 
 Create `{INSTALL_DIR}/.migration/04-specs.md`:
 
-1. Multiple target files: `specs/{feature-name}/README.md`
+1. Multiple target files: `specs/{feature-name}.md`
 2. For each specification, include:
    - Main content (pre-extracted or source pointer)
-   - Appendix content if needed
+   - Appendix content if needed (at `appendices/{feature-name}/`)
    - Notes about removing decision rationale (now in ADRs)
 
 #### 8h: Generate Reference Step File
 
 Create `{INSTALL_DIR}/.migration/05-reference.md`:
 
-1. Target files: `reference/cli/README.md`, `reference/configuration/README.md`
-2. Appendix files: `reference/cli/appendices/*.md`, `reference/configuration/appendices/*.md`
+1. Target files: `reference/cli.md`, `reference/configuration.md`
+2. Appendix files: `reference/appendices/cli/*.md`, `reference/appendices/configuration/*.md`
 3. Emphasize: Include ALL content — every command, flag, error message
 4. Pre-extract when possible since reference docs are critical
 
@@ -788,10 +784,10 @@ Create `{INSTALL_DIR}/.migration/05-reference.md`:
 
 Create `{INSTALL_DIR}/.migration/06-implementation.md`:
 
-1. Target file: `implementation/tech-stack/README.md`
+1. Target file: `implementation/tech-stack.md`
 2. Appendix files:
-   - `implementation/tech-stack/appendices/go-scaffolding/*.md`
-   - `implementation/tech-stack/appendices/shell-scripts/*.md`
+   - `implementation/appendices/tech-stack/go-scaffolding/*.md`
+   - `implementation/appendices/tech-stack/shell-scripts/*.md`
 3. **Critical**: Scaffolding code and shell scripts must be preserved in full
 4. Pre-extract scaffolding code to ensure no loss
 
@@ -834,17 +830,17 @@ Scan all created files and add appropriate cross-layer links:
 
 **In specifications** — Link to ADRs for rationale:
 ```markdown
-See [ADR-0003: Pure Overlay Design](../../decisions/0003-pure-overlay-design.md) for rationale.
+See [ADR-0003: Pure Overlay Design](../decisions/0003-pure-overlay-design.md) for rationale.
 ```
 
-**In main READMEs** — Link to appendices for details:
+**In main documents** — Link to appendices for details:
 ```markdown
-For complete workflow examples, see [Detailed Examples](./appendices/detailed-examples.md).
+For complete workflow examples, see [Detailed Examples](./appendices/cli/detailed-examples.md).
 ```
 
 **In architecture** — Link to specs for detail:
 ```markdown
-For detailed port assignment behavior, see [Port Types Spec](../specs/port-types/README.md).
+For detailed port assignment behavior, see [Port Types Spec](../specs/port-types.md).
 ```
 
 ### Files to Update
@@ -1067,8 +1063,8 @@ The file should be customized with:
 3. **Search across the entire documentation directory** using grep for key terms before concluding something is missing
 
 **Why this matters**: Migrated content is reorganized, not reduced. Content that was in one large file may now be split across:
-- Main README.md files (overview, key concepts)
-- Appendix files (detailed examples, code scaffolding, complete scripts)
+- Main `{topic}.md` files (overview, key concepts)
+- Appendix files in `appendices/{topic}/` (detailed examples, code scaffolding, complete scripts)
 - Multiple specification files (one per feature instead of one monolithic doc)
 
 A successful migration should have **approximately the same or greater total line count** as the source.
@@ -1234,10 +1230,10 @@ Layer 7 (Implementation): {N} lines (+ {N} lines in appendices)
 
 APPENDIX CONTENT
 ----------------
-reference/cli/appendices/detailed-examples.md: {N} lines
-reference/cli/appendices/error-messages.md: {N} lines
-implementation/tech-stack/appendices/go-scaffolding/: {N} files, {N} lines
-implementation/tech-stack/appendices/shell-scripts/: {N} files, {N} lines
+reference/appendices/cli/detailed-examples.md: {N} lines
+reference/appendices/cli/error-messages.md: {N} lines
+implementation/appendices/tech-stack/go-scaffolding/: {N} files, {N} lines
+implementation/appendices/tech-stack/shell-scripts/: {N} files, {N} lines
 
 MIGRATION DIRECTORY CONTENTS
 ----------------------------
@@ -1274,7 +1270,7 @@ Save the audit summary to `{INSTALL_DIR}/MIGRATION-AUDIT.md` for reference.
 >
 > **Next Steps**:
 > 1. Review `{INSTALL_DIR}/DOCUMENTATION-GUIDE.md` for usage instructions
-> 2. Start with your Vision document in `{INSTALL_DIR}/product/vision/README.md`
+> 2. Start with your Vision document in `{INSTALL_DIR}/product/vision.md`
 > 3. Document key decisions as ADRs in `{INSTALL_DIR}/decisions/`
 > 4. Use `create.md` when adding new documentation
 > 5. Use `{INSTALL_DIR}/audit.md` to verify documentation completeness
@@ -1370,14 +1366,14 @@ Save the audit summary to `{INSTALL_DIR}/MIGRATION-AUDIT.md` for reference.
 | Layer | Directory | Structure |
 |-------|-----------|-----------|
 | Decisions | `decisions/` | `NNNN-title.md` (simple single files, NOT directories) |
-| Vision | `product/` | `vision/README.md` |
+| Vision | `product/` | `vision.md` |
 | Comparison | `product/` | `comparison.md` (auto-detected during migration) |
 | Roadmap | `product/` | `roadmap.md` (auto-detected during migration) |
-| Architecture | `architecture/` | `overview/README.md`, `{topic}/README.md` |
-| Specifications | `specs/` | `{feature-name}/README.md` + `appendices/` |
-| Reference | `reference/` | `cli/README.md` + `appendices/`, `configuration/README.md` + `appendices/` |
+| Architecture | `architecture/` | `overview.md`, `{topic}.md` |
+| Specifications | `specs/` | `{feature-name}.md` + `appendices/{feature-name}/` |
+| Reference | `reference/` | `cli.md` + `appendices/cli/`, `configuration.md` + `appendices/configuration/` |
 | Behaviors | `features/` (project root) | `{feature}.feature` |
-| Implementation | `implementation/` | `tech-stack/README.md` + `appendices/` |
+| Implementation | `implementation/` | `tech-stack.md` + `appendices/tech-stack/` |
 | Migration | `migration/` | `{category}/{content}.md` (temporary) |
 | Blackhole | `blackhole/` | `{source}-lines-{N}-{M}.md` (unclassified) |
 

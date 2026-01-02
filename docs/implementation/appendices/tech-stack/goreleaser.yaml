@@ -1,0 +1,130 @@
+# GoReleaser configuration for Contrail
+# See https://goreleaser.com/customization/
+
+version: 2
+
+project_name: contrail
+
+before:
+  hooks:
+    - go mod tidy
+    - go generate ./...
+
+builds:
+  - id: contrail
+    main: ./cmd/contrail
+    binary: contrail
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+
+archives:
+  - id: default
+    format: tar.gz
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "arm64" }}arm64
+      {{- else }}{{ .Arch }}{{ end }}
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - LICENSE
+      - README.md
+
+checksum:
+  name_template: 'checksums.txt'
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+      - '^ci:'
+      - Merge pull request
+      - Merge branch
+  groups:
+    - title: Features
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 0
+    - title: Bug Fixes
+      regexp: '^.*?fix(\([[:word:]]+\))??!?:.+$'
+      order: 1
+    - title: Other
+      order: 999
+
+brews:
+  - name: contrail
+    repository:
+      owner: yourorg
+      name: homebrew-tap
+    homepage: https://github.com/yourorg/contrail
+    description: Workspace orchestration for Docker Compose
+    license: MIT
+    folder: Formula
+    install: |
+      bin.install "contrail"
+    test: |
+      system "#{bin}/contrail", "--version"
+
+nfpms:
+  - id: packages
+    package_name: contrail
+    vendor: Your Organization
+    homepage: https://github.com/yourorg/contrail
+    maintainer: Your Name <your@email.com>
+    description: Workspace orchestration for Docker Compose
+    license: MIT
+    formats:
+      - deb
+      - rpm
+    bindir: /usr/bin
+
+release:
+  github:
+    owner: yourorg
+    name: contrail
+  draft: false
+  prerelease: auto
+  name_template: "v{{ .Version }}"
+  footer: |
+    ## Installation
+
+    ### Homebrew (macOS/Linux)
+    ```bash
+    brew install yourorg/tap/contrail
+    ```
+
+    ### Binary
+    Download the appropriate binary for your platform from the assets below.
+
+    ### From Source
+    ```bash
+    go install github.com/yourorg/contrail/cmd/contrail@v{{ .Version }}
+    ```
+
+announce:
+  skip: true
