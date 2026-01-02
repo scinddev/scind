@@ -1,43 +1,38 @@
-# Contrail Behavior Specification Template
+# Feature Template
 #
-# This is a Gherkin template for defining executable behavior specifications.
-# Each .feature file should focus on a single feature or user story.
+# This file provides a template for writing Gherkin feature specifications.
+# Features describe expected behavior from a user's perspective.
 
 Feature: [Feature Name]
-  [Brief description of the feature and its value to users]
+  As a [type of user]
+  I want [to perform some action]
+  So that [I can achieve some goal]
 
   Background:
-    # Common setup steps that apply to all scenarios in this feature
-    Given the proxy is running
-    And a workspace "dev" exists
+    # Common setup steps that run before each scenario
+    Given a workspace named "dev" exists
+    And the workspace has an application "app-one"
 
-  # Happy path scenario
-  Scenario: [Descriptive scenario name]
-    Given [initial context]
-    When [action is performed]
-    Then [expected outcome]
-    And [additional assertions]
+  Scenario: [Scenario Name]
+    # Describe a specific user flow
+    Given [some precondition]
+    When [some action is taken]
+    Then [some result should occur]
+    And [another result should occur]
 
-  # Edge case or alternative flow
-  Scenario: [Alternative scenario name]
-    Given [different initial context]
-    When [action is performed]
-    Then [different expected outcome]
+  Scenario: [Another Scenario]
+    Given [some different precondition]
+    When [some action is taken]
+    Then [some result should occur]
 
-  # Scenario with examples (parameterized testing)
-  Scenario Outline: [Parameterized scenario description]
-    Given an application with <flavor> flavor
-    When the user runs "contrail up"
-    Then <compose_files> compose files are loaded
+  Scenario Outline: [Parameterized Scenario]
+    # Use scenario outlines for testing multiple variations
+    Given a port of type "<type>" with protocol "<protocol>"
+    When the override file is generated
+    Then the environment variable should contain port "<expected_port>"
 
     Examples:
-      | flavor  | compose_files |
-      | lite    | 1             |
-      | full    | 3             |
-
-  # Error scenario
-  Scenario: [Error condition description]
-    Given [context that will cause an error]
-    When [action is performed]
-    Then the command fails with exit code <code>
-    And the error message contains "<message>"
+      | type     | protocol | expected_port |
+      | proxied  | https    | 443           |
+      | proxied  | http     | 80            |
+      | assigned | -        | 5432          |

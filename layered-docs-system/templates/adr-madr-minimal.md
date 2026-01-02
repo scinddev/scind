@@ -4,6 +4,17 @@
 **Date**: YYYY-MM-DD
 **Decision-Makers**: [List names or roles]
 
+---
+
+> **File Location**: `docs/decisions/NNNN-{short-title}/README.md`
+>
+> Create appendices directory at `docs/decisions/NNNN-{short-title}/appendices/` for:
+> - Extended context or research (`background.md`)
+> - Detailed technical analysis (`analysis.md`)
+> - Reference implementation snippets (`reference-impl.md`)
+
+---
+
 ## Context
 
 [Describe the situation that requires a decision. What is the technical or business context? What forces are at play?]
@@ -33,3 +44,8 @@
 ## Notes
 
 [Optional: Additional context, links to discussions, related ADRs]
+
+## Appendices (if applicable)
+
+- [Extended Background](./appendices/background.md) — Detailed research and context
+- [Technical Analysis](./appendices/analysis.md) — In-depth comparison of alternatives

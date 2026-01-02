@@ -5,6 +5,15 @@
 
 ---
 
+> **File Location**: `docs/reference/configuration/README.md`
+>
+> Create appendices directory at `docs/reference/configuration/appendices/` for:
+> - Complete configuration examples (`complete-examples.md`)
+> - Schema definitions (`schema.md`)
+> - Migration guides (`migration-guide.md`)
+
+---
+
 ## Configuration Files
 
 | File | Purpose | Location |
@@ -129,6 +138,8 @@ Configuration values can be set via environment variables:
 
 ## Complete Example
 
+[Brief example here. For full annotated configurations, see appendix.]
+
 ```yaml
 # Full working configuration
 section_one:
@@ -144,9 +155,19 @@ section_two:
       - "item2"
 ```
 
+> **Note**: For complete file examples with all options annotated, see `appendices/complete-examples.md`.
+
+---
+
+## Appendices
+
+- [Complete Examples](./appendices/complete-examples.md) — Full annotated configurations
+- [JSON Schema](./appendices/schema.md) — Formal schema definition
+- [Migration Guide](./appendices/migration-guide.md) — Upgrading from previous versions
+
 ---
 
 ## See Also
 
-- [CLI Reference](./cli.md)
-- [Architecture Overview](../architecture/overview.md)
+- [CLI Reference](../cli/README.md)
+- [Architecture Overview](../../architecture/overview/README.md)

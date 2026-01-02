@@ -5,6 +5,15 @@
 
 ---
 
+> **File Location**: `docs/reference/cli/README.md`
+>
+> Create appendices directory at `docs/reference/cli/appendices/` for:
+> - Detailed command examples (`detailed-examples.md`)
+> - Error message catalog (`errors.md`)
+> - Shell completion scripts (`shell-completion.md`)
+
+---
+
 ## Synopsis
 
 ```
@@ -113,12 +122,22 @@ toolname command-three subcommand [options]
 | `2` | Invalid arguments |
 | `3` | Configuration error |
 
+> **Note**: For complete error messages with troubleshooting guides, see `appendices/errors.md`.
+
+---
+
+## Appendices
+
+- [Detailed Examples](./appendices/detailed-examples.md) — Complete workflow examples
+- [Error Messages](./appendices/errors.md) — Full error catalog with troubleshooting
+- [Shell Completion](./appendices/shell-completion.md) — Bash/Zsh completion scripts
+
 ---
 
 ## See Also
 
-- [Configuration Reference](./configuration.md)
-- [Getting Started Guide](../tutorials/getting-started.md)
+- [Configuration Reference](../configuration/README.md)
+- [Getting Started Guide](../../tutorials/getting-started.md)
 
 ---
 

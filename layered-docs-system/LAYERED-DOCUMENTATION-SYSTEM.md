@@ -1,7 +1,14 @@
 # Layered Documentation System
 
-**Version**: 1.0.0
-**Purpose**: A cohesive, maintainable system for creating and managing software documentation using a layered approach.
+**Version**: 3.0.0
+**Purpose**: A cohesive, maintainable system for creating and managing software documentation using a layered approach with operational workflows for AI agents.
+
+**What's New in 3.0**:
+- Appendix support for large content (code blocks, examples, detailed references)
+- Confidence-based classification with `migration/` and `blackhole/` fallbacks
+- Configurable content thresholds
+- Automatic migration comparison and loss analysis
+- Directory-based structure with `README.md` + `appendices/` pattern
 
 ---
 
@@ -19,26 +26,29 @@ Execute @path/to/layered-docs-system/install.md and install to @docs/
 Execute @path/to/layered-docs-system/install.md and install to @docs/ from existing docs in @specs/
 ```
 
+> **Note**: For large documentation sets, the install phase generates migration step files in `docs/.migration/` that can be executed in separate sessions. This avoids context window exhaustion. After the install phase, execute each step file individually.
+
 **Interactive** (prompts for all options):
 ```
 Execute @path/to/layered-docs-system/install.md
 ```
 
-The installer will:
-1. Determine install location (or ask)
-2. Detect existing documentation to migrate (or ask)
-3. If migrating: analyze content and map to layers
-4. Ask which layers and templates to include
-5. Ask which tooling tier to set up
-6. Create directory structure and migrate/copy content
-7. Generate a project-specific documentation guide
-8. Add cross-layer links (for migrations)
+### Operational Workflows
+
+| Task | Guide | When to Use |
+|------|-------|-------------|
+| Set up documentation | `install.md` | Project initialization |
+| Add new feature/decision | `create.md` | Adding new documentation |
+| Code changed | `update.md` | After implementation changes |
+| Periodic audit | `sync.md` | Before releases, periodic maintenance |
+| Quality improvement | `refine.md` | Documentation review cycles |
+| Compare docs vs source | `audit.md` | After migration, or to check for drift |
 
 ### For Humans
 
 1. Read this document to understand the system
 2. Use the [Quick Start Checklist](#quick-start-checklist) to set up manually
-3. Or use the `install.md` with an AI assistant for guided setup
+3. Or use the operational guides with an AI assistant
 
 ---
 
@@ -67,6 +77,324 @@ This system organizes documentation into seven distinct layers, each with a spec
 3. **Appropriate Stability**: Some documents are immutable; others evolve constantly
 4. **Clear Ownership**: Each layer has defined maintainers and update triggers
 5. **Linkage Over Duplication**: Reference other documents rather than copying content
+6. **Preserve Full Content**: Migration means moving ALL technical details, code examples, error messages, and output samples—not summarizing them
+7. **Appendix for Scale**: Large content lives in appendices, keeping main docs scannable (but see layer-specific guidance—ADRs rarely need appendices)
+8. **Confidence-Based Fallback**: Content that can't be classified goes to `migration/` or `blackhole/`
+
+---
+
+## Directory Structure
+
+All layers use a consistent directory-based structure with `README.md` as the main document and `appendices/` for supporting content.
+
+### Standard Pattern
+
+```
+docs/{layer}/
+├── {topic}/
+│   ├── README.md              # Main document
+│   └── appendices/            # Large/detailed supporting content
+│       ├── examples.md
+│       ├── code-samples.md
+│       └── error-catalog.md
+```
+
+### Examples
+
+```
+docs/
+├── DOCUMENTATION-GUIDE.md     # Project-specific guide (generated from install)
+│
+├── decisions/                 # Layer 1: ADRs (simple files, not directories)
+│   ├── README.md              # Index of all ADRs
+│   ├── 0001-docker-compose-isolation.md   # Single file per ADR
+│   └── 0002-networking-model.md           # Include code examples inline
+│
+├── reference/                 # Layer 5: Reference
+│   ├── README.md              # Index of reference docs
+│   ├── cli/
+│   │   ├── README.md          # CLI reference (commands, flags, descriptions)
+│   │   └── appendices/
+│   │       ├── detailed-examples.md    # Complete workflow examples
+│   │       ├── error-messages.md       # Full error message catalog
+│   │       └── output-formats.md       # Detailed output examples
+│   └── configuration/
+│       ├── README.md          # Config reference (options, defaults)
+│       └── appendices/
+│           └── complete-schemas.md     # Full YAML/JSON schema examples
+│
+├── implementation/            # Layer 7: Implementation Guides
+│   ├── README.md              # Index
+│   └── tech-stack/
+│       ├── README.md          # Tech stack overview
+│       └── appendices/
+│           ├── go-scaffolding/         # Complete code scaffolding
+│           │   ├── cmd-main.go.md
+│           │   ├── cli-root.go.md
+│           │   └── cli-commands.go.md
+│           └── shell-scripts/          # Complete shell scripts
+│               ├── bash.sh.md
+│               ├── zsh.zsh.md
+│               └── fish.fish.md
+│
+├── migration/                 # Content classified but placement uncertain
+│   ├── README.md              # Explains what's here and why
+│   └── {category}/            # Organized by detected category
+│       └── {content}.md
+│
+└── blackhole/                 # Content that couldn't be classified at all
+    ├── README.md              # Explains what's here and why
+    └── {source-filename}.md   # Raw content dump with source attribution
+```
+
+### When to Create Directories vs Single Files
+
+| Situation | Structure |
+|-----------|-----------|
+| Simple document, no appendices needed | Single file: `vision.md` |
+| Document with appendices | Directory: `cli/README.md` + `cli/appendices/` |
+| For consistency (recommended) | Always use directory structure |
+
+**Recommendation**: Always use the directory structure for consistency. A `README.md` with no `appendices/` directory is cleaner than mixing single files and directories.
+
+---
+
+## Appendix System
+
+### Purpose
+
+Appendices keep main documents scannable while preserving valuable detailed content:
+- Large code blocks (scaffolding, complete scripts)
+- Detailed examples (multi-step workflows)
+- Complete reference tables (all error messages, all options)
+- Full schema definitions (complete YAML/JSON examples)
+
+### When Content Goes to Appendix
+
+Content moves to an appendix when it exceeds configured thresholds (see [Content Thresholds](#content-thresholds)) or matches specific patterns:
+
+| Content Type | Main Document | Appendix |
+|--------------|---------------|----------|
+| Code blocks | < threshold lines | ≥ threshold lines |
+| Complete file examples | Never | Always |
+| Step-by-step instructions | < threshold steps | ≥ threshold steps |
+| Error message catalogs | Summary/key errors | Complete catalog |
+| Schema examples | Excerpt showing structure | Complete schema |
+| Shell scripts | Synopsis/key functions | Full script |
+
+### Appendix Document Structure
+
+Each appendix file should be self-contained and reference-able:
+
+```markdown
+# [Appendix Title]
+
+> **Parent**: [Link to main README.md](../README.md)
+> **Purpose**: [What this appendix contains]
+
+## Content
+
+[The detailed content]
+
+---
+
+*This appendix supports [Main Document Name](../README.md).*
+```
+
+### Linking to Appendices
+
+From main documents, link to appendices for detail:
+
+```markdown
+## Command Examples
+
+For basic usage, see the examples below. For complete workflow examples
+including error handling, see [Detailed Examples](./appendices/detailed-examples.md).
+
+### Basic Example
+
+\`\`\`bash
+contrail workspace up
+\`\`\`
+```
+
+---
+
+## Confidence-Based Classification
+
+During migration or content creation, the system classifies content based on confidence level:
+
+### Classification Destinations
+
+| Confidence | Destination | Meaning |
+|------------|-------------|---------|
+| **High** | Layer directly | Heuristics are confident about both category AND placement |
+| **Medium** | `migration/{category}/` | Heuristics recognize the category but uncertain about exact placement |
+| **Low/None** | `blackhole/` | Heuristics cannot classify the content meaningfully |
+
+### The `migration/` Directory
+
+Content in `migration/` has been categorized but needs human review for final placement:
+
+```
+migration/
+├── README.md                  # Explains what's here
+├── shell-integration/         # Detected as shell-related
+│   └── complete-scripts.md    # Full bash/zsh/fish scripts
+├── cli-reference/             # Detected as CLI-related
+│   └── workflow-examples.md   # Detailed workflow examples
+└── implementation/            # Detected as implementation-related
+    └── scaffolding-code.md    # Go scaffolding code
+```
+
+**README.md content**:
+```markdown
+# Migration Content
+
+This directory contains content that was classified during migration but
+couldn't be placed with high confidence. Review each file and:
+
+1. Move to the appropriate layer if placement is now clear
+2. Move to `appendices/` of the relevant document
+3. Keep here if still uncertain (will be reviewed in next audit)
+
+## Contents
+
+| File | Detected Category | Suggested Destination |
+|------|-------------------|----------------------|
+| shell-integration/complete-scripts.md | Shell Integration | `implementation/tech-stack/appendices/shell-scripts/` |
+| ... | ... | ... |
+```
+
+### The `blackhole/` Directory
+
+Content in `blackhole/` could not be classified at all. This represents a gap in the heuristics:
+
+```
+blackhole/
+├── README.md                  # Explains what's here and suggests heuristic improvements
+└── contrail-go-stack-lines-450-600.md  # Raw content with source attribution
+```
+
+**README.md content**:
+```markdown
+# Blackhole Content
+
+This directory contains content that the classification heuristics could not
+process. This represents gaps in the system that should be addressed.
+
+## What This Means
+
+Content ends up here when:
+- The heuristics couldn't determine even a category
+- The content format wasn't recognized
+- The content doesn't match any known patterns
+
+## Action Required
+
+1. Review each file manually
+2. Determine where it should go (layer, migration, or truly orphaned)
+3. **Update the heuristics** in DOCUMENTATION-GUIDE.md to capture similar content in future
+
+## Contents
+
+| File | Source | Notes |
+|------|--------|-------|
+| contrail-go-stack-lines-450-600.md | contrail-go-stack.md:450-600 | Appears to be Cobra command scaffolding |
+
+## Suggested Heuristic Updates
+
+Based on content in this blackhole, consider adding these patterns:
+
+- [ ] Pattern for Cobra command scaffolding → Implementation layer, appendix
+- [ ] Pattern for complete Go file contents → Implementation layer, appendix
+```
+
+---
+
+## Content Thresholds
+
+These thresholds control how content is classified during migration and ongoing maintenance.
+
+### Default Thresholds
+
+| Threshold | Default | Purpose |
+|-----------|---------|---------|
+| `CODE_BLOCK_LINES` | 50 | Code blocks ≥ this many lines go to appendix |
+| `STEP_LIST_ITEMS` | 10 | Step-by-step lists ≥ this many items go to appendix |
+| `TABLE_ROWS` | 20 | Tables ≥ this many rows go to appendix |
+| `EXAMPLE_FILE_ALWAYS_APPENDIX` | true | Complete file examples always go to appendix |
+| `ERROR_CATALOG_ALWAYS_APPENDIX` | true | Error message catalogs always go to appendix |
+| `SHELL_SCRIPT_ALWAYS_APPENDIX` | true | Complete shell scripts always go to appendix |
+
+### Pattern-Based Classification
+
+In addition to size thresholds, these patterns trigger appendix placement:
+
+| Pattern | Detection | Destination |
+|---------|-----------|-------------|
+| Complete file (has shebang or package declaration) | `#!/` or `package main` at start | Appendix |
+| Scaffold code (multiple related code blocks) | Sequential code blocks with file paths in headings | Appendix |
+| Error catalog (list of error codes/messages) | Headers like "Error Messages", "Exit Codes" with tables | Appendix |
+| Workflow example (multi-step with context) | Numbered steps with explanatory text between commands | Appendix |
+
+### Customizing Thresholds
+
+After installation, thresholds are written to `DOCUMENTATION-GUIDE.md`. Edit the thresholds section to customize:
+
+```markdown
+## Content Thresholds (Configurable)
+
+| Threshold | Value | Purpose |
+|-----------|-------|---------|
+| `CODE_BLOCK_LINES` | 30 | ← Lowered from default 50 for this project |
+| `STEP_LIST_ITEMS` | 10 | |
+| ...
+```
+
+The `audit.md` workflow reads these thresholds when analyzing content.
+
+---
+
+## Document Hierarchy and Authority
+
+When documents conflict, higher-authority documents win. Update lower documents to match.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      MOST AUTHORITATIVE                      │
+├─────────────────────────────────────────────────────────────┤
+│  ADRs (Architectural Decision Records)                      │
+│  - Decisions are immutable once accepted                    │
+│  - New decisions supersede (not modify) old ones            │
+│  - If anything conflicts with ADR, ADR wins                 │
+├─────────────────────────────────────────────────────────────┤
+│  Gherkin Feature Files                                       │
+│  - Executable specifications                                 │
+│  - Tests enforce behavior                                    │
+│  - If test passes, documentation is accurate                 │
+├─────────────────────────────────────────────────────────────┤
+│  Vision (PRD)                                                │
+│  - High-level "what" and "why"                              │
+│  - Rarely changes after design phase                         │
+│  - References ADRs for decisions                             │
+├─────────────────────────────────────────────────────────────┤
+│  Technical Specification                                     │
+│  - Architecture and schemas                                  │
+│  - References ADRs for rationale                             │
+│  - Updated as architecture evolves                           │
+├─────────────────────────────────────────────────────────────┤
+│  Reference Documentation (CLI, Config)                       │
+│  - Factual, complete, lookup-oriented                        │
+│  - Generated where possible                                  │
+│  - Updated with implementation                               │
+├─────────────────────────────────────────────────────────────┤
+│  Implementation Guides (Tech Stack)                          │
+│  - How to build, patterns to follow                          │
+│  - Most volatile, changes with tech decisions                │
+│                     LEAST AUTHORITATIVE                      │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -99,13 +427,20 @@ Do NOT create an ADR for:
 
 ### Directory Structure
 
+ADRs are simple single files. Unlike other layers, ADRs do NOT use the directory-with-README pattern because:
+- ADRs are typically 50-150 lines—compact enough for a single file
+- Code examples in ADRs should be included inline (they provide essential context for the decision)
+- ADRs rarely need appendices; if an ADR is complex enough to need one, consider splitting it into multiple ADRs
+
 ```
 docs/decisions/
-├── 0001-use-docker-compose-for-orchestration.md
-├── 0002-two-layer-networking-model.md
-├── 0003-pure-overlay-design-pattern.md
-└── index.md                                      # Optional: links to all ADRs
+├── README.md                                     # Index of all ADRs
+├── 0001-docker-compose-orchestration.md          # Single file per ADR
+├── 0002-two-layer-networking.md
+└── 0003-pure-overlay-design.md
 ```
+
+**Include code examples inline in ADRs.** Code examples in an ADR are part of the decision's context—they show what was decided, not just describe it. Do not move code examples to appendices.
 
 ### Lifecycle
 
@@ -116,20 +451,13 @@ Draft → Proposed → Accepted → [Superseded by NNNN]
 
 ### Template Options
 
-**Priority 1: MADR Minimal** (Recommended)
-- Structured enough to be consistent
-- Light enough to encourage adoption
-- See: `templates/adr-madr-minimal.md`
+| Priority | Template | Use When |
+|----------|----------|----------|
+| **1 (Default)** | MADR Minimal | Most decisions — structured but lightweight |
+| 2 | Y-Statement | Quick capture, smaller decisions, inline documentation |
+| 3 | MADR Full | Complex cross-cutting decisions requiring detailed analysis |
 
-**Priority 2: Y-Statement**
-- Single-sentence format for quick capture
-- Best for smaller decisions
-- See: `templates/adr-y-statement.md`
-
-**Priority 3: MADR Full**
-- Comprehensive template with all sections
-- Use for complex, cross-cutting decisions
-- See: `templates/adr-madr-full.md`
+See `templates/adr-*.md` for template files.
 
 ### Classification Heuristics
 
@@ -176,22 +504,34 @@ Define the product's purpose, goals, and constraints. This is the stable foundat
 
 ```
 docs/product/
-├── vision.md              # Problem, solution, success criteria
-├── concepts.md            # Core concepts and glossary
-└── personas.md            # User personas and use cases (optional)
+├── README.md              # Index
+├── vision/
+│   └── README.md          # Problem, solution, success criteria
+├── comparison.md          # How this compares to alternatives (optional)
+├── roadmap.md             # Future considerations and planned enhancements (optional)
+├── concepts/
+│   ├── README.md          # Core concepts and glossary
+│   └── appendices/
+│       └── glossary-full.md  # Extended glossary if needed
+└── personas/
+    └── README.md          # User personas and use cases (optional)
 ```
 
 ### Template Options
 
-**Priority 1: Lean PRD**
-- Vision + problem + concepts + non-goals
-- Minimal structure, maximum clarity
-- See: `templates/prd-lean.md`
+| Priority | Template | Use When |
+|----------|----------|----------|
+| **1 (Default)** | Lean PRD | Most projects — vision + problem + concepts + non-goals |
+| 2 | Epic-Based PRD | Agile teams with formal backlog, user story focus |
 
-**Priority 2: Epic-Based PRD**
-- Organized around user stories and epics
-- Better for agile teams
-- See: `templates/prd-epic-based.md`
+**Additional Product Documents** (auto-detected during migration):
+
+| Document | Template | Use When |
+|----------|----------|----------|
+| `comparison.md` | `product-comparison.md` | Comparing with alternative tools |
+| `roadmap.md` | `product-roadmap.md` | Future considerations, planned enhancements |
+
+See `templates/prd-*.md` and `templates/product-*.md` for template files.
 
 ### Classification Heuristics
 
@@ -203,6 +543,29 @@ docs/product/
 | "A [concept] is defined as..." | ✓ |
 | "The architecture uses..." | ✗ (Architecture) |
 | "When the user runs command X..." | ✗ (Specification/Reference) |
+
+**Comparison Document Heuristics**:
+
+| Signal | → Comparison |
+|--------|--------------|
+| Comparison tables with other tools/products | ✓ |
+| "vs" language ("X vs Y", "compared to") | ✓ |
+| Feature matrices comparing multiple products | ✓ |
+| "Related Tools" or "Similar Projects" sections | ✓ |
+| "Why choose X over Y" discussions | ✓ |
+| Tool names in comparative context ("Unlike Docker Compose...") | ✓ |
+
+**Roadmap Document Heuristics**:
+
+| Signal | → Roadmap |
+|--------|-----------|
+| "Future Considerations" sections | ✓ |
+| "Roadmap" or "Future Work" headings | ✓ |
+| "Planned features" or "upcoming" language | ✓ |
+| "Phase 2", "Phase 3", "v2.0" planning content | ✓ |
+| "Not yet implemented" with intent to implement | ✓ |
+| "Eventually" or "in the future" feature descriptions | ✓ |
+| Enhancement proposals or feature wishlists | ✓ |
 
 ---
 
@@ -238,30 +601,34 @@ Show how the system's components relate to each other and to external systems. P
 
 ```
 docs/architecture/
-├── overview.md            # System context, key containers
-├── networking.md          # Network topology, communication patterns
-├── data-flow.md           # How data moves through the system
-├── cross-cutting.md       # Security, logging, error handling
-└── diagrams/              # Source files for diagrams (optional)
-    └── workspace.structurizr.dsl
+├── README.md              # Index
+├── overview/
+│   ├── README.md          # System context, key containers
+│   └── appendices/
+│       └── c4-diagrams.md        # Full diagram source/exports
+├── networking/
+│   └── README.md          # Network topology, communication patterns
+├── data-flow/
+│   └── README.md          # How data moves through the system
+└── cross-cutting/
+    ├── README.md          # Security, logging, error handling
+    └── appendices/
+        └── security-details.md   # Detailed security analysis if needed
 ```
 
 ### Template Options
 
-**Priority 1: C4-Lite**
-- Context + Container diagrams with narrative
-- Lightweight, easy to maintain
-- See: `templates/architecture-c4-lite.md`
+| Priority | Template | Use When |
+|----------|----------|----------|
+| **1 (Default)** | C4-Lite | Most projects — Context + Container diagrams with narrative |
+| 2 | arc42 Full | Large systems, formal documentation requirements, regulatory needs |
+| 3 | Structurizr DSL | Model-driven diagrams generated from code (requires tooling) |
 
-**Priority 2: arc42-Simplified**
-- Structured sections from arc42
-- More comprehensive coverage
-- See: `templates/architecture-arc42.md`
+**Note**: C4 and arc42 are complementary. Use C4 diagrams within arc42 sections for comprehensive coverage:
+- C4 Context Diagram → arc42 Section 3 (Context and Scope)
+- C4 Container Diagram → arc42 Section 5 (Building Block View)
 
-**Priority 3: Structurizr DSL**
-- Model-driven, diagrams generated from code
-- Best for larger systems
-- Requires tooling setup
+See `templates/architecture-*.md` for template files.
 
 ### Classification Heuristics
 
@@ -301,29 +668,37 @@ Detail how specific features work. These are living documents that evolve with t
 
 - API reference tables (Reference layer)
 - Why decisions were made (ADR layer)
-- User-facing tutorials (Tutorial layer, if applicable)
+- User-facing tutorials (separate documentation)
 
 ### Directory Structure
 
 ```
 docs/specs/
-├── workspace-lifecycle.md      # Workspace states and transitions
-├── port-assignment.md          # Port allocation algorithm
-├── overlay-generation.md       # How overlays are generated
-└── proxy-integration.md        # Traefik integration details
+├── README.md                   # Index
+├── workspace-lifecycle/
+│   ├── README.md               # Workspace states and transitions
+│   └── appendices/
+│       └── state-diagrams.md   # Detailed state machine diagrams
+├── port-assignment/
+│   ├── README.md               # Port allocation algorithm
+│   └── appendices/
+│       └── algorithm-details.md  # Full algorithm pseudocode
+├── overlay-generation/
+│   ├── README.md               # How overlays are generated
+│   └── appendices/
+│       └── complete-examples.md  # Full override file examples
+└── proxy-integration/
+    └── README.md               # Traefik integration details
 ```
 
 ### Template Options
 
-**Priority 1: Feature Spec**
-- Narrative + examples + edge cases
-- Good for most features
-- See: `templates/spec-feature.md`
+| Priority | Template | Use When |
+|----------|----------|----------|
+| **1 (Default)** | Feature Spec | Most features — narrative + examples + edge cases |
+| 2 | RFC-Style | Proposed changes needing team review before implementation |
 
-**Priority 2: RFC-Style**
-- Problem + proposal + alternatives
-- Good for proposed changes
-- See: `templates/spec-rfc.md`
+See `templates/spec-*.md` for template files.
 
 ### Classification Heuristics
 
@@ -364,17 +739,31 @@ Provide lookup information for users and developers. Quick answers to "what are 
 
 - Why options exist (ADR layer)
 - How features work conceptually (Specification layer)
-- Step-by-step guides (Tutorial layer)
+- Step-by-step guides (Tutorials, if applicable)
 
 ### Directory Structure
 
 ```
 docs/reference/
-├── cli.md                 # Command reference
-├── configuration.md       # Config file options
-├── environment.md         # Environment variables
-├── labels.md              # Docker labels reference
-└── errors.md              # Error codes and meanings
+├── README.md              # Index
+├── cli/
+│   ├── README.md          # Command reference (commands, flags, basics)
+│   └── appendices/
+│       ├── detailed-examples.md     # Complete workflow examples
+│       ├── error-messages.md        # Full error message catalog
+│       └── output-formats.md        # Detailed output examples
+├── configuration/
+│   ├── README.md          # Config file options (schemas, defaults)
+│   └── appendices/
+│       └── complete-schemas.md      # Full YAML/JSON schema examples
+├── environment/
+│   └── README.md          # Environment variables
+├── labels/
+│   └── README.md          # Docker labels reference
+└── errors/
+    ├── README.md          # Error codes and meanings (summary)
+    └── appendices/
+        └── full-catalog.md          # Complete error catalog
 ```
 
 ### Generation Strategy
@@ -390,13 +779,14 @@ Reference docs are ideal candidates for generation:
 
 ### Template Options
 
-**Priority 1: Command Reference**
-- Per-command sections with options tables
-- See: `templates/reference-cli.md`
+| Priority | Template | Use When |
+|----------|----------|----------|
+| **1** | CLI Reference | Projects with CLI tools |
+| **1** | Configuration Reference | Projects with config files |
 
-**Priority 2: Configuration Reference**
-- Hierarchical config with defaults
-- See: `templates/reference-config.md`
+Include whichever templates apply to your project.
+
+See `templates/reference-*.md` for template files.
 
 ### Classification Heuristics
 
@@ -415,7 +805,7 @@ Reference docs are ideal candidates for generation:
 
 ### Purpose
 
-Define expected behaviors in a way that can be automatically verified. Tests that double as documentation.
+Define expected behaviors in a way that can be automatically verified. Tests that double as documentation — **living documentation** that can never become outdated.
 
 ### Characteristics
 
@@ -423,6 +813,16 @@ Define expected behaviors in a way that can be automatically verified. Tests tha
 - **Living**: Fail when behavior changes
 - **Example-driven**: Concrete scenarios, not abstract
 - **User-focused**: Written from user perspective
+
+### The Living Documentation Advantage
+
+Gherkin feature files serve triple duty:
+
+1. **Specification** — Defines expected behavior before implementation
+2. **Documentation** — Always accurate because it's tested
+3. **Tests** — Executable validation that prevents regression
+
+If a Gherkin test passes, the documentation is accurate. If behavior changes, the test fails, forcing documentation updates.
 
 ### What Belongs Here
 
@@ -454,15 +854,12 @@ features/
 
 ### Template Options
 
-**Priority 1: Gherkin**
-- Standard BDD format
-- Wide tooling support (Cucumber, Behave, etc.)
-- See: `templates/behavior-gherkin.feature`
+| Priority | Template | Use When |
+|----------|----------|----------|
+| **1 (Default)** | Gherkin | Standard BDD format, wide tooling support |
+| 2 | Doctest-Style | Embedded in documentation, simple examples (language-specific) |
 
-**Priority 2: Doctest-Style**
-- Embedded in documentation
-- Good for simple examples
-- Language-specific tooling
+See `templates/behavior-gherkin.feature` for template file.
 
 ### Classification Heuristics
 
@@ -508,10 +905,25 @@ Describe *how to build* the system—technology stack, scaffolding, code templat
 
 ```
 docs/implementation/
-├── tech-stack.md              # Dependencies, versions, rationale
-├── scaffolding.md             # Project structure, initial code
-├── shell-scripts.md           # Embedded scripts (for CLI tools)
-└── build-setup.md             # Development environment setup
+├── README.md                  # Index
+├── tech-stack/
+│   ├── README.md              # Dependencies, versions, rationale (overview)
+│   └── appendices/
+│       ├── go-scaffolding/              # Complete code scaffolding
+│       │   ├── cmd-main.go.md
+│       │   ├── cli-root.go.md
+│       │   ├── cli-workspace.go.md
+│       │   └── cli-commands.go.md
+│       └── shell-scripts/               # Complete shell scripts
+│           ├── bash.sh.md
+│           ├── zsh.zsh.md
+│           └── fish.fish.md
+├── scaffolding/
+│   ├── README.md              # Project structure explanation
+│   └── appendices/
+│       └── directory-tree.md  # Full project structure with explanations
+└── build-setup/
+    └── README.md              # Development environment setup
 ```
 
 ### Lifecycle
@@ -524,6 +936,14 @@ Implementation guides are unique in that they have a planned end-of-life:
 - Once implementation is complete, the content either:
   - Gets **archived** (moved to an `archive/` folder or deleted)
   - Gets **absorbed** into the codebase (as README files in packages, code comments, etc.)
+
+### Template Options
+
+| Priority | Template | Use When |
+|----------|----------|----------|
+| **1 (Default)** | Tech Stack | All projects — dependencies, versions, rationale |
+
+See `templates/implementation-tech-stack.md` for template file.
 
 ### Classification Heuristics
 
@@ -582,14 +1002,14 @@ Is this implementation scaffolding, code templates, or dependency lists?
 Use relative Markdown links to connect layers:
 
 ```markdown
-<!-- In a specification -->
+<!-- In a specification (ADRs are simple files, not directories) -->
 This design follows the overlay pattern. See [ADR-0003](../decisions/0003-pure-overlay-design.md) for rationale.
 
 <!-- In architecture -->
-For command details, see the [CLI Reference](../reference/cli.md).
+For command details, see the [CLI Reference](../reference/cli/README.md).
 
 <!-- In a behavior -->
-This scenario verifies the workspace lifecycle described in [Workspace Lifecycle Spec](../specs/workspace-lifecycle.md).
+This scenario verifies the workspace lifecycle described in [Workspace Lifecycle Spec](../specs/workspace-lifecycle/README.md).
 ```
 
 ### Link Direction Guidelines
@@ -603,6 +1023,63 @@ This scenario verifies the workspace lifecycle described in [Workspace Lifecycle
 | Reference | Specification | Providing conceptual context |
 | Implementation | Specification | Referencing the spec being implemented |
 | Implementation | ADR | Explaining technology choice rationale |
+
+---
+
+## Single Source of Truth (SSOT)
+
+### Canonical Source Table
+
+Every fact should be mastered in exactly one place:
+
+| Information Type | Canonical Source | Derived/Referenced From |
+|------------------|------------------|------------------------|
+| Why we chose X over Y | ADR | PRD, Tech Spec, Architecture |
+| Configuration schema | Tech Spec (or code) | Reference docs, examples |
+| Command syntax | CLI Reference | Tech Spec operations |
+| Feature behavior | Specification | Gherkin tests |
+| API contracts | OpenAPI/Protobuf | Reference docs |
+| Port assignment algorithm | Specification | ADR (for rationale) |
+
+### Key Principle
+
+When you find yourself copying information, create a reference instead:
+
+```markdown
+For details on the port assignment algorithm, see
+[Port Assignment Specification](./specs/port-assignment.md).
+```
+
+When sources conflict, the canonical source wins. Update derived views to match.
+
+---
+
+## Preventing AI-Generated Conflicts
+
+When AI tools generate feature specs, apply this workflow:
+
+### Before Creating New Documentation
+
+1. **Check ADRs first** — Does the generated spec contradict any accepted decision?
+2. **Check Gherkin scenarios** — Would implementing this break existing tests?
+3. **Check specifications** — Does this conflict with existing feature specs?
+
+### When Conflicts Are Found
+
+1. **If new spec contradicts ADR** — The ADR wins. Revise the new spec.
+2. **If new spec contradicts old spec** — Resolve the conflict explicitly:
+   - Update the old spec if requirements changed
+   - Create a new ADR if a decision changed
+   - Revise the new spec if it was generated incorrectly
+3. **Identify new decisions** — If the generated spec implies new decisions, create ADRs
+
+### Validation Checklist
+
+- [ ] No contradiction with existing ADRs
+- [ ] No contradiction with existing specifications
+- [ ] Cross-links to related documents added
+- [ ] Appropriate layer (use classification decision tree)
+- [ ] Follows layer template
 
 ---
 
@@ -665,7 +1142,7 @@ When reviewing documentation changes:
 | Tool | Purpose |
 |------|---------|
 | **Cucumber/Gherkin** | Executable specifications |
-| **Semcheck** | AI-powered spec-implementation drift detection |
+| **Link checker** | Validate cross-references |
 | **Custom generators** | Reference docs from code |
 
 ---
@@ -685,42 +1162,83 @@ When reviewing documentation changes:
 ```
 project/
 ├── docs/
-│   ├── decisions/           # Layer 1: ADRs
-│   │   └── 0001-initial-architecture.md
-│   ├── product/             # Layer 2: Vision
-│   │   └── vision.md
-│   ├── architecture/        # Layer 3: Architecture
-│   │   └── overview.md
-│   ├── specs/               # Layer 4: Specifications
-│   │   └── [feature].md
-│   └── reference/           # Layer 5: Reference
-│       └── cli.md
-├── features/                # Layer 6: Behaviors (optional)
+│   ├── DOCUMENTATION-GUIDE.md   # Project-specific guide (generated)
+│   │
+│   ├── decisions/               # Layer 1: ADRs (simple files, not directories)
+│   │   ├── README.md            # Index of all ADRs
+│   │   └── 0001-initial-architecture.md   # Single file per ADR
+│   │
+│   ├── product/                 # Layer 2: Vision
+│   │   ├── README.md
+│   │   └── vision/
+│   │       └── README.md
+│   │
+│   ├── architecture/            # Layer 3: Architecture
+│   │   ├── README.md
+│   │   └── overview/
+│   │       └── README.md
+│   │
+│   ├── specs/                   # Layer 4: Specifications
+│   │   ├── README.md
+│   │   └── [feature]/
+│   │       ├── README.md
+│   │       └── appendices/      # Only if needed
+│   │
+│   ├── reference/               # Layer 5: Reference
+│   │   ├── README.md
+│   │   └── cli/
+│   │       ├── README.md
+│   │       └── appendices/
+│   │           └── detailed-examples.md
+│   │
+│   ├── implementation/          # Layer 7: Implementation Guides
+│   │   ├── README.md
+│   │   └── tech-stack/
+│   │       ├── README.md
+│   │       └── appendices/
+│   │           └── scaffolding/
+│   │
+│   ├── migration/               # Content awaiting final placement
+│   │   └── README.md            # (only created if content exists)
+│   │
+│   └── blackhole/               # Unclassified content
+│       └── README.md            # (only created if content exists)
+│
+├── features/                    # Layer 6: Behaviors
 │   └── [feature].feature
-└── ...
-
-# Within docs/:
-docs/implementation/         # Layer 7: Implementation Guides
-├── tech-stack.md
-├── scaffolding.md
 └── ...
 ```
 
 ---
 
-## Appendix: Canonical Sources
+## Operational Guides
 
-Define which source is authoritative for each type of information:
+This system includes operational guides for common workflows:
 
-| Information Type | Canonical Source | Derived Views |
-|------------------|------------------|---------------|
-| CLI flags and options | Code (Cobra/argparse definitions) | Reference docs |
-| Configuration schema | Code (structs, types) | Reference docs, examples |
-| Decision rationale | ADRs | Linked from specs |
-| Feature behavior | Specifications | Behavior tests |
-| API contracts | OpenAPI/Protobuf | Reference docs |
+| Guide | Purpose |
+|-------|---------|
+| `install.md` | Set up documentation system (fresh or migration) |
+| `create.md` | Create new documentation with validation |
+| `update.md` | Update documentation after code changes |
+| `sync.md` | Audit and synchronize docs with code |
+| `refine.md` | Improve documentation quality |
+| `audit.md` | Compare docs vs source, analyze migration loss |
 
-When sources conflict, the canonical source wins. Update derived views to match.
+See each guide for detailed instructions.
+
+### Migration and Audit Workflow
+
+After a migration install, the system automatically:
+
+1. **Generates documentation** into the layered structure
+2. **Compares original vs generated** content
+3. **Produces a summary** showing:
+   - Content successfully migrated to layers
+   - Content in `migration/` (classified but placement uncertain)
+   - Content in `blackhole/` (could not be classified)
+4. **Suggests heuristic updates** for blackhole content
+
+The `audit.md` guide can be run manually at any time to repeat this analysis.
 
 ---
 
@@ -729,7 +1247,12 @@ When sources conflict, the canonical source wins. Update derived views to match.
 ```
 layered-docs-system/
 ├── LAYERED-DOCUMENTATION-SYSTEM.md    # This file (full reference)
-├── install.md                         # Interactive installer for AI agents
+├── install.md                         # Installation workflow
+├── create.md                          # Creating new documentation
+├── update.md                          # Updating after changes
+├── sync.md                            # Synchronization audit
+├── refine.md                          # Quality improvement
+├── audit.md                           # Compare docs vs source, migration analysis
 └── templates/
     ├── adr-madr-minimal.md            # ADR template (recommended)
     ├── adr-y-statement.md             # ADR template (lightweight)
@@ -743,5 +1266,8 @@ layered-docs-system/
     ├── reference-cli.md               # Reference template (CLI)
     ├── reference-config.md            # Reference template (configuration)
     ├── behavior-gherkin.feature       # Behavior template (Gherkin)
-    └── implementation-tech-stack.md   # Implementation template (tech stack)
+    ├── implementation-tech-stack.md   # Implementation template
+    ├── appendix.md                    # Appendix template
+    ├── migration-readme.md            # README template for migration/
+    └── blackhole-readme.md            # README template for blackhole/
 ```

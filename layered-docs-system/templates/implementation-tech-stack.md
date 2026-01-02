@@ -4,6 +4,17 @@
 **Date**: [Month Year]
 **Status**: [Draft | Active | Archived]
 
+---
+
+> **File Location**: `docs/implementation/tech-stack/README.md`
+>
+> Create appendices directory at `docs/implementation/tech-stack/appendices/` for:
+> - Complete scaffold scripts (`scaffold-scripts.md`)
+> - Detailed dependency analysis (`dependency-analysis.md`)
+> - Full project structure (`full-structure.md`)
+
+---
+
 This document defines the technology stack for [Project Name] and provides scaffolding instructions for the initial project structure.
 
 ---
@@ -83,6 +94,8 @@ This document defines the technology stack for [Project Name] and provides scaff
 
 ## Scaffolding Instructions
 
+[Brief overview here. For complete scaffold scripts, see appendix.]
+
 ### Step 1: [First Step]
 
 ```bash
@@ -100,6 +113,8 @@ This document defines the technology stack for [Project Name] and provides scaff
 ```bash
 # Commands to verify setup
 ```
+
+> **Note**: For complete scaffold scripts (>50 lines), see `appendices/scaffold-scripts.md`.
 
 ---
 
@@ -134,11 +149,19 @@ This document defines the technology stack for [Project Name] and provides scaff
 
 ---
 
+## Appendices
+
+- [Scaffold Scripts](./appendices/scaffold-scripts.md) — Complete setup scripts
+- [Dependency Analysis](./appendices/dependency-analysis.md) — Detailed package evaluation
+- [Full Structure](./appendices/full-structure.md) — Complete directory tree
+
+---
+
 ## Related Documents
 
-- [Vision](../product/vision.md)
-- [Architecture Overview](../architecture/overview.md)
-- [Relevant Specifications](../specs/)
+- [Vision](../../product/vision/README.md)
+- [Architecture Overview](../../architecture/overview/README.md)
+- [Relevant Specifications](../../specs/)
 
 ---
 

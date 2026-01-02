@@ -6,13 +6,23 @@
 
 ---
 
+> **File Location**: `docs/specs/{feature-name}/README.md`
+>
+> Create appendices directory at `docs/specs/{feature-name}/appendices/` if large content is needed.
+
+---
+
 ## Overview
 
 [One paragraph describing what this feature does and why it exists.]
 
 **Related Documents**:
-- [ADR-NNNN: Relevant Decision](../decisions/NNNN.md)
-- [Architecture: Relevant Section](../architecture/overview.md#section)
+- [ADR-NNNN: Relevant Decision](../../decisions/NNNN-{title}/README.md)
+- [Architecture: Relevant Section](../../architecture/overview/README.md#section)
+
+**Appendices** (if applicable):
+- [Detailed Examples](./appendices/examples.md)
+- [Error Catalog](./appendices/errors.md)
 
 ---
 
@@ -76,6 +86,8 @@ field_two:
 
 ## Examples
 
+[Brief examples here. For complete workflow examples, see appendix.]
+
 ### Example 1: [Scenario Name]
 
 **Input**:
@@ -102,6 +114,8 @@ field_two:
 
 **Result**: [Expected outcome]
 
+> **Note**: If code blocks exceed 50 lines or you need complete file examples, move to `appendices/examples.md`.
+
 ---
 
 ## Edge Cases
@@ -124,10 +138,14 @@ field_two:
 
 ## Error Handling
 
+[Brief error handling overview. For the complete error catalog, see appendix.]
+
 | Error Condition | Error Code/Type | Message | Recovery |
 |-----------------|-----------------|---------|----------|
 | [Condition 1] | [E001] | [User-facing message] | [What user can do] |
 | [Condition 2] | [E002] | [User-facing message] | [What user can do] |
+
+> **Note**: If this table exceeds 20 rows, move the full catalog to `appendices/errors.md`.
 
 ---
 
