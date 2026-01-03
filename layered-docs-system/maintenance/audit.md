@@ -1,25 +1,25 @@
 # Layered Documentation System (LDS) — Audit
 
-**For AI Agents**: This document describes the audit system. The actual audit instructions are generated during install and placed in `{DOCS_DIR}/audit.md`.
+**For AI Agents**: This document describes the audit system. During installation, this file is customized and placed in `{DOCS_DIR}/maintenance/audit.md`.
 
-**Terminology**: See the [Glossary](./LAYERED-DOCUMENTATION-SYSTEM.md#glossary) for definitions of `LDS_DIST_DIR`, `DOCS_DIR`, `LEGACY_DOCS_DIR`, and other terms.
+**Terminology**: See the [Glossary](../DOCUMENTATION-GUIDE.md#glossary) for definitions of `DOCS_DIR`, `LEGACY_DOCS_DIR`, and other terms.
 
 ---
 
 ## Overview
 
-The audit system provides instructions for verifying documentation completeness and correctness. During `install.md`, a customized `audit.md` file is generated in the installed documentation directory.
+The audit system provides instructions for verifying documentation completeness and correctness. During installation, a customized version of this file is generated in the maintenance directory.
 
 ### Audit File Location
 
 After running `install.md`, the audit file is located at:
-- `{INSTALL_DIR}/audit.md`
+- `{DOCS_DIR}/maintenance/audit.md`
 
-For example: `docs/audit.md`
+For example: `docs/maintenance/audit.md`
 
 ### Audit Templates
 
-The audit file is generated from templates in `layered-docs-system/audit/`:
+This file is generated from templates in `maintenance/audit/`:
 
 | Template | Purpose |
 |----------|---------|
@@ -53,7 +53,7 @@ The audit workflow:
 To run an audit:
 
 ```
-Execute the audit in @docs/audit.md
+Execute the audit in @docs/maintenance/audit.md
 ```
 
 The audit file contains all necessary instructions, including:
@@ -100,7 +100,7 @@ THRESHOLDS = {
 }
 ```
 
-If thresholds are not found, use defaults from `LAYERED-DOCUMENTATION-SYSTEM.md`.
+If thresholds are not found, use the defaults documented in `DOCUMENTATION-GUIDE.md`.
 
 ---
 

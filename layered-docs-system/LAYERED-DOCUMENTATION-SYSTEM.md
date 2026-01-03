@@ -40,11 +40,12 @@ See the [Glossary](#glossary) for terminology definitions (`LDS_DIST_DIR`, `DOCS
 | Task | Guide | When to Use |
 |------|-------|-------------|
 | Set up documentation | `install.md` | Project initialization |
-| Add new feature/decision | `create.md` | Adding new documentation |
-| Code changed | `update.md` | After implementation changes |
-| Periodic audit | `sync.md` | Before releases, periodic maintenance |
-| Quality improvement | `refine.md` | Documentation review cycles |
-| Compare docs vs source | `audit.md` | After migration, or to check for drift |
+| Code changed | `maintenance/update.md` | After implementation changes |
+| Periodic audit | `maintenance/sync.md` | Before releases, periodic maintenance |
+| Quality improvement | `maintenance/refine.md` | Documentation review cycles |
+| Compare docs vs source | `maintenance/audit.md` | After migration, or to check for drift |
+
+**Note**: The `maintenance/` workflows are installed into `DOCS_DIR/maintenance/` during installation, making them available even after `LDS_DIST_DIR` is removed.
 
 ### For Humans
 
@@ -62,19 +63,19 @@ This section defines key terms and concepts used throughout the Layered Document
 
 #### LDS Distribution Directory (`LDS_DIST_DIR`)
 
-The directory containing the Layered Documentation System distribution—the reusable framework with installation workflows, templates, and operational guides.
+The directory containing the Layered Documentation System distribution—the reusable framework with installation workflows, templates, and maintenance guides.
 
 - **Default**: `layered-docs-system`
-- **Contains**: `LAYERED-DOCUMENTATION-SYSTEM.md`, `install.md`, `create.md`, `update.md`, `sync.md`, `refine.md`, `audit.md`, and `templates/`
-- **Usage**: Referenced when executing LDS workflows or consulting master documentation
+- **Contains**: `LAYERED-DOCUMENTATION-SYSTEM.md`, `install.md`, `create.md` (optional), `templates/`, and `maintenance/` (with `audit.md`, `refine.md`, `sync.md`, `update.md`)
+- **Usage**: Referenced during installation; maintenance workflows are copied to `DOCS_DIR` for post-install use
 
 #### Documentation Root (`DOCS_DIR`)
 
 The project-specific directory where documentation is installed and maintained. After installation, this directory is self-contained and represents the project's complete design documentation.
 
 - **Default**: `docs`
-- **Contains**: `DOCUMENTATION-GUIDE.md`, layer directories (`decisions/`, `specs/`, etc.), and optionally `migration/` and `blackhole/` during initial setup
-- **Usage**: All generated files reference this as their root; this is the primary directory users interact with
+- **Contains**: `DOCUMENTATION-GUIDE.md`, `maintenance/` (installed workflows), layer directories (`decisions/`, `specs/`, etc.), and optionally `migration/` and `blackhole/` during initial setup
+- **Usage**: All generated files reference this as their root; this is the primary directory users interact with; `maintenance/` workflows are self-contained for post-install use
 
 #### Legacy Documentation Directory (`LEGACY_DOCS_DIR`)
 
@@ -103,7 +104,10 @@ A distinct category of documentation with a specific purpose, stability level, a
 
 #### Operational Workflow
 
-A guided process (`install.md`, `create.md`, `update.md`, `sync.md`, `refine.md`, `audit.md`) that AI agents can execute to perform documentation tasks. Each workflow contains step-by-step instructions with decision points and validation checks.
+A guided process that AI agents can execute to perform documentation tasks. Each workflow contains step-by-step instructions with decision points and validation checks.
+
+- **Installation workflow** (`install.md`): Lives in `LDS_DIST_DIR`, used once during setup
+- **Maintenance workflows** (`maintenance/update.md`, `maintenance/sync.md`, `maintenance/refine.md`, `maintenance/audit.md`): Installed to `DOCS_DIR/maintenance/` for ongoing use
 
 ### Installation Terms
 
@@ -276,6 +280,12 @@ docs/{layer}/
 ```
 docs/
 ├── DOCUMENTATION-GUIDE.md     # Project-specific guide (generated from install)
+│
+├── maintenance/               # Installed maintenance workflows
+│   ├── audit.md               # Documentation audit instructions
+│   ├── refine.md              # Quality improvement workflow
+│   ├── sync.md                # Implementation sync workflow
+│   └── update.md              # Post-change update workflow
 │
 ├── decisions/                 # Layer 1: ADRs (simple files, not directories)
 │   ├── README.md              # Index of all ADRs
@@ -1330,6 +1340,12 @@ project/
 ├── docs/
 │   ├── DOCUMENTATION-GUIDE.md   # Project-specific guide (generated)
 │   │
+│   ├── maintenance/             # Installed maintenance workflows
+│   │   ├── audit.md             # Documentation audit
+│   │   ├── refine.md            # Quality improvement
+│   │   ├── sync.md              # Implementation sync
+│   │   └── update.md            # Post-change updates
+│   │
 │   ├── decisions/               # Layer 1: ADRs (simple files, not directories)
 │   │   ├── README.md            # Index of all ADRs
 │   │   └── 0001-initial-architecture.md   # Single file per ADR
@@ -1381,14 +1397,23 @@ project/
 
 This system includes operational guides for common workflows:
 
+### Installation (in `LDS_DIST_DIR`)
+
 | Guide | Purpose |
 |-------|---------|
 | `install.md` | Set up documentation system (fresh or migration) |
-| `create.md` | Create new documentation with validation |
-| `update.md` | Update documentation after code changes |
-| `sync.md` | Audit and synchronize docs with code |
-| `refine.md` | Improve documentation quality |
-| `audit.md` | Compare docs vs source, analyze migration loss |
+| `create.md` | Create new documentation with validation (optional, not installed) |
+
+### Maintenance (installed to `DOCS_DIR/maintenance/`)
+
+These workflows are installed into the project's documentation directory during installation, making them available for ongoing use even after `LDS_DIST_DIR` is removed:
+
+| Guide | Purpose |
+|-------|---------|
+| `maintenance/update.md` | Update documentation after code changes |
+| `maintenance/sync.md` | Audit and synchronize docs with code |
+| `maintenance/refine.md` | Improve documentation quality |
+| `maintenance/audit.md` | Compare docs vs source, analyze migration loss |
 
 See each guide for detailed instructions.
 
@@ -1404,7 +1429,7 @@ After a migration install, the system automatically:
    - Content in `blackhole/` (could not be classified)
 4. **Suggests heuristic updates** for blackhole content
 
-The `audit.md` guide can be run manually at any time to repeat this analysis.
+The `maintenance/audit.md` guide can be run manually at any time to repeat this analysis.
 
 ---
 
@@ -1414,11 +1439,16 @@ The `audit.md` guide can be run manually at any time to repeat this analysis.
 layered-docs-system/
 ├── LAYERED-DOCUMENTATION-SYSTEM.md    # This file (full reference)
 ├── install.md                         # Installation workflow
-├── create.md                          # Creating new documentation
-├── update.md                          # Updating after changes
-├── sync.md                            # Synchronization audit
-├── refine.md                          # Quality improvement
-├── audit.md                           # Compare docs vs source, migration analysis
+├── create.md                          # Creating new documentation (optional, not installed)
+├── maintenance/                       # Maintenance workflows (installed to DOCS_DIR)
+│   ├── audit.md                       # Compare docs vs source, migration analysis
+│   ├── refine.md                      # Quality improvement
+│   ├── sync.md                        # Synchronization audit
+│   ├── update.md                      # Updating after changes
+│   └── audit/                         # Audit template components
+│       ├── common-audit.md            # Core audit process
+│       ├── audit-fresh-install.md     # Fresh install audit additions
+│       └── audit-migration.md         # Migration audit additions
 └── templates/
     ├── adr-madr-minimal.md            # ADR template (recommended)
     ├── adr-y-statement.md             # ADR template (lightweight)

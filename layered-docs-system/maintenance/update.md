@@ -2,7 +2,7 @@
 
 **For AI Agents**: This document contains instructions for updating documentation after implementation changes. Follow this process when code changes require documentation updates.
 
-**Terminology**: See the [Glossary](./LAYERED-DOCUMENTATION-SYSTEM.md#glossary) for definitions of key terms.
+**Terminology**: See the [Glossary](../DOCUMENTATION-GUIDE.md#glossary) for definitions of key terms.
 
 ---
 
@@ -17,7 +17,6 @@ Use this guide when:
 - API endpoints have changed
 
 **Do NOT use this guide for**:
-- Adding entirely new features (use `create.md`)
 - Quality improvements without code changes (use `refine.md`)
 - Periodic audits (use `sync.md`)
 
@@ -123,7 +122,7 @@ If a new decision is implied:
 >
 > Which option? (1/2/3)
 
-If option 1: Follow `create.md` to create the ADR first.
+If option 1: Create a new ADR in `decisions/` using the appropriate template before proceeding.
 
 ---
 

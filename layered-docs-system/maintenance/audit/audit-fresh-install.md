@@ -2,7 +2,7 @@
 
 **For AI Agents**: Use this audit process when the documentation was created fresh (not migrated from existing content).
 
-**Terminology**: See the [Glossary](../LAYERED-DOCUMENTATION-SYSTEM.md#glossary) for definitions of `DOCS_DIR` and other terms.
+**Terminology**: See the [Glossary](../../DOCUMENTATION-GUIDE.md#glossary) for definitions of `DOCS_DIR` and other terms.
 
 ---
 

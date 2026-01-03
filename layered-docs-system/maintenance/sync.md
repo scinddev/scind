@@ -2,7 +2,7 @@
 
 **For AI Agents**: This document contains instructions for auditing documentation against the current implementation and synchronizing any drift. Use this for periodic maintenance or before releases.
 
-**Terminology**: See the [Glossary](./LAYERED-DOCUMENTATION-SYSTEM.md#glossary) for definitions of key terms.
+**Terminology**: See the [Glossary](../DOCUMENTATION-GUIDE.md#glossary) for definitions of key terms.
 
 ---
 
@@ -17,7 +17,6 @@ Use this guide for:
 
 **Do NOT use this guide for**:
 - Updating after known code changes (use `update.md`)
-- Adding new documentation (use `create.md`)
 - Quality improvements (use `refine.md`)
 
 ---
@@ -300,7 +299,8 @@ Create issues/tickets for implementation fixes:
 
 #### New Documentation
 
-Follow `create.md` for new ADRs or specs.
+For new ADRs, create a file in `decisions/` using the appropriate template.
+For new specifications, create a file in `specs/` following the project's specification template.
 
 ---
 

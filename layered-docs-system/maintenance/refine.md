@@ -2,7 +2,7 @@
 
 **For AI Agents**: This document contains instructions for improving documentation quality without implementation changes. Use this for documentation review cycles, clarity improvements, and structural enhancements.
 
-**Terminology**: See the [Glossary](./LAYERED-DOCUMENTATION-SYSTEM.md#glossary) for definitions of key terms.
+**Terminology**: See the [Glossary](../DOCUMENTATION-GUIDE.md#glossary) for definitions of key terms.
 
 ---
 
@@ -18,7 +18,6 @@ Use this guide for:
 
 **Do NOT use this guide for**:
 - Updating after code changes (use `update.md`)
-- Adding new features (use `create.md`)
 - Auditing against implementation (use `sync.md`)
 
 ---
@@ -284,10 +283,11 @@ For each potential decision, ask:
 
 #### 6c: Create Missing ADRs
 
-For each missing ADR (follow `create.md`):
-1. Create ADR with extracted rationale
-2. Update source document to link to ADR
-3. Remove duplicated rationale from source
+For each missing ADR:
+1. Create ADR file in `decisions/` using the appropriate template
+2. Include extracted rationale as the Context and Decision sections
+3. Update source document to link to ADR
+4. Remove duplicated rationale from source
 
 ---
 

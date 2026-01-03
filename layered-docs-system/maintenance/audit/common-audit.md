@@ -2,7 +2,7 @@
 
 **For AI Agents**: This section contains the core audit process shared by all audit types.
 
-**Terminology**: See the [Glossary](../LAYERED-DOCUMENTATION-SYSTEM.md#glossary) for definitions of `DOCS_DIR` and other terms.
+**Terminology**: See the [Glossary](../../DOCUMENTATION-GUIDE.md#glossary) for definitions of `DOCS_DIR` and other terms.
 
 ---
 

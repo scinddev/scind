@@ -2,7 +2,12 @@
 
 **For AI Agents**: This document contains instructions for installing and customizing the Layered Documentation System for a project. Read this entire file, then follow the process below.
 
-**Terminology**: See the [Glossary](./LAYERED-DOCUMENTATION-SYSTEM.md#glossary) for definitions of `LDS_DIST_DIR`, `DOCS_DIR`, `LEGACY_DOCS_DIR`, and other terms.
+**Terminology**: Key terms used in this document:
+- `LDS_DIST_DIR`: The directory containing this distribution (e.g., `layered-docs-system/`)
+- `DOCS_DIR`: The target project documentation directory (e.g., `docs/`)
+- `LEGACY_DOCS_DIR`: Source documentation being migrated (only for migration installs)
+
+For complete definitions, see the [Glossary](./LAYERED-DOCUMENTATION-SYSTEM.md#glossary).
 
 ---
 
@@ -498,8 +503,13 @@ Create directories based on selected layers. Note that **ADRs use simple single 
 
 ```
 {DOCS_DIR}/
-├── DOCUMENTATION-GUIDE.md          # Always created (includes thresholds)
-├── audit.md                         # Always created (audit instructions for this install)
+├── DOCUMENTATION-GUIDE.md          # Always created (includes thresholds and glossary)
+│
+├── maintenance/                     # Always created (installed maintenance workflows)
+│   ├── audit.md                     # Documentation audit instructions
+│   ├── refine.md                    # Quality improvement workflow
+│   ├── sync.md                      # Implementation sync workflow
+│   └── update.md                    # Post-change update workflow
 │
 ├── decisions/                       # If Layer 1 selected (simple files, NOT directories)
 │   ├── README.md                   # Auto-generated index of all ADRs
@@ -905,7 +915,7 @@ Steps 01-06 (layer content) can potentially be parallelized if running multiple 
 
 ## After All Steps Complete
 
-1. Run the audit workflow (see Step 14 in install.md, or use `{DOCS_DIR}/audit.md`)
+1. Run the audit workflow (see Step 14 in install.md, or use `{DOCS_DIR}/maintenance/audit.md`)
 2. Review content in `migration/` directory and move to appropriate layers
 3. Review content in `blackhole/` directory
 4. Delete this `.migration/` directory:
@@ -983,7 +993,12 @@ Create `{DOCS_DIR}/DOCUMENTATION-GUIDE.md` containing:
 
 1. **Header** with project-specific title
 2. **Migration Note** (if applicable): "This documentation was migrated from `{LEGACY_DOCS_DIR}` on {date}"
-3. **Content Thresholds** — Configurable thresholds section:
+3. **Glossary** — Include key terms from `LAYERED-DOCUMENTATION-SYSTEM.md#glossary`:
+   - Directory terminology (`DOCS_DIR`, etc.)
+   - Core system terms (Layer, Canonical Source, SSOT)
+   - Document structure terms (Appendix, Main Document)
+   - Layer-specific terms (ADR, MADR, PRD, Gherkin)
+4. **Content Thresholds** — Configurable thresholds section:
    ```markdown
    ## Content Thresholds (Configurable)
 
@@ -998,45 +1013,60 @@ Create `{DOCS_DIR}/DOCUMENTATION-GUIDE.md` containing:
    | `ERROR_CATALOG_ALWAYS_APPENDIX` | true | Error catalogs → appendix |
    | `SHELL_SCRIPT_ALWAYS_APPENDIX` | true | Shell scripts → appendix |
    ```
-4. **Layer Overview** — Only selected layers
-5. **Classification Heuristics** — Only for selected layers
-6. **Decision Tree** — Simplified for included layers
-7. **Cross-Layer Linking** — Adjusted for selected layers
-8. **Tooling Section** — Selected tier only
-9. **Directory Structure** — Actual created structure
-10. **Appendix Guidelines** — How to create and link appendices
+5. **Layer Overview** — Only selected layers, with purpose and characteristics for each
+6. **Classification Decision Tree** — Simplified for included layers
+7. **Classification Heuristics** — Only for selected layers
+8. **Cross-Layer Linking** — Adjusted for selected layers
+9. **Document Hierarchy** — Authority order for conflict resolution
+10. **Tooling Section** — Selected tier only
+11. **Directory Structure** — Actual created structure
+12. **Appendix Guidelines** — How to create and link appendices
+13. **Maintenance Workflows** — Brief description of each installed workflow in `maintenance/`
 
 ---
 
-### Step 11: Generate Audit File
+### Step 11: Install Maintenance Workflows
 
-Create `{DOCS_DIR}/audit.md` by combining the appropriate audit templates.
+Install the maintenance workflows from `LDS_DIST_DIR/maintenance/` to `{DOCS_DIR}/maintenance/`.
 
-#### Template Sources
+#### 11a: Create Maintenance Directory
 
-The audit templates are located in `layered-docs-system/audit/`:
+```bash
+mkdir -p {DOCS_DIR}/maintenance
+```
+
+#### 11b: Install Workflow Files
+
+Copy and customize the following files from `LDS_DIST_DIR/maintenance/`:
+
+1. **`refine.md`** — Copy directly, update terminology reference to point to `../DOCUMENTATION-GUIDE.md#glossary`
+2. **`sync.md`** — Copy directly, update terminology reference to point to `../DOCUMENTATION-GUIDE.md#glossary`
+3. **`update.md`** — Copy directly, update terminology reference to point to `../DOCUMENTATION-GUIDE.md#glossary`
+
+#### 11c: Generate Audit File
+
+Create `{DOCS_DIR}/maintenance/audit.md` by combining the appropriate audit templates from `LDS_DIST_DIR/maintenance/audit/`:
+
 - `common-audit.md` — Core audit process (always included)
 - `audit-fresh-install.md` — For fresh installs (no source comparison)
 - `audit-migration.md` — For migrations (includes source comparison)
 
-#### 11a: Generate Fresh Install Audit
-
-**If `MIGRATION_MODE = false`**, create `{DOCS_DIR}/audit.md` by combining:
+**If `MIGRATION_MODE = false`**, create `{DOCS_DIR}/maintenance/audit.md` by combining:
 1. `common-audit.md`
 2. `audit-fresh-install.md`
 
 The file should be customized with:
 - `{DOCS_DIR}` replaced with the actual documentation path
+- Terminology reference updated to `../DOCUMENTATION-GUIDE.md#glossary`
 
-#### 11b: Generate Migration Audit
-
-**If `MIGRATION_MODE = true`**, create `{DOCS_DIR}/audit.md` by combining:
+**If `MIGRATION_MODE = true`**, create `{DOCS_DIR}/maintenance/audit.md` by combining:
 1. `audit-migration.md` (which includes migration-specific instructions)
 2. `common-audit.md`
 
 The file should be customized with:
 - `{LEGACY_DOCS_DIR}` replaced with the actual source documentation path
 - `{DOCS_DIR}` replaced with the actual documentation path
+- Terminology reference updated to `../DOCUMENTATION-GUIDE.md#glossary`
 
 **Migration Audit Template**:
 
@@ -1177,7 +1207,7 @@ If yes, create `0001-adopt-layered-documentation-system.md`:
 
 **Skip this step if `MIGRATION_MODE = false`.**
 
-After migration, automatically run the audit workflow using the generated `{DOCS_DIR}/audit.md` to compare original content against generated content:
+After migration, automatically run the audit workflow using the generated `{DOCS_DIR}/maintenance/audit.md` to compare original content against generated content:
 
 #### 14a: Calculate Content Statistics
 
@@ -1274,8 +1304,8 @@ Save the audit summary to `{DOCS_DIR}/MIGRATION-AUDIT.md` for reference.
 > 1. Review `{DOCS_DIR}/DOCUMENTATION-GUIDE.md` for usage instructions
 > 2. Start with your Vision document in `{DOCS_DIR}/product/vision.md`
 > 3. Document key decisions as ADRs in `{DOCS_DIR}/decisions/`
-> 4. Use `create.md` when adding new documentation
-> 5. Use `{DOCS_DIR}/audit.md` to verify documentation completeness
+> 4. Use `{DOCS_DIR}/maintenance/audit.md` to verify documentation completeness
+> 5. Use `{DOCS_DIR}/maintenance/update.md` after code changes
 
 **For Migration Install (After Install Phase — Steps 1-8)**:
 
@@ -1357,7 +1387,7 @@ Save the audit summary to `{DOCS_DIR}/MIGRATION-AUDIT.md` for reference.
 >
 > **Original files are unchanged** — you can compare and verify before removing them.
 >
-> **To re-run audit later**: Use `{DOCS_DIR}/audit.md`
+> **To re-run audit later**: Use `{DOCS_DIR}/maintenance/audit.md`
 
 ---
 
