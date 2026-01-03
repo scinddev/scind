@@ -2,11 +2,13 @@
 
 **For AI Agents**: Use this audit process when the documentation was created fresh (not migrated from existing content).
 
+**Terminology**: See the [Glossary](../LAYERED-DOCUMENTATION-SYSTEM.md#glossary) for definitions of `DOCS_DIR` and other terms.
+
 ---
 
 ## Prerequisites
 
-- Documentation has been installed using `install.md` with no source migration
+- Documentation has been installed using `install.md` with no legacy migration
 - Read the common audit instructions in `common-audit.md` (or the Common Instructions section below)
 
 ---
@@ -60,7 +62,7 @@ Execute the common audit process to inventory all content.
 # Fresh Install Audit Report
 
 **Date**: {timestamp}
-**Documentation Directory**: {path}
+**Documentation Root** (`DOCS_DIR`): {path}
 
 ## Structure Verification
 

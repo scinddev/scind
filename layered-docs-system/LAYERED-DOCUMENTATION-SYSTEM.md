@@ -1,4 +1,4 @@
-# Layered Documentation System
+# Layered Documentation System (LDS)
 
 **Version**: 3.0.0
 **Purpose**: A cohesive, maintainable system for creating and managing software documentation using a layered approach with operational workflows for AI agents.
@@ -18,20 +18,22 @@
 
 **Fresh install** (empty templates):
 ```
-Execute @path/to/layered-docs-system/install.md and install to @docs/
+Execute @layered-docs-system/install.md and install to @docs/
 ```
 
 **Migration install** (reorganize existing docs):
 ```
-Execute @path/to/layered-docs-system/install.md and install to @docs/ from existing docs in @specs/
+Execute @layered-docs-system/install.md and install to @docs/ from existing docs in @legacy-docs/
 ```
 
 > **Note**: For large documentation sets, the install phase generates migration step files in `docs/.migration/` that can be executed in separate sessions. This avoids context window exhaustion. After the install phase, execute each step file individually.
 
 **Interactive** (prompts for all options):
 ```
-Execute @path/to/layered-docs-system/install.md
+Execute @layered-docs-system/install.md
 ```
+
+See the [Glossary](#glossary) for terminology definitions (`LDS_DIST_DIR`, `DOCS_DIR`, `LEGACY_DOCS_DIR`).
 
 ### Operational Workflows
 
@@ -49,6 +51,173 @@ Execute @path/to/layered-docs-system/install.md
 1. Read this document to understand the system
 2. Use the [Quick Start Checklist](#quick-start-checklist) to set up manually
 3. Or use the operational guides with an AI assistant
+
+---
+
+## Glossary
+
+This section defines key terms and concepts used throughout the Layered Documentation System.
+
+### Directory Terminology
+
+#### LDS Distribution Directory (`LDS_DIST_DIR`)
+
+The directory containing the Layered Documentation System distribution—the reusable framework with installation workflows, templates, and operational guides.
+
+- **Default**: `layered-docs-system`
+- **Contains**: `LAYERED-DOCUMENTATION-SYSTEM.md`, `install.md`, `create.md`, `update.md`, `sync.md`, `refine.md`, `audit.md`, and `templates/`
+- **Usage**: Referenced when executing LDS workflows or consulting master documentation
+
+#### Documentation Root (`DOCS_DIR`)
+
+The project-specific directory where documentation is installed and maintained. After installation, this directory is self-contained and represents the project's complete design documentation.
+
+- **Default**: `docs`
+- **Contains**: `DOCUMENTATION-GUIDE.md`, layer directories (`decisions/`, `specs/`, etc.), and optionally `migration/` and `blackhole/` during initial setup
+- **Usage**: All generated files reference this as their root; this is the primary directory users interact with
+
+#### Legacy Documentation Directory (`LEGACY_DOCS_DIR`)
+
+The directory containing previously-existing documentation that was migrated (or is being migrated) into the LDS format. Only relevant for migration installs.
+
+- **Default**: `legacy-docs`
+- **Contains**: Original documentation files in their pre-migration format
+- **Usage**: Referenced during migration install and in audit files for comparison; can be archived or removed after successful migration verification
+- **Optional**: Not present for fresh installs
+
+#### Install Directory (`INSTALL_DIR`)
+
+*Internal to the installation workflow only.* A temporary variable representing the target directory during installation. Once installation completes, generated files reference themselves using `DOCS_DIR` conventions.
+
+- **Not user-facing**: This variable appears in `install.md` logic but not in generated documentation
+
+### Core System Terms
+
+#### Layered Documentation System (LDS)
+
+A documentation framework that organizes software design documentation into seven distinct layers, each with specific purposes, ownership, and lifecycles. The system includes operational workflows designed for AI agents to execute.
+
+#### Layer
+
+A distinct category of documentation with a specific purpose, stability level, audience, and lifecycle. The system defines seven layers: Decisions (ADRs), Vision, Architecture, Specifications, Reference, Behaviors, and Implementation.
+
+#### Operational Workflow
+
+A guided process (`install.md`, `create.md`, `update.md`, `sync.md`, `refine.md`, `audit.md`) that AI agents can execute to perform documentation tasks. Each workflow contains step-by-step instructions with decision points and validation checks.
+
+### Installation Terms
+
+#### Fresh Install
+
+An installation mode that creates an empty documentation structure with templates but no migrated content. Used when starting documentation from scratch.
+
+#### Migration Install
+
+An installation mode that analyzes existing documentation and reorganizes it into the layered structure. Content is classified by confidence level and placed into appropriate layers, `migration/`, or `blackhole/`.
+
+### Content Classification Terms
+
+#### Confidence Level
+
+A rating (High, Medium, or Low) indicating how certain the classification heuristics are about where content belongs:
+- **High**: Content placed directly into a layer
+- **Medium**: Content placed in `migration/` for human review
+- **Low/None**: Content placed in `blackhole/` as unclassified
+
+#### Classification Heuristics
+
+Pattern-matching rules used to determine which layer content belongs to. For example, phrases like "We chose X because..." signal ADR content, while "When X happens, the system does Y..." signals Specification content.
+
+#### Content Thresholds
+
+Configurable numeric limits that determine when content should be moved to an appendix. Defined in `DOCUMENTATION-GUIDE.md` after installation.
+
+| Threshold | Default | Purpose |
+|-----------|---------|---------|
+| `CODE_BLOCK_LINES` | 50 | Code blocks ≥ this go to appendix |
+| `STEP_LIST_ITEMS` | 10 | Step lists ≥ this go to appendix |
+| `TABLE_ROWS` | 20 | Tables ≥ this go to appendix |
+| `EXAMPLE_FILE_ALWAYS_APPENDIX` | true | Complete file examples always go to appendix |
+| `ERROR_CATALOG_ALWAYS_APPENDIX` | true | Error catalogs always go to appendix |
+| `SHELL_SCRIPT_ALWAYS_APPENDIX` | true | Shell scripts always go to appendix |
+
+### Document Structure Terms
+
+#### Appendix
+
+A supplementary file containing large content (code examples, detailed references, complete scripts) that exceeds thresholds. Stored in `appendices/{topic}/` directories, where `{topic}` matches the main document's basename.
+
+#### Main Document
+
+The primary document for a topic (e.g., `cli.md`) containing overview and key information, with links to appendices for detailed content.
+
+#### migration/ Directory
+
+A temporary directory for content classified with medium confidence that needs human review for final placement. Each subdirectory represents a detected category.
+
+#### blackhole/ Directory
+
+A catch-all directory for content that could not be classified. Indicates gaps in the heuristics that should be addressed. Contains suggestions for heuristic improvements.
+
+### Authority Terms
+
+#### Document Hierarchy
+
+The order of authority when documents conflict. Higher-authority documents win:
+1. ADRs (highest)
+2. Gherkin Behaviors
+3. Vision
+4. Specifications
+5. Reference
+6. Implementation (lowest)
+
+#### Canonical Source
+
+The single authoritative location where a piece of information is mastered. Other documents should reference rather than duplicate content from the canonical source.
+
+#### Single Source of Truth (SSOT)
+
+The principle that each piece of information should live in exactly one place to prevent drift and conflicts.
+
+#### Supersede
+
+To replace an existing ADR with a new one. The old ADR's status becomes "Superseded by NNNN" and remains in the repository for historical reference.
+
+### Layer-Specific Terms
+
+#### ADR (Architectural Decision Record)
+
+An immutable document in Layer 1 capturing a significant technical or product decision, including context, the decision itself, and consequences.
+
+#### MADR (Markdown Any Decision Records)
+
+A template format for ADRs. Available as "minimal" (recommended) or "full" variants.
+
+#### Y-Statement
+
+A lightweight single-sentence ADR format for quick decision capture.
+
+#### PRD (Product Requirements Document) / PRD-Lite
+
+The Vision layer document (Layer 2) defining product purpose, goals, and constraints. "Lite" indicates a streamlined format focused on essentials.
+
+#### Gherkin
+
+A domain-specific language for writing executable specifications using Given/When/Then syntax. Used in Layer 6 (Behaviors).
+
+#### Feature File
+
+A `.feature` file containing Gherkin scenarios that serve as executable behavior specifications.
+
+### Workflow Terms
+
+#### Drift
+
+When documentation and implementation become out of sync. Detected through auditing with `sync.md` or `audit.md`.
+
+#### Cross-Layer Link
+
+A relative Markdown link connecting documents in different layers (e.g., a specification linking to an ADR for rationale).
 
 ---
 
@@ -220,7 +389,7 @@ including error handling, see [Detailed Examples](./appendices/cli/detailed-exam
 ### Basic Example
 
 \`\`\`bash
-contrail workspace up
+mytool workspace up
 \`\`\`
 ```
 
@@ -281,7 +450,7 @@ Content in `blackhole/` could not be classified at all. This represents a gap in
 ```
 blackhole/
 ├── README.md                  # Explains what's here and suggests heuristic improvements
-└── contrail-go-stack-lines-450-600.md  # Raw content with source attribution
+└── original-doc-lines-450-600.md  # Raw content with source attribution
 ```
 
 **README.md content**:
@@ -308,7 +477,7 @@ Content ends up here when:
 
 | File | Source | Notes |
 |------|--------|-------|
-| contrail-go-stack-lines-450-600.md | contrail-go-stack.md:450-600 | Appears to be Cobra command scaffolding |
+| original-doc-lines-450-600.md | original-doc.md:450-600 | Appears to be Cobra command scaffolding |
 
 ## Suggested Heuristic Updates
 

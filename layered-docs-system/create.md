@@ -1,6 +1,8 @@
-# Layered Documentation System — Create
+# Layered Documentation System (LDS) — Create
 
 **For AI Agents**: This document contains instructions for creating new documentation within an established Layered Documentation System. Follow this process when adding new features, decisions, or specifications.
+
+**Terminology**: See the [Glossary](./LAYERED-DOCUMENTATION-SYSTEM.md#glossary) for definitions of key terms.
 
 ---
 

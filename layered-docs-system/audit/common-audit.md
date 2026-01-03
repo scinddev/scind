@@ -2,6 +2,8 @@
 
 **For AI Agents**: This section contains the core audit process shared by all audit types.
 
+**Terminology**: See the [Glossary](../LAYERED-DOCUMENTATION-SYSTEM.md#glossary) for definitions of `DOCS_DIR` and other terms.
+
 ---
 
 ## Purpose
@@ -18,7 +20,7 @@ The audit workflow:
 
 ### Step 1: Inventory Documentation
 
-Scan the documentation directory and categorize all content:
+Scan the documentation root (`DOCS_DIR`) and categorize all content:
 
 #### 1a: Count All Content
 

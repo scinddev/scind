@@ -1,6 +1,8 @@
-# Layered Documentation System — Update
+# Layered Documentation System (LDS) — Update
 
 **For AI Agents**: This document contains instructions for updating documentation after implementation changes. Follow this process when code changes require documentation updates.
+
+**Terminology**: See the [Glossary](./LAYERED-DOCUMENTATION-SYSTEM.md#glossary) for definitions of key terms.
 
 ---
 

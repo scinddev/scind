@@ -1,12 +1,14 @@
 # Documentation Audit — Migration
 
-**For AI Agents**: Use this audit process when the documentation was migrated from existing source content.
+**For AI Agents**: Use this audit process when the documentation was migrated from legacy documentation.
+
+**Terminology**: See the [Glossary](../LAYERED-DOCUMENTATION-SYSTEM.md#glossary) for definitions of `DOCS_DIR`, `LEGACY_DOCS_DIR`, and other terms.
 
 ---
 
 ## Prerequisites
 
-- Documentation has been migrated using `install.md` from source documentation
+- Documentation has been migrated using `install.md` from legacy documentation
 - All migration steps have been executed
 - Read the common audit instructions in `common-audit.md` (or the Common Instructions section below)
 
@@ -31,17 +33,17 @@ A successful migration should have **approximately the same or greater total lin
 
 ## Migration Audit Process
 
-### Step 1: Inventory Source Documentation
+### Step 1: Inventory Legacy Documentation
 
-Read ALL files in the source documentation directory:
+Read ALL files in the legacy documentation directory (`LEGACY_DOCS_DIR`):
 
 ```
-SOURCE_INVENTORY = {
+LEGACY_INVENTORY = {
   total_files: N,
   total_lines: N,
   files: [
-    { path: "{source}/file1.md", lines: N },
-    { path: "{source}/file2.md", lines: N },
+    { path: "{LEGACY_DOCS_DIR}/file1.md", lines: N },
+    { path: "{LEGACY_DOCS_DIR}/file2.md", lines: N },
     ...
   ]
 }
@@ -49,16 +51,16 @@ SOURCE_INVENTORY = {
 
 ### Step 2: Inventory Migrated Documentation
 
-Read ALL Markdown files in the documentation directory:
+Read ALL Markdown files in the documentation root (`DOCS_DIR`):
 
 ```
 MIGRATED_INVENTORY = {
   total_files: N,
   total_lines: N,
   files: [
-    { path: "{docs}/decisions/0001-example.md", lines: N },
-    { path: "{docs}/specs/feature.md", lines: N },
-    { path: "{docs}/specs/appendices/feature/details.md", lines: N },
+    { path: "{DOCS_DIR}/decisions/0001-example.md", lines: N },
+    { path: "{DOCS_DIR}/specs/feature.md", lines: N },
+    { path: "{DOCS_DIR}/specs/appendices/feature/details.md", lines: N },
     ...
   ]
 }
@@ -140,8 +142,8 @@ Execute the common audit process for full content inventory.
 # Migration Audit Report
 
 **Date**: {timestamp}
-**Source Documentation**: {source_path}
-**Migrated Documentation**: {docs_path}
+**Legacy Documentation** (`LEGACY_DOCS_DIR`): {legacy_docs_path}
+**Documentation Root** (`DOCS_DIR`): {docs_path}
 
 ---
 
@@ -149,7 +151,7 @@ Execute the common audit process for full content inventory.
 
 | Metric | Value |
 |--------|-------|
-| Source total lines | {N} |
+| Legacy total lines | {N} |
 | Migrated total lines | {M} |
 | Difference | {+/-X} ({Y}%) |
 | Migration status | {Complete/Needs Review} |
@@ -158,12 +160,12 @@ Execute the common audit process for full content inventory.
 
 ## Line Count Comparison
 
-### Source Files
+### Legacy Files
 
 | File | Lines |
 |------|-------|
-| {source}/file1.md | {N} |
-| {source}/file2.md | {N} |
+| {LEGACY_DOCS_DIR}/file1.md | {N} |
+| {LEGACY_DOCS_DIR}/file2.md | {N} |
 | ... | ... |
 | **Total** | **{N}** |
 
@@ -171,9 +173,9 @@ Execute the common audit process for full content inventory.
 
 | File | Lines |
 |------|-------|
-| {docs}/decisions/0001-example.md | {N} |
-| {docs}/specs/feature.md | {N} |
-| {docs}/specs/appendices/feature/details.md | {N} |
+| {DOCS_DIR}/decisions/0001-example.md | {N} |
+| {DOCS_DIR}/specs/feature.md | {N} |
+| {DOCS_DIR}/specs/appendices/feature/details.md | {N} |
 | ... | ... |
 | **Total** | **{M}** |
 

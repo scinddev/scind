@@ -1,6 +1,8 @@
-# Layered Documentation System — Refine
+# Layered Documentation System (LDS) — Refine
 
 **For AI Agents**: This document contains instructions for improving documentation quality without implementation changes. Use this for documentation review cycles, clarity improvements, and structural enhancements.
+
+**Terminology**: See the [Glossary](./LAYERED-DOCUMENTATION-SYSTEM.md#glossary) for definitions of key terms.
 
 ---
 

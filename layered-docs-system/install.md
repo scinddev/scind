@@ -1,6 +1,8 @@
-# Layered Documentation System — Install
+# Layered Documentation System (LDS) — Install
 
 **For AI Agents**: This document contains instructions for installing and customizing the Layered Documentation System for a project. Read this entire file, then follow the process below.
+
+**Terminology**: See the [Glossary](./LAYERED-DOCUMENTATION-SYSTEM.md#glossary) for definitions of `LDS_DIST_DIR`, `DOCS_DIR`, `LEGACY_DOCS_DIR`, and other terms.
 
 ---
 
@@ -55,13 +57,13 @@ When migrating existing documentation, the installer:
 
 ## Installation Process
 
-### Step 1: Determine Install Location
+### Step 1: Determine Documentation Root (`DOCS_DIR`)
 
-If the user specified an install directory (e.g., `@docs/`), use that path.
+If the user specified a documentation directory (e.g., `@docs/`), use that path.
 
 If no directory was specified, ask:
 
-> **Install Location**
+> **Documentation Root**
 >
 > Where would you like to install the documentation system? Common locations:
 > - `docs/` — Standard documentation directory
@@ -70,46 +72,46 @@ If no directory was specified, ask:
 >
 > Please specify a path, or press enter for the default (`docs/`).
 
-Store the chosen path as `INSTALL_DIR`.
+Store the chosen path as `DOCS_DIR` (used internally as `INSTALL_DIR` during installation).
 
 ---
 
-### Step 2: Determine Source Documentation
+### Step 2: Determine Legacy Documentation (`LEGACY_DOCS_DIR`)
 
-If the user specified existing documentation (e.g., `@specs/`, `@existing-docs/`), use that path.
+If the user specified existing documentation (e.g., `@legacy-docs/`), use that path.
 
 If no source was specified, ask:
 
-> **Existing Documentation**
+> **Legacy Documentation**
 >
 > Do you have existing documentation to migrate into the layered system?
 >
 > 1. **Yes** — I have existing docs to reorganize (specify path)
 > 2. **No** — Start fresh with empty templates
 >
-> If yes, please provide the path to your existing documentation (e.g., `specs/`, `docs/legacy/`).
+> If yes, please provide the path to your existing documentation (e.g., `legacy-docs/`).
 
 Store the result:
-- If path provided → `SOURCE_DOCS = {path}`, `MIGRATION_MODE = true`
-- If "no" or empty → `SOURCE_DOCS = null`, `MIGRATION_MODE = false`
+- If path provided → `LEGACY_DOCS_DIR = {path}`, `MIGRATION_MODE = true`
+- If "no" or empty → `LEGACY_DOCS_DIR = null`, `MIGRATION_MODE = false`
 
 ---
 
-### Step 3: Load and Analyze Source Documentation (Migration Mode Only)
+### Step 3: Load and Analyze Legacy Documentation (Migration Mode Only)
 
 **Skip this step if `MIGRATION_MODE = false`.**
 
-#### 3a: Read All Source Files
+#### 3a: Read All Legacy Files
 
-Read ALL files in `SOURCE_DOCS`. For each file:
+Read ALL files in `LEGACY_DOCS_DIR`. For each file:
 - Record the filename and full content
 - Note the file type (Markdown, YAML, etc.)
 
 Present a summary to the user:
 
-> **Source Documentation Loaded**
+> **Legacy Documentation Loaded**
 >
-> Found {N} files in `{SOURCE_DOCS}`:
+> Found {N} files in `{LEGACY_DOCS_DIR}`:
 > - `filename1.md` — {first 50 chars or heading}
 > - `filename2.md` — {first 50 chars or heading}
 > - ...
@@ -118,7 +120,7 @@ Present a summary to the user:
 
 #### 3b: Analyze Content Against Layer Heuristics
 
-For each piece of content in the source files, apply the classification heuristics from `LAYERED-DOCUMENTATION-SYSTEM.md`:
+For each piece of content in the legacy files, apply the classification heuristics from `LAYERED-DOCUMENTATION-SYSTEM.md`:
 
 **Layer 1 — Decisions (ADRs)**
 Signals to look for:
@@ -470,8 +472,8 @@ Present a summary:
 
 > **Installation Summary**
 >
-> **Mode**: {Fresh Install | Migration from `{SOURCE_DOCS}`}
-> **Install Location**: `{INSTALL_DIR}`
+> **Mode**: {Fresh Install | Migration from `{LEGACY_DOCS_DIR}`}
+> **Documentation Root**: `{DOCS_DIR}`
 >
 > **Layers to Include**:
 > - Decisions: {template} {if migration: "+ N extracted ADRs"}
@@ -495,7 +497,7 @@ If "no", ask which selections to change.
 Create directories based on selected layers. Note that **ADRs use simple single files** (not directories), while other layers use flat file structure with `{topic}.md` files and shared `appendices/{topic}/` directories:
 
 ```
-{INSTALL_DIR}/
+{DOCS_DIR}/
 ├── DOCUMENTATION-GUIDE.md          # Always created (includes thresholds)
 ├── audit.md                         # Always created (audit instructions for this install)
 │
@@ -559,7 +561,7 @@ Rather than performing migration inline (which risks context window exhaustion),
 Create the migration workspace:
 
 ```
-{INSTALL_DIR}/.migration/
+{DOCS_DIR}/.migration/
 ├── README.md                    # Overview and execution instructions
 ├── common-instructions.md       # Shared migration principles
 ├── 01-decisions.md              # ADR extraction steps
@@ -577,7 +579,7 @@ Create the migration workspace:
 
 #### 8b: Generate Common Instructions File
 
-Create `{INSTALL_DIR}/.migration/common-instructions.md`:
+Create `{DOCS_DIR}/.migration/common-instructions.md`:
 
 ```markdown
 # Migration Common Instructions
@@ -616,8 +618,8 @@ Content is referenced using `file:start-end` format:
 ## Templates
 
 When creating files, use the templates installed in:
-- `{INSTALL_DIR}/decisions/0000-template.md` for ADRs
-- `{INSTALL_DIR}/specs/_template.md` for specifications
+- `{DOCS_DIR}/decisions/0000-template.md` for ADRs
+- `{DOCS_DIR}/specs/_template.md` for specifications
 - Other layer templates as applicable
 
 ## Cross-Layer Links
@@ -688,7 +690,7 @@ For each layer with mapped content, create a step file. Each step file should be
 
 #### 8d: Generate Decisions Step File
 
-Create `{INSTALL_DIR}/.migration/01-decisions.md`:
+Create `{DOCS_DIR}/.migration/01-decisions.md`:
 
 For each ADR identified in Step 3:
 1. Include the full content to write (pre-extracted) if total is under ~2000 lines
@@ -729,7 +731,7 @@ Accepted
 
 {Pre-extracted consequences...}
 
-<!-- Migrated from specs/technical-spec.md:45-92 -->
+<!-- Migrated from legacy-docs/technical-spec.md:45-92 -->
 ```
 
 ### Verification
@@ -747,7 +749,7 @@ Accepted
 
 #### 8e: Generate Vision Step File
 
-Create `{INSTALL_DIR}/.migration/02-vision.md`:
+Create `{DOCS_DIR}/.migration/02-vision.md`:
 
 1. Target file: `product/vision.md`
 2. Pre-extract content if feasible, otherwise provide section-by-section source pointers
@@ -755,7 +757,7 @@ Create `{INSTALL_DIR}/.migration/02-vision.md`:
 
 #### 8f: Generate Architecture Step File
 
-Create `{INSTALL_DIR}/.migration/03-architecture.md`:
+Create `{DOCS_DIR}/.migration/03-architecture.md`:
 
 1. Target file: `architecture/overview.md`
 2. Preserve diagrams exactly — include as pre-extracted content to avoid corruption
@@ -763,7 +765,7 @@ Create `{INSTALL_DIR}/.migration/03-architecture.md`:
 
 #### 8g: Generate Specifications Step File
 
-Create `{INSTALL_DIR}/.migration/04-specs.md`:
+Create `{DOCS_DIR}/.migration/04-specs.md`:
 
 1. Multiple target files: `specs/{feature-name}.md`
 2. For each specification, include:
@@ -773,7 +775,7 @@ Create `{INSTALL_DIR}/.migration/04-specs.md`:
 
 #### 8h: Generate Reference Step File
 
-Create `{INSTALL_DIR}/.migration/05-reference.md`:
+Create `{DOCS_DIR}/.migration/05-reference.md`:
 
 1. Target files: `reference/cli.md`, `reference/configuration.md`
 2. Appendix files: `reference/appendices/cli/*.md`, `reference/appendices/configuration/*.md`
@@ -782,7 +784,7 @@ Create `{INSTALL_DIR}/.migration/05-reference.md`:
 
 #### 8i: Generate Implementation Step File
 
-Create `{INSTALL_DIR}/.migration/06-implementation.md`:
+Create `{DOCS_DIR}/.migration/06-implementation.md`:
 
 1. Target file: `implementation/tech-stack.md`
 2. Appendix files:
@@ -793,7 +795,7 @@ Create `{INSTALL_DIR}/.migration/06-implementation.md`:
 
 #### 8j: Generate Medium-Confidence Step File
 
-Create `{INSTALL_DIR}/.migration/07-medium-confidence.md`:
+Create `{DOCS_DIR}/.migration/07-medium-confidence.md`:
 
 For content with medium confidence from Step 3:
 1. Target directory: `migration/{category}/`
@@ -802,7 +804,7 @@ For content with medium confidence from Step 3:
 
 #### 8k: Generate Low-Confidence Step File
 
-Create `{INSTALL_DIR}/.migration/08-low-confidence.md`:
+Create `{DOCS_DIR}/.migration/08-low-confidence.md`:
 
 For content with low/no confidence from Step 3:
 1. Target directory: `blackhole/`
@@ -811,7 +813,7 @@ For content with low/no confidence from Step 3:
 
 #### 8l: Generate Cross-Links Step File
 
-Create `{INSTALL_DIR}/.migration/09-cross-links.md`:
+Create `{DOCS_DIR}/.migration/09-cross-links.md`:
 
 After all content is migrated, this step adds cross-layer links:
 
@@ -857,14 +859,14 @@ For detailed port assignment behavior, see [Port Types Spec](../specs/port-types
 
 #### 8m: Generate Migration README
 
-Create `{INSTALL_DIR}/.migration/README.md`:
+Create `{DOCS_DIR}/.migration/README.md`:
 
 ```markdown
 # Migration Plan
 
 **Generated**: {timestamp}
-**Source**: `{SOURCE_DOCS}`
-**Target**: `{INSTALL_DIR}`
+**Legacy Documentation**: `{LEGACY_DOCS_DIR}`
+**Documentation Root**: `{DOCS_DIR}`
 
 ## Overview
 
@@ -903,12 +905,12 @@ Steps 01-06 (layer content) can potentially be parallelized if running multiple 
 
 ## After All Steps Complete
 
-1. Run the audit workflow (see Step 14 in install.md, or use `{INSTALL_DIR}/audit.md`)
+1. Run the audit workflow (see Step 14 in install.md, or use `{DOCS_DIR}/audit.md`)
 2. Review content in `migration/` directory and move to appropriate layers
 3. Review content in `blackhole/` directory
 4. Delete this `.migration/` directory:
    ```bash
-   rm -rf {INSTALL_DIR}/.migration/
+   rm -rf {DOCS_DIR}/.migration/
    ```
 
 ## Step Execution Log
@@ -930,7 +932,7 @@ This step is executed in separate sessions after the install phase completes. Ea
 
 #### How to Execute Migration Steps
 
-The install phase (Steps 1-8) generates migration step files in `{INSTALL_DIR}/.migration/`. To execute them:
+The install phase (Steps 1-8) generates migration step files in `{DOCS_DIR}/.migration/`. To execute them:
 
 1. **Start a new session** (to have fresh context)
 2. **Provide the step file to the agent**:
@@ -977,10 +979,10 @@ Proceed to Step 14 (Run Migration Audit) to validate the migration.
 
 ### Step 10: Generate Customized Guide
 
-Create `{INSTALL_DIR}/DOCUMENTATION-GUIDE.md` containing:
+Create `{DOCS_DIR}/DOCUMENTATION-GUIDE.md` containing:
 
 1. **Header** with project-specific title
-2. **Migration Note** (if applicable): "This documentation was migrated from `{SOURCE_DOCS}` on {date}"
+2. **Migration Note** (if applicable): "This documentation was migrated from `{LEGACY_DOCS_DIR}` on {date}"
 3. **Content Thresholds** — Configurable thresholds section:
    ```markdown
    ## Content Thresholds (Configurable)
@@ -1008,7 +1010,7 @@ Create `{INSTALL_DIR}/DOCUMENTATION-GUIDE.md` containing:
 
 ### Step 11: Generate Audit File
 
-Create `{INSTALL_DIR}/audit.md` by combining the appropriate audit templates.
+Create `{DOCS_DIR}/audit.md` by combining the appropriate audit templates.
 
 #### Template Sources
 
@@ -1019,22 +1021,22 @@ The audit templates are located in `layered-docs-system/audit/`:
 
 #### 11a: Generate Fresh Install Audit
 
-**If `MIGRATION_MODE = false`**, create `{INSTALL_DIR}/audit.md` by combining:
+**If `MIGRATION_MODE = false`**, create `{DOCS_DIR}/audit.md` by combining:
 1. `common-audit.md`
 2. `audit-fresh-install.md`
 
 The file should be customized with:
-- `{INSTALL_DIR}` replaced with the actual documentation path
+- `{DOCS_DIR}` replaced with the actual documentation path
 
 #### 11b: Generate Migration Audit
 
-**If `MIGRATION_MODE = true`**, create `{INSTALL_DIR}/audit.md` by combining:
+**If `MIGRATION_MODE = true`**, create `{DOCS_DIR}/audit.md` by combining:
 1. `audit-migration.md` (which includes migration-specific instructions)
 2. `common-audit.md`
 
 The file should be customized with:
-- `{SOURCE_DOCS}` replaced with the actual source documentation path
-- `{INSTALL_DIR}` replaced with the actual documentation path
+- `{LEGACY_DOCS_DIR}` replaced with the actual source documentation path
+- `{DOCS_DIR}` replaced with the actual documentation path
 
 **Migration Audit Template**:
 
@@ -1047,8 +1049,8 @@ The file should be customized with:
 
 ## Audit Configuration
 
-- **Documentation Directory**: `{INSTALL_DIR}`
-- **Source Documentation**: `{SOURCE_DOCS}`
+- **Documentation Root** (`DOCS_DIR`): `{DOCS_DIR}`
+- **Legacy Documentation** (`LEGACY_DOCS_DIR`): `{LEGACY_DOCS_DIR}`
 - **Install Type**: Migration
 - **Install Date**: {timestamp}
 
@@ -1058,7 +1060,7 @@ The file should be customized with:
 
 **IMPORTANT**: The migrated docs use a layered structure with sub-directories. Before claiming any content is missing, you MUST:
 
-1. **Read ALL Markdown files** under `{INSTALL_DIR}/` — not just README.md files, but every `.md` file in every subdirectory including `appendices/` folders
+1. **Read ALL Markdown files** under `{DOCS_DIR}/` — not just README.md files, but every `.md` file in every subdirectory including `appendices/` folders
 2. **Read the full content of each file** — not just the first section or summary
 3. **Search across the entire documentation directory** using grep for key terms before concluding something is missing
 
@@ -1075,7 +1077,7 @@ A successful migration should have **approximately the same or greater total lin
 
 ### Step 1: Inventory Source Documentation
 
-Read ALL files in `{SOURCE_DOCS}`:
+Read ALL files in `{LEGACY_DOCS_DIR}`:
 
 For each file, record:
 - File path
@@ -1086,7 +1088,7 @@ Calculate total source lines.
 
 ### Step 2: Inventory Migrated Documentation
 
-Read ALL Markdown files in `{INSTALL_DIR}/`:
+Read ALL Markdown files in `{DOCS_DIR}/`:
 
 For each file, record:
 - File path
@@ -1113,7 +1115,7 @@ If migrated content is significantly less than source:
 ### Step 4: Verify Content Presence
 
 For each major section heading from the source:
-1. Search `{INSTALL_DIR}/` for the term using grep
+1. Search `{DOCS_DIR}/` for the term using grep
 2. If not found by exact match, try related terms
 3. Only mark as "missing" after exhaustive search confirms no matches
 
@@ -1175,7 +1177,7 @@ If yes, create `0001-adopt-layered-documentation-system.md`:
 
 **Skip this step if `MIGRATION_MODE = false`.**
 
-After migration, automatically run the audit workflow using the generated `{INSTALL_DIR}/audit.md` to compare original content against generated content:
+After migration, automatically run the audit workflow using the generated `{DOCS_DIR}/audit.md` to compare original content against generated content:
 
 #### 14a: Calculate Content Statistics
 
@@ -1198,8 +1200,8 @@ Create a detailed comparison showing where content went:
 MIGRATION AUDIT SUMMARY
 =======================
 
-Source: {SOURCE_DOCS}
-Generated: {INSTALL_DIR}
+Legacy Documentation: {LEGACY_DOCS_DIR}
+Documentation Root: {DOCS_DIR}
 Date: {timestamp}
 
 CONTENT DISTRIBUTION
@@ -1253,7 +1255,7 @@ TABLE_ROWS: 20
 
 #### 14c: Save Audit Report
 
-Save the audit summary to `{INSTALL_DIR}/MIGRATION-AUDIT.md` for reference.
+Save the audit summary to `{DOCS_DIR}/MIGRATION-AUDIT.md` for reference.
 
 ---
 
@@ -1269,11 +1271,11 @@ Save the audit summary to `{INSTALL_DIR}/MIGRATION-AUDIT.md` for reference.
 > ```
 >
 > **Next Steps**:
-> 1. Review `{INSTALL_DIR}/DOCUMENTATION-GUIDE.md` for usage instructions
-> 2. Start with your Vision document in `{INSTALL_DIR}/product/vision.md`
-> 3. Document key decisions as ADRs in `{INSTALL_DIR}/decisions/`
+> 1. Review `{DOCS_DIR}/DOCUMENTATION-GUIDE.md` for usage instructions
+> 2. Start with your Vision document in `{DOCS_DIR}/product/vision.md`
+> 3. Document key decisions as ADRs in `{DOCS_DIR}/decisions/`
 > 4. Use `create.md` when adding new documentation
-> 5. Use `{INSTALL_DIR}/audit.md` to verify documentation completeness
+> 5. Use `{DOCS_DIR}/audit.md` to verify documentation completeness
 
 **For Migration Install (After Install Phase — Steps 1-8)**:
 
@@ -1285,7 +1287,7 @@ Save the audit summary to `{INSTALL_DIR}/MIGRATION-AUDIT.md` for reference.
 > ```
 >
 > **Migration Plan Generated**:
-> - **{N} step files** created in `{INSTALL_DIR}/.migration/`
+> - **{N} step files** created in `{DOCS_DIR}/.migration/`
 > - **Estimated {M} total lines** to migrate across all steps
 >
 > **Content Classification Summary**:
@@ -1294,7 +1296,7 @@ Save the audit summary to `{INSTALL_DIR}/MIGRATION-AUDIT.md` for reference.
 > - Low confidence (blackhole/): {N} sections, ~{M} lines
 >
 > **Next Steps — Execute Migration**:
-> 1. Review the migration plan in `{INSTALL_DIR}/.migration/README.md`
+> 1. Review the migration plan in `{DOCS_DIR}/.migration/README.md`
 > 2. Execute each step file in a separate session:
 >    ```
 >    Execute the migration step in @docs/.migration/01-decisions.md
@@ -1341,7 +1343,7 @@ Save the audit summary to `{INSTALL_DIR}/MIGRATION-AUDIT.md` for reference.
 > - Unclassified (`blackhole/`): {X}%
 >
 > **Action Items**:
-> 1. Review `{INSTALL_DIR}/MIGRATION-AUDIT.md` for detailed breakdown
+> 1. Review `{DOCS_DIR}/MIGRATION-AUDIT.md` for detailed breakdown
 > 2. Review content in `migration/` and move to appropriate layers
 > 3. Review content in `blackhole/` and either:
 >    - Move to appropriate layer/appendix
@@ -1349,13 +1351,13 @@ Save the audit summary to `{INSTALL_DIR}/MIGRATION-AUDIT.md` for reference.
 > 4. Check cross-layer links are correct
 > 5. Delete the `.migration/` working directory:
 >    ```bash
->    rm -rf {INSTALL_DIR}/.migration/
+>    rm -rf {DOCS_DIR}/.migration/
 >    ```
 > 6. Remove or archive original source files if desired
 >
 > **Original files are unchanged** — you can compare and verify before removing them.
 >
-> **To re-run audit later**: Use `{INSTALL_DIR}/audit.md`
+> **To re-run audit later**: Use `{DOCS_DIR}/audit.md`
 
 ---
 

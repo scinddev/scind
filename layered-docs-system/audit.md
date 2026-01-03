@@ -1,6 +1,8 @@
-# Layered Documentation System — Audit
+# Layered Documentation System (LDS) — Audit
 
-**For AI Agents**: This document describes the audit system. The actual audit instructions are generated during install and placed in `{INSTALL_DIR}/audit.md`.
+**For AI Agents**: This document describes the audit system. The actual audit instructions are generated during install and placed in `{DOCS_DIR}/audit.md`.
+
+**Terminology**: See the [Glossary](./LAYERED-DOCUMENTATION-SYSTEM.md#glossary) for definitions of `LDS_DIST_DIR`, `DOCS_DIR`, `LEGACY_DOCS_DIR`, and other terms.
 
 ---
 
@@ -78,8 +80,8 @@ Identify the directories to compare:
 > If no source directory is provided, the audit will analyze the installed documentation structure only.
 
 Store as:
-- `DOCS_DIR` — Installed documentation
-- `SOURCE_DIR` — Original source (null if not provided)
+- `DOCS_DIR` — Documentation root (installed documentation)
+- `LEGACY_DOCS_DIR` — Legacy documentation (null if not provided)
 
 ---
 
@@ -169,11 +171,11 @@ BLACKHOLE_INVENTORY = {
 
 ### Step 4: Compare Against Source (If Available)
 
-**Skip if `SOURCE_DIR` is null.**
+**Skip if `LEGACY_DOCS_DIR` is null.**
 
-#### 4a: Inventory Source Documentation
+#### 4a: Inventory Legacy Documentation
 
-For each file in `{SOURCE_DIR}`:
+For each file in `{LEGACY_DOCS_DIR}`:
 - Count total lines
 - Identify major sections (by headings)
 - Note content types (code blocks, tables, lists)
@@ -309,8 +311,8 @@ Create a comprehensive report:
 # Documentation Audit Report
 
 **Date**: {timestamp}
-**Documentation**: {DOCS_DIR}
-**Source**: {SOURCE_DIR or "N/A"}
+**Documentation Root**: {DOCS_DIR}
+**Legacy Documentation**: {LEGACY_DOCS_DIR or "N/A"}
 
 ---
 

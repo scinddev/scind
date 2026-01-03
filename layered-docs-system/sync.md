@@ -1,6 +1,8 @@
-# Layered Documentation System — Sync
+# Layered Documentation System (LDS) — Sync
 
 **For AI Agents**: This document contains instructions for auditing documentation against the current implementation and synchronizing any drift. Use this for periodic maintenance or before releases.
+
+**Terminology**: See the [Glossary](./LAYERED-DOCUMENTATION-SYSTEM.md#glossary) for definitions of key terms.
 
 ---
 
