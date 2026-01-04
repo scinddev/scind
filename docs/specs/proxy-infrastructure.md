@@ -46,7 +46,7 @@ The proxy is implemented as a Docker Compose project at `~/.config/contrail/prox
 
 ```
 ~/.config/contrail/proxy/
-├── docker-compose.yaml    # Traefik service definition
+├── docker-compose.yaml   # Traefik service definition
 ├── traefik.yaml          # Traefik static configuration
 ├── dynamic/              # Dynamic configuration (auto-discovered)
 │   └── tls.yaml          # TLS certificate configuration (generated)

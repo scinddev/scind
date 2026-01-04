@@ -11,12 +11,12 @@ Contrail is an orchestration layer that sits between the developer and Docker Co
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                        Developer                                 │
+│                        Developer                                │
 └─────────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                     Contrail CLI                                 │
+│                     Contrail CLI                                │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────┐  │
 │  │   Context   │  │   Config    │  │      Generator          │  │
 │  │  Detection  │  │   Loader    │  │  (Override Files)       │  │
@@ -25,15 +25,15 @@ Contrail is an orchestration layer that sits between the developer and Docker Co
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                    Docker Compose                                │
-│         (with generated override files)                          │
+│                    Docker Compose                               │
+│         (with generated override files)                         │
 └─────────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                      Docker Engine                               │
+│                      Docker Engine                              │
 │  ┌─────────────────────────────────────────────────────────────┐│
-│  │                    Containers                                ││
+│  │                    Containers                               ││
 │  └─────────────────────────────────────────────────────────────┘│
 │  ┌───────────────────────┐  ┌─────────────────────────────────┐ │
 │  │   contrail-proxy      │  │   {workspace}-internal          │ │
@@ -104,37 +104,37 @@ Contrail creates a two-layer network topology:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                         Host                                     │
-│                                                                  │
+│                         Host                                    │
+│                                                                 │
 │  ┌───────────────────────────────────────────────────────────┐  │
-│  │                   contrail-proxy                           │  │
-│  │                   (host-wide network)                      │  │
-│  │                                                            │  │
-│  │   ┌─────────┐                                              │  │
-│  │   │ Traefik │◄──── HTTP/HTTPS from browser                 │  │
-│  │   └────┬────┘                                              │  │
-│  │        │                                                   │  │
-│  │        ▼                                                   │  │
+│  │                   contrail-proxy                          │  │
+│  │                   (host-wide network)                     │  │
+│  │                                                           │  │
+│  │   ┌─────────┐                                             │  │
+│  │   │ Traefik │◄──── HTTP/HTTPS from browser                │  │
+│  │   └────┬────┘                                             │  │
+│  │        │                                                  │  │
+│  │        ▼                                                  │  │
 │  │   Routes to containers with `visibility: public`          │  │
 │  └───────────────────────────────────────────────────────────┘  │
-│                                                                  │
+│                                                                 │
 │  ┌───────────────────────────────────────────────────────────┐  │
-│  │              main-internal (workspace network)             │  │
-│  │                                                            │  │
+│  │              main-internal (workspace network)            │  │
+│  │                                                           │  │
 │  │   ┌─────────┐    ┌─────────┐    ┌─────────┐               │  │
 │  │   │ app-one │◄──►│ app-two │◄──►│ app-db  │               │  │
 │  │   └─────────┘    └─────────┘    └─────────┘               │  │
-│  │                                                            │  │
-│  │   All containers can reach each other via aliases          │  │
-│  │   e.g., app-one-web, app-two-web, app-db-postgres          │  │
+│  │                                                           │  │
+│  │   All containers can reach each other via aliases         │  │
+│  │   e.g., app-one-web, app-two-web, app-db-postgres         │  │
 │  └───────────────────────────────────────────────────────────┘  │
-│                                                                  │
+│                                                                 │
 │  ┌───────────────────────────────────────────────────────────┐  │
-│  │            feature-internal (another workspace)            │  │
-│  │                                                            │  │
-│  │   ┌─────────┐    ┌─────────┐                               │  │
-│  │   │ app-one │    │ app-two │   (isolated from main)        │  │
-│  │   └─────────┘    └─────────┘                               │  │
+│  │            feature-internal (another workspace)           │  │
+│  │                                                           │  │
+│  │   ┌─────────┐    ┌─────────┐                              │  │
+│  │   │ app-one │    │ app-two │   (isolated from main)       │  │
+│  │   └─────────┘    └─────────┘                              │  │
 │  └───────────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────┘
 ```
