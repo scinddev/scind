@@ -1,14 +1,12 @@
 # ADR-0007: Port Type System for Exported Services
 
-**Status**: Accepted
-**Date**: 2024-12
-**Decision-Makers**: Contrail Design Team
+## Status
 
----
+Accepted
 
 ## Context
 
-Services need different handling based on how they're accessed—some need HTTP proxying through Traefik, others need direct port binding for database connections.
+Services need different handling based on how they're accessed - some need HTTP proxying, others need direct port binding.
 
 ## Decision
 
@@ -32,10 +30,6 @@ exported_services:
         visibility: protected
 ```
 
-**Port types**:
-- `proxied`: Traffic routed through Traefik; protocol specifies how (http, https, future SNI types)
-- `assigned`: Direct port binding; if port unavailable, Contrail finds next available
-
 ## Consequences
 
 ### Positive
@@ -54,13 +48,11 @@ exported_services:
 ### Neutral
 
 - `visibility` remains as documentation for collaborators (public vs protected)
-
----
+- `proxied`: Traffic routed through Traefik; protocol specifies how (http, https, future SNI types)
+- `assigned`: Direct port binding; if port unavailable, Contrail finds next available
 
 ## Related Documents
 
 - [Port Types Spec](../specs/port-types.md) - Full specification of port types and their behavior
 
----
-
-<!-- Migrated from specs/contrail-prd.md:235-264 -->
+<!-- Migrated from specs/contrail-prd.md:234-264 -->

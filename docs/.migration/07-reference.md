@@ -1,327 +1,106 @@
-# Migration Step: Layer 5 — Reference
+# Migration Step: Layer 5 - Reference
 
-**Prerequisites**: Read `common-instructions.md`, complete Layer 4 steps
-**Estimated Size**: 2 files + appendices, approximately 1,700 lines total
+**Prerequisites**: Read `common-instructions.md`
+**Estimated Size**: 2 files + appendices, approximately 1,800 lines
 
 ---
 
 ## Overview
 
-Extract reference documentation for CLI commands and configuration options. Reference docs are lookup-oriented, not tutorial-oriented.
+Create reference documentation from `specs/contrail-cli-reference.md` and configuration reference from `specs/contrail-technical-spec.md`.
 
-**Source documents**:
-- `specs/contrail-cli-reference.md` (CLI reference)
-- `specs/contrail-technical-spec.md` (configuration reference)
+**Target Files**:
+1. `reference/cli.md` - CLI command reference
+2. `reference/configuration.md` - Configuration file reference
 
 ---
 
-## File 1: `reference/cli.md`
+## Reference 1: `reference/cli.md`
 
-**Source**: `specs/contrail-cli-reference.md:1-800`
+**Source**: `specs/contrail-cli-reference.md` (entire file ~1,599 lines)
 
-### Summary
+This is the main CLI reference document. Create with appendices for:
+- `reference/appendices/cli/detailed-examples.md` - Example workflows (lines 1491-1578)
+- `reference/appendices/cli/error-messages.md` - Error message catalog (lines 1475-1489)
 
-Complete CLI reference with all commands, options, and flags.
+The main file should contain:
+- Command Structure (lines 11-27)
+- Context Detection (moved to specs/context-detection.md, link to it)
+- Resources table (lines 150-163)
+- Global Flags (lines 165-212)
+- All command documentation:
+  - Workspace Commands (lines 216-525)
+  - Application Commands (lines 527-721)
+  - Flavor Commands (lines 723-810)
+  - Port Commands (lines 812-934)
+  - Proxy Commands (lines 936-1075)
+  - Config Commands (lines 1077-1162)
+  - Docker Compose Integration (lines 1164-1247)
+  - Top-Level Aliases (lines 1250-1262)
+  - Utility Commands (lines 1264-1369)
+- Output Formats (lines 1371-1394)
+- Shell Completion (lines 1396-1443)
+- Environment Variables (lines 1450-1461)
+- Exit Codes (lines 1463-1473)
 
-### Content Structure
+---
+
+## Reference 2: `reference/configuration.md`
+
+**Source**: `specs/contrail-technical-spec.md:216-765` (Configuration Schemas section)
+
+Create a configuration reference that shows:
+- All configuration file types and their locations
+- Complete schema reference with field descriptions
+- Examples for common configurations
+
+Create appendix:
+- `reference/appendices/configuration/complete-examples.md` - Full configuration file examples
+
+---
+
+## Also Create: `reference/README.md`
 
 ```markdown
-# CLI Reference
+# Reference Documentation
 
-Quick reference for all Contrail commands.
+API and configuration reference for Contrail.
 
----
+## Contents
 
-## Global Options
+| Document | Description |
+|----------|-------------|
+| [cli.md](./cli.md) | CLI command reference |
+| [configuration.md](./configuration.md) | Configuration file reference |
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--workspace` | `-w` | Target workspace |
-| `--app` | `-a` | Target application |
-| `--verbose` | `-v` | Verbose output |
-| `--help` | `-h` | Show help |
+## Appendices
 
----
-
-## Commands
-
-### contrail up
-
-Start workspace or application.
-
-**Usage**: `contrail up [options]`
-
-**Options**:
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--build` | Build images before starting | false |
-| `--detach` | Run in background | true |
-| `--flavor` | Use specific flavor | default |
-
-**Examples**:
-```bash
-contrail up                      # Start based on context
-contrail up -w main              # Start entire workspace
-contrail up -w main -a frontend  # Start specific app
+- `appendices/cli/detailed-examples.md` - Complete workflow examples
+- `appendices/cli/error-messages.md` - Error message catalog
+- `appendices/configuration/complete-examples.md` - Full configuration examples
 ```
 
-### contrail down
+---
 
-Stop workspace or application.
+## Appendix Directories to Create
 
-**Usage**: `contrail down [options]`
-
-**Options**:
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--volumes` | Remove volumes | false |
-| `--timeout` | Shutdown timeout (seconds) | 10 |
-
-**Examples**:
-```bash
-contrail down                    # Stop based on context
-contrail down -w main --volumes  # Stop and remove volumes
+```
+reference/appendices/
+  cli/
+    detailed-examples.md
+    error-messages.md
+  configuration/
+    complete-examples.md
 ```
 
-### contrail status
-
-Show workspace/application status.
-
-**Usage**: `contrail status [options]`
-
-**Options**:
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--format` | Output format (table, json, yaml) | table |
-
-### contrail logs
-
-View container logs.
-
-**Usage**: `contrail logs [service] [options]`
-
-**Options**:
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--follow` | Follow log output | false |
-| `--tail` | Number of lines | all |
-| `--timestamps` | Show timestamps | false |
-
-### contrail exec
-
-Execute command in container.
-
-**Usage**: `contrail exec <service> <command>`
-
-**Options**:
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--tty` | Allocate TTY | true |
-| `--interactive` | Keep STDIN open | true |
-
-### contrail generate
-
-Generate override files without starting.
-
-**Usage**: `contrail generate [options]`
-
-**Options**:
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--dry-run` | Show what would be generated | false |
-
-### contrail validate
-
-Validate configuration files.
-
-**Usage**: `contrail validate [options]`
-
-**Options**:
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--strict` | Treat warnings as errors | false |
-
-### contrail init
-
-Initialize new workspace or application.
-
-**Usage**: `contrail init <type> [name]`
-
-**Types**:
-- `workspace` — Create workspace.yaml
-- `app` — Create application.yaml
-
 ---
 
-## Exit Codes
+## Notes for Migration
 
-| Code | Meaning |
-|------|---------|
-| 0 | Success |
-| 1 | General error |
-| 2 | Configuration error |
-| 3 | Docker error |
-
----
-
-## Related Documents
-
-- [Configuration Reference](./configuration.md)
-- [Context Detection Spec](../specs/context-detection.md)
-
-<!-- See appendices/cli/ for detailed examples and error messages -->
-```
-
-### Appendix Content
-
-Create `reference/appendices/cli/`:
-- `detailed-examples.md` — Extended examples for each command
-- `error-messages.md` — Complete error message catalog
-
----
-
-## File 2: `reference/configuration.md`
-
-**Source**: `specs/contrail-technical-spec.md:200-400` + `specs/contrail-cli-reference.md:900-1200`
-
-### Summary
-
-Complete configuration reference for all YAML files.
-
-### Content Structure
-
-```markdown
-# Configuration Reference
-
-Quick reference for all configuration files and options.
-
----
-
-## File Locations
-
-| File | Location | Purpose |
-|------|----------|---------|
-| proxy.yaml | `~/.config/contrail/proxy.yaml` | Global proxy settings |
-| workspace.yaml | `{workspace}/workspace.yaml` | Workspace definition |
-| application.yaml | `{app}/application.yaml` | Application settings |
-
----
-
-## proxy.yaml
-
-Global Traefik and TLS configuration.
-
-```yaml
-domain: test                    # Base domain for hostnames
-tls:
-  mode: auto                    # auto, custom, disabled
-  cert_file: ""                 # Path for custom mode
-  key_file: ""                  # Path for custom mode
-traefik:
-  dashboard: true               # Enable Traefik dashboard
-  dashboard_port: 8080          # Dashboard port
-  log_level: ERROR              # Traefik log level
-```
-
-| Field | Type | Required | Default | Description |
-|-------|------|----------|---------|-------------|
-| `domain` | string | No | `test` | Base domain for public hostnames |
-| `tls.mode` | enum | No | `auto` | TLS mode: auto, custom, disabled |
-| `tls.cert_file` | string | If custom | - | Path to certificate file |
-| `tls.key_file` | string | If custom | - | Path to private key file |
-| `traefik.dashboard` | bool | No | `true` | Enable Traefik dashboard |
-| `traefik.dashboard_port` | int | No | `8080` | Dashboard port |
-| `traefik.log_level` | string | No | `ERROR` | Log level |
-
----
-
-## workspace.yaml
-
-Workspace definition and application references.
-
-```yaml
-name: main                      # Workspace name
-applications:
-  - path: ../frontend           # Relative path to app
-    name: frontend              # Optional name override
-  - path: ../backend
-  - path: ../shared-db
-    name: db
-```
-
-| Field | Type | Required | Default | Description |
-|-------|------|----------|---------|-------------|
-| `name` | string | Yes | - | Workspace name (used in hostnames) |
-| `applications` | array | Yes | - | List of applications |
-| `applications[].path` | string | Yes | - | Path to application directory |
-| `applications[].name` | string | No | dir name | Override application name |
-
----
-
-## application.yaml
-
-Application-specific configuration.
-
-```yaml
-name: frontend                  # Application name
-flavors:
-  default:                      # Default flavor
-    profiles: []                # Docker Compose profiles
-  full:
-    profiles: [backend, db]
-  minimal:
-    profiles: []
-exported_services:
-  web:                          # Service name for discovery
-    service: nginx              # Docker Compose service name
-    ports:
-      - type: proxied
-        protocol: https
-        visibility: public
-        container_port: 80
-      - type: proxied
-        protocol: http
-        visibility: protected
-        container_port: 80
-  api:
-    service: node
-    ports:
-      - type: proxied
-        protocol: http
-        visibility: protected
-        container_port: 3000
-```
-
-| Field | Type | Required | Default | Description |
-|-------|------|----------|---------|-------------|
-| `name` | string | No | dir name | Application name |
-| `flavors` | object | No | `{default: {}}` | Named configurations |
-| `flavors.<name>.profiles` | array | No | `[]` | Docker Compose profiles |
-| `exported_services` | object | No | `{}` | Services to expose |
-| `exported_services.<name>.service` | string | No | key name | Compose service name |
-| `exported_services.<name>.ports` | array | Yes | - | Port configurations |
-| `exported_services.<name>.ports[].type` | enum | Yes | - | `proxied` or `assigned` |
-| `exported_services.<name>.ports[].protocol` | string | If proxied | - | `http` or `https` |
-| `exported_services.<name>.ports[].visibility` | enum | No | `protected` | `public` or `protected` |
-| `exported_services.<name>.ports[].container_port` | int | Yes | - | Container port |
-| `exported_services.<name>.ports[].port` | int | If assigned | - | Preferred host port |
-
----
-
-## Related Documents
-
-- [CLI Reference](./cli.md)
-- [Configuration Schemas Spec](../specs/configuration-schemas.md)
-- [ADR-0006: Three Configuration Schemas](../decisions/0006-three-configuration-schemas.md)
-
-<!-- See appendices/configuration/ for complete examples and JSON schemas -->
-```
-
-### Appendix Content
-
-Create `reference/appendices/configuration/`:
-- `complete-examples.md` — Full working configuration examples
-- `json-schemas/` — JSON Schema files for validation
+1. **Context Detection**: The Context Detection section (lines 30-147 of cli-reference.md) should be linked to `specs/context-detection.md` rather than duplicated
+2. **Shell Integration**: Shell integration details (lines 1164-1247) should link to `specs/shell-integration.md`
+3. **Preserve all tables**: Command flags, options, and output format tables must be preserved exactly
+4. **Exit codes**: Include complete exit code table
 
 ---
 
@@ -329,7 +108,8 @@ Create `reference/appendices/configuration/`:
 
 - [ ] `reference/cli.md` created
 - [ ] `reference/configuration.md` created
-- [ ] Appendix directories created
-- [ ] Large content moved to appendices
-- [ ] Cross-references added
-
+- [ ] `reference/README.md` created
+- [ ] All appendix files created
+- [ ] Complete command documentation preserved
+- [ ] All tables preserved exactly
+- [ ] Source attributions present

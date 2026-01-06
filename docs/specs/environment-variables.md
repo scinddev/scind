@@ -67,6 +67,19 @@ CONTRAIL_{APPLICATION}_{EXPORTED_SERVICE}_{PROTOCOL}_URL={url}
 CONTRAIL_WORKSPACE_NAME={workspace_name}
 ```
 
+### Field Reference
+
+| Variable Pattern | Type | Port Type | Description |
+|------------------|------|-----------|-------------|
+| `CONTRAIL_WORKSPACE_NAME` | string | All | Current workspace name |
+| `*_HOST` | string | All | Hostname or alias for the service |
+| `*_PORT` | integer | All | Port number (proxy port or assigned port) |
+| `*_SCHEME` | string | Proxied only | `http` or `https` |
+| `*_URL` | string | Proxied only | Complete URL |
+| `*_{PROTOCOL}_HOST` | string | Proxied only | Protocol-specific hostname |
+| `*_{PROTOCOL}_PORT` | integer | Proxied only | Protocol-specific port |
+| `*_{PROTOCOL}_URL` | string | Proxied only | Protocol-specific URL |
+
 ### Variable Generation Rules
 
 #### For `proxied` Type Ports
@@ -192,18 +205,6 @@ CONTRAIL_APP_ONE_DB_HOST=app-one-db
 CONTRAIL_APP_ONE_DB_PORT=5433
 ```
 
-### Example 4: Cross-Application Service Discovery
-
-**Scenario**: `app-two` needs to connect to `app-one`'s API.
-
-**Variables available in app-two containers**:
-```bash
-CONTRAIL_APP_ONE_API_HOST=dev-app-one-api.contrail.test
-CONTRAIL_APP_ONE_API_PORT=443
-CONTRAIL_APP_ONE_API_SCHEME=https
-CONTRAIL_APP_ONE_API_URL=https://dev-app-one-api.contrail.test
-```
-
 ---
 
 ## Usage in Applications
@@ -267,18 +268,6 @@ CONTRAIL_MY_API_SERVICE_WEB_URL=https://dev-my-api-service-web.contrail.test
 
 **Behavior**: The application's explicitly defined environment variable takes precedence. Contrail's generated variables are added but can be overridden.
 
-```yaml
-# docker-compose.yaml
-services:
-  web:
-    environment:
-      - CONTRAIL_APP_ONE_DB_PORT=3306  # This overrides Contrail's value
-
-# Generated override - this value is overridden
-environment:
-  - CONTRAIL_APP_ONE_DB_PORT=5432
-```
-
 ### Multiple Assigned Ports
 
 **Scenario**: Exported service has multiple assigned ports.
@@ -291,10 +280,10 @@ environment:
 
 ## Error Handling
 
-| Error Condition | Error Code/Type | Message | Recovery |
-|-----------------|-----------------|---------|----------|
-| Name collision | GENERATION | `Environment variable name collision after transformation` | Rename exported service |
-| Invalid characters | VALIDATION | `Exported service name contains invalid characters` | Use alphanumeric and hyphens only |
+| Error Condition | Message | Recovery |
+|-----------------|---------|----------|
+| Name collision | `Environment variable name collision after transformation` | Rename exported service |
+| Invalid characters | `Exported service name contains invalid characters` | Use alphanumeric and hyphens only |
 
 ---
 

@@ -6,22 +6,23 @@ Complete catalog of Contrail CLI error messages and their meanings.
 
 ---
 
-## Context Detection Errors
+## Docker Errors (Exit Code 4)
 
-### No Workspace Found (Exit Code 5)
+### Docker Not Available
 
-**No workspace found, but application.yaml exists**:
-
-Helps identify misplaced applications not in a workspace.
+Commands that require Docker check for availability upfront:
 
 ```bash
-$ cd ~/random-project
-$ contrail app status
-Error: No workspace found (workspace.yaml) in current directory or any parent directories,
-but found an application (application.yaml) at: /home/user/random-project/application.yaml
-
-Create a workspace with: contrail workspace init --workspace=NAME
+$ contrail up
+Error: Docker is not installed or not running.
+Run 'contrail doctor' for setup guidance.
 ```
+
+---
+
+## Context Detection Errors (Exit Code 5)
+
+### No Workspace Found
 
 **Neither workspace nor application found**:
 
@@ -38,9 +39,22 @@ Either:
 Available workspaces: contrail workspace list
 ```
 
-**Workspace found but no application context**:
+### Application Found Without Workspace
 
-For app-specific commands when you're in the workspace root.
+Helps identify misplaced applications not in a workspace:
+
+```bash
+$ cd ~/random-project
+$ contrail app status
+Error: No workspace found (workspace.yaml) in current directory or any parent directories,
+but found an application (application.yaml) at: /home/user/random-project/application.yaml
+
+Create a workspace with: contrail workspace init --workspace=NAME
+```
+
+### No Application Context
+
+For app-specific commands when you're in the workspace root:
 
 ```bash
 $ cd ~/workspaces/dev
@@ -56,19 +70,27 @@ Available apps in 'dev': app-one, app-two, app-three
 
 ---
 
-## Docker Errors (Exit Code 4)
+## Configuration Errors (Exit Code 3)
 
-### Docker Not Available
+### Workspace Name Already Registered
 
 ```bash
-$ contrail up
-Error: Docker is not installed or not running.
-Run 'contrail doctor' for setup guidance.
+$ contrail workspace init --workspace=dev
+Error: Workspace "dev" already registered at ~/workspaces/dev
+Use a different name, or run `contrail workspace prune` if that path no longer exists
 ```
 
----
+### Invalid Configuration
 
-## Configuration Errors (Exit Code 3)
+When configuration files have syntax or schema errors:
+
+```bash
+$ contrail validate
+Error: Invalid configuration in ./application.yaml
+
+  Line 12: unknown field "export_services" (did you mean "exported_services"?)
+  Line 15: missing required field "type" in ports configuration
+```
 
 ### Flavor References Non-Existent File
 
@@ -90,7 +112,7 @@ Error: Exported service "api" references non-existent Compose service: backend
 
 ---
 
-## Port Errors
+## Port Errors (Exit Code 4)
 
 ### Port Conflict at Startup
 
@@ -105,18 +127,6 @@ To resolve:
   contrail port scan       # Check which ports are conflicting
   contrail port release 5432   # Release the conflicting assignment
   contrail generate --force    # Regenerate with new port assignment
-```
-
----
-
-## Workspace Errors
-
-### Workspace Name Already Registered
-
-```bash
-$ contrail workspace init --workspace=dev
-Error: Workspace "dev" already registered at ~/workspaces/dev
-Use a different name, or run `contrail workspace prune` if that path no longer exists
 ```
 
 ---
@@ -154,11 +164,13 @@ Use 'contrail proxy up --recreate' to recreate the network.
   Configure dnsmasq: address=/contrail.test/127.0.0.1
 ```
 
+This warning appears when `contrail doctor` detects that the base domain resolves but subdomains do not, indicating wildcard DNS is not properly configured.
+
 ---
 
-## compose-prefix Errors
+## compose-prefix Errors (Exit Code 5)
 
-### Context Cannot Be Resolved (Exit Code 5)
+### Context Cannot Be Resolved
 
 ```bash
 $ cd ~

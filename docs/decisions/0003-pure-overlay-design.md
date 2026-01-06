@@ -1,14 +1,12 @@
 # ADR-0003: Pure Overlay Design (Applications Remain Workspace-Agnostic)
 
-**Status**: Accepted
-**Date**: 2024-12
-**Decision-Makers**: Contrail Design Team
+## Status
 
----
+Accepted
 
 ## Context
 
-Applications could embed workspace configuration (labels, network definitions, environment variables), or this integration could be applied externally.
+Applications could embed workspace configuration, or it could be applied externally.
 
 ## Decision
 
@@ -32,13 +30,9 @@ Applications' own `docker-compose.yaml` files have no knowledge of workspaces. A
 
 - Override files are stored in `.generated/` and gitignored
 
----
-
 ## Related Documents
 
 - [Generated Override Files Spec](../specs/generated-override-files.md) - Implements the overlay generation mechanism
 - [Environment Variables Spec](../specs/environment-variables.md) - Defines the environment injection approach
 
----
-
-<!-- Migrated from specs/contrail-prd.md:181-192 -->
+<!-- Migrated from specs/contrail-prd.md:180-191 -->

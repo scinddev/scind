@@ -1,0 +1,159 @@
+{
+  "version": "1.0.0",
+  "profiles": [
+    "simensen/layered-documentation-system"
+  ],
+  "generated_at": "2026-01-05T09:31:12.568048-06:00",
+  "files": {
+    "weftlo/simensen/layered-documentation-system/LAYERED-DOCUMENTATION-SYSTEM.md": {
+      "source_checksum": "sha256:a0d47b253719c9642468c368844973149592af1a2e7f24b0a52a48e71c39f1a0",
+      "output_checksum": "sha256:a0d47b253719c9642468c368844973149592af1a2e7f24b0a52a48e71c39f1a0",
+      "source_profile": "simensen/layered-documentation-system",
+      "target_category": ""
+    },
+    "weftlo/simensen/layered-documentation-system/create.md": {
+      "source_checksum": "sha256:d9c6b9f62f2b44c257802ef4007dc585f411909b682b00abed6661bb5d49db61",
+      "output_checksum": "sha256:d9c6b9f62f2b44c257802ef4007dc585f411909b682b00abed6661bb5d49db61",
+      "source_profile": "simensen/layered-documentation-system",
+      "target_category": ""
+    },
+    "weftlo/simensen/layered-documentation-system/install.md": {
+      "source_checksum": "sha256:6b3b9eaa71cb788a97950d2b338736cb816645f2ded6a1c77ee040f78a808c67",
+      "output_checksum": "sha256:6b3b9eaa71cb788a97950d2b338736cb816645f2ded6a1c77ee040f78a808c67",
+      "source_profile": "simensen/layered-documentation-system",
+      "target_category": ""
+    },
+    "weftlo/simensen/layered-documentation-system/maintenance/audit.md": {
+      "source_checksum": "sha256:2819a86f4cef8c7e76d9cc21e800b0e73112e88580201d2fcf53777994dfcf3a",
+      "output_checksum": "sha256:2819a86f4cef8c7e76d9cc21e800b0e73112e88580201d2fcf53777994dfcf3a",
+      "source_profile": "simensen/layered-documentation-system",
+      "target_category": ""
+    },
+    "weftlo/simensen/layered-documentation-system/maintenance/audit/audit-fresh-install.md": {
+      "source_checksum": "sha256:1c14ec041f33424ce1c4b1c98d7d0fa42144e310798e13866edc41728b3f7ad1",
+      "output_checksum": "sha256:1c14ec041f33424ce1c4b1c98d7d0fa42144e310798e13866edc41728b3f7ad1",
+      "source_profile": "simensen/layered-documentation-system",
+      "target_category": ""
+    },
+    "weftlo/simensen/layered-documentation-system/maintenance/audit/audit-migration.md": {
+      "source_checksum": "sha256:dc0345a78fc75384bc024599fad263b3121e7b91b04850ca0236e0660c8fa74c",
+      "output_checksum": "sha256:dc0345a78fc75384bc024599fad263b3121e7b91b04850ca0236e0660c8fa74c",
+      "source_profile": "simensen/layered-documentation-system",
+      "target_category": ""
+    },
+    "weftlo/simensen/layered-documentation-system/maintenance/audit/common-audit.md": {
+      "source_checksum": "sha256:06a41ddcbff3384ced4475808b2b1eb4405099814410acf3414f029b06748945",
+      "output_checksum": "sha256:06a41ddcbff3384ced4475808b2b1eb4405099814410acf3414f029b06748945",
+      "source_profile": "simensen/layered-documentation-system",
+      "target_category": ""
+    },
+    "weftlo/simensen/layered-documentation-system/maintenance/refine.md": {
+      "source_checksum": "sha256:46a74bcebd55eaea67d7487c31e4b74c445a88863860e23f228be74a52ee2fe8",
+      "output_checksum": "sha256:46a74bcebd55eaea67d7487c31e4b74c445a88863860e23f228be74a52ee2fe8",
+      "source_profile": "simensen/layered-documentation-system",
+      "target_category": ""
+    },
+    "weftlo/simensen/layered-documentation-system/maintenance/sync.md": {
+      "source_checksum": "sha256:37c304afdc719b9025a376b2b35584e93f94c821305e75e6c22d49150dd31b79",
+      "output_checksum": "sha256:37c304afdc719b9025a376b2b35584e93f94c821305e75e6c22d49150dd31b79",
+      "source_profile": "simensen/layered-documentation-system",
+      "target_category": ""
+    },
+    "weftlo/simensen/layered-documentation-system/maintenance/update.md": {
+      "source_checksum": "sha256:4bf9dcf6e782a91fab2ddf665f051e879b49c993b3aa5c04152db254f55c792a",
+      "output_checksum": "sha256:4bf9dcf6e782a91fab2ddf665f051e879b49c993b3aa5c04152db254f55c792a",
+      "source_profile": "simensen/layered-documentation-system",
+      "target_category": ""
+    },
+    "weftlo/simensen/layered-documentation-system/templates/adr-madr-full.md": {
+      "source_checksum": "sha256:3b6e7bfa3c040db20476db109ca095209c30a0b5aa39fa64084b4a65c061102d",
+      "output_checksum": "sha256:3b6e7bfa3c040db20476db109ca095209c30a0b5aa39fa64084b4a65c061102d",
+      "source_profile": "simensen/layered-documentation-system",
+      "target_category": ""
+    },
+    "weftlo/simensen/layered-documentation-system/templates/adr-madr-minimal.md": {
+      "source_checksum": "sha256:c81fc1031df0a4e2bd70d26293e5c87a7d1083b8d9af153ba3c3a0ab35f9d142",
+      "output_checksum": "sha256:c81fc1031df0a4e2bd70d26293e5c87a7d1083b8d9af153ba3c3a0ab35f9d142",
+      "source_profile": "simensen/layered-documentation-system",
+      "target_category": ""
+    },
+    "weftlo/simensen/layered-documentation-system/templates/adr-y-statement.md": {
+      "source_checksum": "sha256:5c85e8ac55924844f1878f71e802c11a317e87b36a068aee0a4fef1a51c86eac",
+      "output_checksum": "sha256:5c85e8ac55924844f1878f71e802c11a317e87b36a068aee0a4fef1a51c86eac",
+      "source_profile": "simensen/layered-documentation-system",
+      "target_category": ""
+    },
+    "weftlo/simensen/layered-documentation-system/templates/architecture-arc42.md": {
+      "source_checksum": "sha256:d5df1198c554d9bfc6344656c61a82c86e0d0a4d25daee498f0bccfdbd5a4825",
+      "output_checksum": "sha256:d5df1198c554d9bfc6344656c61a82c86e0d0a4d25daee498f0bccfdbd5a4825",
+      "source_profile": "simensen/layered-documentation-system",
+      "target_category": ""
+    },
+    "weftlo/simensen/layered-documentation-system/templates/architecture-c4-lite.md": {
+      "source_checksum": "sha256:de17ffbb792d6d75d92b1a3bc10f73b7a88e42248a61def858e1c89c745fce1c",
+      "output_checksum": "sha256:de17ffbb792d6d75d92b1a3bc10f73b7a88e42248a61def858e1c89c745fce1c",
+      "source_profile": "simensen/layered-documentation-system",
+      "target_category": ""
+    },
+    "weftlo/simensen/layered-documentation-system/templates/behavior-gherkin.feature": {
+      "source_checksum": "sha256:ddc0f9cd96546bfc909990bcb1d1a54ce35ba092f212622e75bc85e0978f8613",
+      "output_checksum": "sha256:ddc0f9cd96546bfc909990bcb1d1a54ce35ba092f212622e75bc85e0978f8613",
+      "source_profile": "simensen/layered-documentation-system",
+      "target_category": ""
+    },
+    "weftlo/simensen/layered-documentation-system/templates/implementation-tech-stack.md": {
+      "source_checksum": "sha256:2287c9379d8d9cd8b43bce686f32683cdfc198ebc4ef245a81a86e3f873a361a",
+      "output_checksum": "sha256:2287c9379d8d9cd8b43bce686f32683cdfc198ebc4ef245a81a86e3f873a361a",
+      "source_profile": "simensen/layered-documentation-system",
+      "target_category": ""
+    },
+    "weftlo/simensen/layered-documentation-system/templates/prd-epic-based.md": {
+      "source_checksum": "sha256:e21977a9178dfe50dfa4af2e56a024eaa54f09277e184852ad53c6d911a73b2e",
+      "output_checksum": "sha256:e21977a9178dfe50dfa4af2e56a024eaa54f09277e184852ad53c6d911a73b2e",
+      "source_profile": "simensen/layered-documentation-system",
+      "target_category": ""
+    },
+    "weftlo/simensen/layered-documentation-system/templates/prd-lean.md": {
+      "source_checksum": "sha256:a8e45d6bc26ad2188d91baa6c94e0b64c4dc7c78e0724594bc737f65d9a68da5",
+      "output_checksum": "sha256:a8e45d6bc26ad2188d91baa6c94e0b64c4dc7c78e0724594bc737f65d9a68da5",
+      "source_profile": "simensen/layered-documentation-system",
+      "target_category": ""
+    },
+    "weftlo/simensen/layered-documentation-system/templates/product-comparison.md": {
+      "source_checksum": "sha256:f46af9795259a73d3212933dc5cb584091be2ca94d578baf90d2b3b942067db6",
+      "output_checksum": "sha256:f46af9795259a73d3212933dc5cb584091be2ca94d578baf90d2b3b942067db6",
+      "source_profile": "simensen/layered-documentation-system",
+      "target_category": ""
+    },
+    "weftlo/simensen/layered-documentation-system/templates/product-roadmap.md": {
+      "source_checksum": "sha256:e3d08ac46897bab4453aeac0235eb8e3ddeb4f1e2c87eec0ea9dde1d921e8326",
+      "output_checksum": "sha256:e3d08ac46897bab4453aeac0235eb8e3ddeb4f1e2c87eec0ea9dde1d921e8326",
+      "source_profile": "simensen/layered-documentation-system",
+      "target_category": ""
+    },
+    "weftlo/simensen/layered-documentation-system/templates/reference-cli.md": {
+      "source_checksum": "sha256:d839bd761c48fe95efb1ed395ca333a3e7e271d323a678828015c26d27dd3163",
+      "output_checksum": "sha256:d839bd761c48fe95efb1ed395ca333a3e7e271d323a678828015c26d27dd3163",
+      "source_profile": "simensen/layered-documentation-system",
+      "target_category": ""
+    },
+    "weftlo/simensen/layered-documentation-system/templates/reference-config.md": {
+      "source_checksum": "sha256:1a04b6d20f7fec70cd8947c474ceae84ae57c277230213493c47e8c9d3051f2e",
+      "output_checksum": "sha256:1a04b6d20f7fec70cd8947c474ceae84ae57c277230213493c47e8c9d3051f2e",
+      "source_profile": "simensen/layered-documentation-system",
+      "target_category": ""
+    },
+    "weftlo/simensen/layered-documentation-system/templates/spec-feature.md": {
+      "source_checksum": "sha256:10db9519845fb926cbbc3aae18bf21037319b6abac78191931f489f009367833",
+      "output_checksum": "sha256:10db9519845fb926cbbc3aae18bf21037319b6abac78191931f489f009367833",
+      "source_profile": "simensen/layered-documentation-system",
+      "target_category": ""
+    },
+    "weftlo/simensen/layered-documentation-system/templates/spec-rfc.md": {
+      "source_checksum": "sha256:27fea5075883347c7668fbee556b62de5d5f79b182fda128c456bd24e4de9fe6",
+      "output_checksum": "sha256:27fea5075883347c7668fbee556b62de5d5f79b182fda128c456bd24e4de9fe6",
+      "source_profile": "simensen/layered-documentation-system",
+      "target_category": ""
+    }
+  }
+}

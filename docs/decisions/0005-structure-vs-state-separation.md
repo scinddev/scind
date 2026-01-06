@@ -1,14 +1,12 @@
 # ADR-0005: Structure vs State Separation
 
-**Status**: Accepted
-**Date**: 2024-12
-**Decision-Makers**: Contrail Design Team
+## Status
 
----
+Accepted
 
 ## Context
 
-Configuration could include runtime choices (which branch to use, which flavor is active) or only structural definitions.
+Configuration could include runtime choices (which branch, which flavor) or only structural definitions.
 
 ## Decision
 
@@ -34,18 +32,14 @@ Separate structure (what exists) from state (what's active):
 ### Negative
 
 - State must be tracked separately (in `.generated/state.yaml`)
-- Users must understand the distinction
+- Users must understand the distinction between structure and state
 
 ### Neutral
 
 - State file is gitignored to avoid conflicts
 
----
-
 ## Related Documents
 
 - [Configuration Schemas Spec](../specs/configuration-schemas.md) - Implements the structural configuration layer
 
----
-
-<!-- Migrated from specs/contrail-prd.md:204-222 -->
+<!-- Migrated from specs/contrail-prd.md:203-222 -->

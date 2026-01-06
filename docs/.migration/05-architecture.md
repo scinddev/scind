@@ -1,219 +1,172 @@
-# Migration Step: Layer 3 — Architecture
+# Migration Step: Layer 3 - Architecture
 
-**Prerequisites**: Read `common-instructions.md`, complete Layer 2 steps
-**Estimated Size**: 1 file, approximately 200 lines total
+**Prerequisites**: Read `common-instructions.md`
+**Estimated Size**: 1 file, approximately 200 lines
 
 ---
 
 ## Overview
 
-Extract architecture content from the technical specification, creating a high-level overview with diagrams and component descriptions.
+Create `architecture/overview.md` using the C4-Lite template, consolidating architecture content.
 
-**Source document**: `specs/contrail-technical-spec.md` lines 1-200 (Architecture sections)
+**Source Sections**:
+- `specs/contrail-prd.md:111-159` - Architecture diagram, proxy layer
+- `specs/contrail-technical-spec.md:22-94` - Architecture overview, networks
 
 ---
 
-## File: `architecture/overview.md`
+## Output File: `architecture/overview.md`
 
-**Sources**:
-- `specs/contrail-technical-spec.md:1-50` (Introduction, System Overview)
-- `specs/contrail-technical-spec.md:51-150` (Component Architecture)
-- `specs/contrail-technical-spec.md:151-200` (Network Architecture)
+**Source**: Multiple files (see sections)
 
 ### Content
 
 ```markdown
-# Architecture Overview
+# Contrail Architecture Overview
 
-**Version**: 1.0.0
-**Date**: 2024-12
-
----
-
-## System Overview
-
-Contrail is an orchestration layer that sits between the developer and Docker Compose. It does not replace Docker Compose—it generates configuration that Compose consumes.
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        Developer                                 │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                     Contrail CLI                                 │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────┐  │
-│  │   Context   │  │   Config    │  │      Generator          │  │
-│  │  Detection  │  │   Loader    │  │  (Override Files)       │  │
-│  └─────────────┘  └─────────────┘  └─────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    Docker Compose                                │
-│         (with generated override files)                          │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                      Docker Engine                               │
-│  ┌─────────────────────────────────────────────────────────────┐│
-│  │                    Containers                                ││
-│  └─────────────────────────────────────────────────────────────┘│
-│  ┌───────────────────────┐  ┌─────────────────────────────────┐ │
-│  │   contrail-proxy      │  │   {workspace}-internal          │ │
-│  │   (network)           │  │   (network per workspace)       │ │
-│  └───────────────────────┘  └─────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────────┘
-```
+This document provides a high-level view of Contrail's architecture using C4-Lite approach.
 
 ---
 
-## Core Components
+## System Context
 
-### CLI (`contrail`)
+Contrail orchestrates Docker Compose applications within isolated workspaces, providing:
+- Network isolation between workspaces
+- Reverse proxy routing via Traefik
+- Generated configuration for workspace integration
 
-The command-line interface is the primary user interaction point.
+### Key Components
 
-**Responsibilities**:
-- Parse commands and options
-- Detect context from current directory
-- Load and validate configuration
-- Delegate to internal components
-- Invoke Docker Compose with generated overrides
-
-**Key design**: The CLI is stateless. All state lives in configuration files, Docker, and git.
-
-### Context Detector
-
-Determines the current workspace and application based on directory location.
-
-**Algorithm**:
-1. Walk up from current directory
-2. Look for `workspace.yaml` (workspace root)
-3. Look for `application.yaml` or `docker-compose.yaml` (application root)
-4. Return detected context or empty
-
-**See**: [Context Detection Spec](../specs/context-detection.md)
-
-### Configuration Loader
-
-Loads and validates the three configuration schemas.
-
-**Schemas**:
-- `proxy.yaml`: Global Traefik and TLS settings
-- `workspace.yaml`: Workspace definition and application list
-- `application.yaml`: Application-specific settings (flavors, services)
-
-**See**: [Configuration Schemas Spec](../specs/configuration-schemas.md)
-
-### Override Generator
-
-Generates Docker Compose override files that integrate applications into workspaces.
-
-**Generates**:
-- Network attachments (proxy and internal)
-- Traefik labels for routing
-- Environment variables for service discovery
-- Project name settings
-
-**Output location**: `.generated/` directory (gitignored)
-
-**See**: [Generated Override Files Spec](../specs/generated-override-files.md)
+| Component | Description |
+|-----------|-------------|
+| **Contrail CLI** | Command-line tool for managing workspaces and applications |
+| **Traefik Proxy** | Shared reverse proxy routing external traffic to containers |
+| **Docker Compose** | Underlying container orchestration |
+| **Workspace Network** | Per-workspace internal network for application communication |
 
 ---
 
-## Network Architecture
-
-Contrail creates a two-layer network topology:
+## Container Diagram
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                         Host                                     │
-│                                                                  │
-│  ┌───────────────────────────────────────────────────────────┐  │
-│  │                   contrail-proxy                           │  │
-│  │                   (host-wide network)                      │  │
-│  │                                                            │  │
-│  │   ┌─────────┐                                              │  │
-│  │   │ Traefik │◄──── HTTP/HTTPS from browser                 │  │
-│  │   └────┬────┘                                              │  │
-│  │        │                                                   │  │
-│  │        ▼                                                   │  │
-│  │   Routes to containers with `visibility: public`          │  │
-│  └───────────────────────────────────────────────────────────┘  │
-│                                                                  │
-│  ┌───────────────────────────────────────────────────────────┐  │
-│  │              main-internal (workspace network)             │  │
-│  │                                                            │  │
-│  │   ┌─────────┐    ┌─────────┐    ┌─────────┐               │  │
-│  │   │ app-one │◄──►│ app-two │◄──►│ app-db  │               │  │
-│  │   └─────────┘    └─────────┘    └─────────┘               │  │
-│  │                                                            │  │
-│  │   All containers can reach each other via aliases          │  │
-│  │   e.g., app-one-web, app-two-api, app-db-postgres          │  │
-│  └───────────────────────────────────────────────────────────┘  │
-│                                                                  │
-│  ┌───────────────────────────────────────────────────────────┐  │
-│  │            feature-internal (another workspace)            │  │
-│  │                                                            │  │
-│  │   ┌─────────┐    ┌─────────┐                               │  │
-│  │   │ app-one │    │ app-two │   (isolated from main)        │  │
-│  │   └─────────┘    └─────────┘                               │  │
-│  └───────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────┘
+                              HOST
+
+   PROXY LAYER
+   ┌──────────┐
+   │ Traefik  │◄─────── contrail-proxy (external network)
+   │(proxied  │              │
+   │  types)  │              │
+   └──────────┘              │
+                             │
+          WORKSPACE: dev     │
+                             ▼
+             ┌─── dev-internal (workspace network) ───┐
+             │                                        │
+     ┌───────┴───────┐ ┌───────┴───────┐ ┌───────────┴───┐
+     │   app-one     │ │   app-two     │ │   app-three   │
+     │ (dev-app-one) │ │ (dev-app-two) │ │(dev-app-three)│
+     └───────────────┘ └───────────────┘ └───────────────┘
+
+     Internal aliases: app-one-web, app-two-api, app-one-db, ...
+     Proxied hostnames: dev-app-one-web.contrail.test, ...
+
+          WORKSPACE: review  (completely isolated)
+     Internal aliases: app-one-web, app-two-api, ... (same names!)
+     Proxied hostnames: review-app-one-web.contrail.test, ...
 ```
 
-**Key points**:
-- `contrail-proxy`: Single network connecting Traefik to all public services
-- `{workspace}-internal`: Per-workspace network for internal communication
-- Workspaces are isolated—containers in different workspaces cannot communicate
+---
 
-**See**: [Two-Layer Networking ADR](../decisions/0002-two-layer-networking.md)
+## Network Topology
+
+### Proxy Network
+
+- **Name**: `contrail-proxy`
+- **Scope**: Host-level, shared across all workspaces
+- **Purpose**: Connects Traefik to services that need external access
+- **Created by**: Proxy layer setup (once per host)
+
+### Workspace Internal Network
+
+- **Name**: `{workspace-name}-internal` (e.g., `dev-internal`)
+- **Scope**: Per-workspace
+- **Purpose**: Enables inter-application communication within a workspace using stable aliases
+- **Created by**: `workspace up` (lazy, idempotent - created if not exists)
+
+### Application Default Networks
+
+- **Name**: Managed by Docker Compose per application
+- **Scope**: Per-application
+- **Purpose**: Internal communication between services within a single application
+- **Created by**: Docker Compose (automatic)
+
+---
+
+## Proxy Layer Bootstrap
+
+The proxy layer (Traefik) is a prerequisite for proxied services. Contrail manages the proxy lifecycle:
+
+1. **Bootstrap**: `contrail proxy init` creates the proxy configuration at `~/.config/contrail/proxy/`
+2. **Auto-start**: `workspace up` automatically starts the proxy if not running
+3. **Shared instance**: A single proxy instance serves all workspaces on the host
+
+The proxy is implemented as a Docker Compose project managed by Contrail. Users generally don't interact with it directly - workspaces connect to it automatically via Docker labels.
 
 ---
 
 ## Data Flow
 
-### `contrail up` Flow
+### External Request Flow (Proxied Services)
 
 ```
-1. Parse command options
-2. Detect context (workspace, app) if not specified
-3. Load configuration (proxy.yaml, workspace.yaml, application.yaml)
-4. For each application:
-   a. Generate override file with:
-      - Network attachments
-      - Traefik labels
-      - Environment variables
-   b. Write to .generated/
-5. Invoke: docker compose -f docker-compose.yaml -f .generated/override.yaml up
-6. Report status
+Browser → *.contrail.test:443
+    → Traefik (contrail-proxy network)
+    → Container (via Docker labels)
 ```
 
-### Request Flow (HTTP)
+### Internal Request Flow (Between Applications)
 
 ```
-1. Browser requests https://main-app-one-web.test
-2. DNS resolves to 127.0.0.1 (via /etc/hosts or local DNS)
-3. Traefik receives request on port 443
-4. Traefik matches Host header to routing rule
-5. Traefik forwards to container on internal port
-6. Container responds
-7. Response flows back through Traefik to browser
+App-One Container → app-two-api (alias)
+    → {workspace}-internal network
+    → App-Two API Container
+```
+
+### Assigned Port Flow
+
+```
+Database Client → localhost:5432
+    → Host Port Binding
+    → Container Port
 ```
 
 ---
 
-## Related Documents
+## Goals
 
-- [ADR-0002: Two-Layer Networking](../decisions/0002-two-layer-networking.md)
-- [ADR-0003: Pure Overlay Design](../decisions/0003-pure-overlay-design.md)
-- [ADR-0008: Traefik Reverse Proxy](../decisions/0008-traefik-reverse-proxy.md)
-- [Proxy Infrastructure Spec](../specs/proxy-infrastructure.md)
-- [Generated Override Files Spec](../specs/generated-override-files.md)
+- **Application independence**: Individual applications remain unaware of the workspace system
+- **Pure overlay**: All workspace integration is achieved through Docker Compose override files
+- **Inter-application communication**: Applications within a workspace can communicate via stable, predictable internal hostnames
+- **External access**: A shared reverse proxy routes external requests to the appropriate workspace and service
+- **Multiple workspaces**: The same set of applications can be instantiated multiple times with different workspace names
 
-<!-- Migrated from specs/contrail-technical-spec.md:1-200 -->
+<!-- Migrated from specs/contrail-prd.md:111-159, specs/contrail-technical-spec.md:22-94 -->
+```
+
+---
+
+## Also Create: `architecture/README.md`
+
+```markdown
+# Architecture Documentation
+
+This directory contains architecture documentation for Contrail.
+
+## Contents
+
+| Document | Description |
+|----------|-------------|
+| [overview.md](./overview.md) | System context and container diagrams |
 ```
 
 ---
@@ -221,6 +174,6 @@ Contrail creates a two-layer network topology:
 ## Completion Checklist
 
 - [ ] `architecture/overview.md` created
-- [ ] ASCII diagrams render correctly
-- [ ] Cross-references to ADRs and specs added
-
+- [ ] `architecture/README.md` created
+- [ ] All diagrams preserved exactly
+- [ ] Source attribution present

@@ -1,14 +1,12 @@
 # ADR-0010: up/down Command Semantics
 
-**Status**: Accepted
-**Date**: 2024-12
-**Decision-Makers**: Contrail Design Team
+## Status
 
----
+Accepted
 
 ## Context
 
-Commands could use `start`/`stop` or `up`/`down` terminology. The naming affects user expectations about what the commands do.
+Commands could use `start`/`stop` or `up`/`down` terminology.
 
 ## Decision
 
@@ -34,13 +32,9 @@ Use `up` and `down` as primary commands, matching Docker Compose semantics:
 
 - Aliases (`start`/`stop`) could be added later if needed
 
----
-
 ## Related Documents
 
 - [Workspace Lifecycle Spec](../specs/workspace-lifecycle.md) - Full specification of up/down behavior
 - [CLI Reference](../reference/cli.md) - Command documentation
 
----
-
-<!-- Migrated from specs/contrail-prd.md:291-303 -->
+<!-- Migrated from specs/contrail-prd.md:290-303 -->

@@ -1,10 +1,6 @@
 # ADR-NNNN: [Short Title]
 
 **Status**: Draft | Proposed | Accepted | Deprecated | Superseded by [ADR-XXXX]
-**Date**: YYYY-MM-DD
-**Decision-Makers**: [List names or roles]
-
----
 
 ## Context
 
@@ -30,8 +26,8 @@
 
 - [Side effect that is neither good nor bad]
 
----
+## Related Documents
 
-## Notes
+- [Related Spec](../specs/example.md) - Description of relationship
 
-[Optional: Additional context, links to discussions, related ADRs]
+<!-- Template for new ADRs -->

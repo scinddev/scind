@@ -1,45 +1,24 @@
 # Contrail Documentation
 
-Welcome to the Contrail documentation. This documentation is organized using the Layered Documentation System.
+Welcome to the Contrail documentation. Contrail is a workspace orchestration system for Docker Compose.
 
----
+## Quick Navigation
 
-## Quick Links
-
-| Layer | Purpose | Path |
-|-------|---------|------|
-| [Decisions](./decisions/) | Architectural Decision Records | `docs/decisions/` |
-| [Product](./product/) | Vision, comparison, roadmap | `docs/product/` |
-| [Architecture](./architecture/) | System architecture and diagrams | `docs/architecture/` |
-| [Specifications](./specs/) | Detailed feature specifications | `docs/specs/` |
-| [Reference](./reference/) | CLI and configuration reference | `docs/reference/` |
-| [Behaviors](../features/) | Gherkin behavior scenarios | `features/` |
-| [Implementation](./implementation/) | Technology stack and patterns | `docs/implementation/` |
-
----
+| Layer | Description | Entry Point |
+|-------|-------------|-------------|
+| **Decisions** | Architectural decision records | [decisions/](./decisions/README.md) |
+| **Product** | Vision, comparison, roadmap | [product/](./product/README.md) |
+| **Architecture** | System design overview | [architecture/](./architecture/README.md) |
+| **Specifications** | Detailed feature specs | [specs/](./specs/README.md) |
+| **Reference** | CLI and configuration reference | [reference/](./reference/README.md) |
+| **Implementation** | Developer guides | [implementation/](./implementation/README.md) |
 
 ## Getting Started
 
-- **New to Contrail?** Start with [Product Vision](./product/vision.md)
-- **Setting up?** See [CLI Reference](./reference/cli.md)
-- **Configuring?** See [Configuration Reference](./reference/configuration.md)
-- **Understanding the architecture?** See [Architecture Overview](./architecture/overview.md)
-
----
+1. Read the [Product Vision](./product/vision.md) to understand what Contrail does
+2. Review the [Architecture Overview](./architecture/overview.md) for system design
+3. See the [CLI Reference](./reference/cli.md) for command usage
 
 ## Documentation Guide
 
-See [DOCUMENTATION-GUIDE.md](./DOCUMENTATION-GUIDE.md) for:
-- Layer descriptions and purposes
-- Content thresholds for appendices
-- Writing conventions
-- Tooling setup
-
----
-
-## Migration Status
-
-This documentation is being migrated from existing specs. See:
-- [Migration Plan](./.migration/README.md) — Step-by-step migration instructions
-- [Audit](./audit.md) — Post-migration verification checklist
-
+For contributors, see the [Documentation Guide](./DOCUMENTATION-GUIDE.md) for how to maintain and extend this documentation.

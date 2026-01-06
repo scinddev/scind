@@ -1,14 +1,12 @@
 # ADR-0011: Options-Based Targeting with Context Detection
 
-**Status**: Accepted
-**Date**: 2024-12
-**Decision-Makers**: Contrail Design Team
+## Status
 
----
+Accepted
 
 ## Context
 
-Commands need to target specific workspaces and applications. This could be done via positional arguments or named options.
+Commands need to target specific workspaces and applications.
 
 ## Decision
 
@@ -32,13 +30,9 @@ Use `--workspace` and `--app` options (not positional arguments) with automatic 
 
 - Global flags are always available: `-w/--workspace`, `-a/--app`
 
----
-
 ## Related Documents
 
 - [Context Detection Spec](../specs/context-detection.md) - Full specification of context detection behavior
 - [CLI Reference](../reference/cli.md) - Command documentation
 
----
-
-<!-- Migrated from specs/contrail-prd.md:305-315 -->
+<!-- Migrated from specs/contrail-prd.md:304-315 -->

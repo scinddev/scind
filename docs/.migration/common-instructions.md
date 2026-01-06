@@ -7,10 +7,10 @@
 **Migration means PRESERVING content, not summarizing it.**
 
 When migrating content:
-- **Preserve ALL technical details** — Every code example, error message, output sample, and configuration snippet
+- **Preserve ALL technical details** - Every code example, error message, output sample, and configuration snippet
 - **The migrated documents should contain the same depth of information as the source**
-- **Do not abbreviate or summarize** — Move content, don't rewrite it
-- **Reorganization, not reduction** — The goal is to put content in the right place, not to make it shorter
+- **Do not abbreviate or summarize** - Move content, don't rewrite it
+- **Reorganization, not reduction** - The goal is to put content in the right place, not to make it shorter
 
 A successful migration of a section should have approximately the same line count as the source (possibly slightly higher due to added structure).
 
@@ -18,7 +18,7 @@ A successful migration of a section should have approximately the same line coun
 
 Content is referenced using `file:start-end` format:
 - `specs/contrail-prd.md:45-62` means lines 45-62 of `specs/contrail-prd.md`
-- Read the EXACT lines specified — do not read more or less
+- Read the EXACT lines specified - do not read more or less
 
 ## How to Execute a Migration Step
 
@@ -44,13 +44,21 @@ Do NOT add cross-layer links during individual step execution. A separate pass (
 
 ## Content Thresholds
 
-Apply these thresholds to determine main content vs appendix:
+The following thresholds determine when content goes to appendices:
+- Code blocks >= 50 lines -> appendix
+- Step lists >= 10 items -> appendix
+- Tables >= 20 rows -> appendix
+- Complete file examples -> always appendix
+- Error catalogs -> always appendix
+- Shell scripts -> always appendix
 
-| Threshold | Value | Action |
-|-----------|-------|--------|
-| `CODE_BLOCK_LINES` | 50 | Code blocks ≥ 50 lines → appendix |
-| `STEP_LIST_ITEMS` | 10 | Step lists ≥ 10 items → appendix |
-| `TABLE_ROWS` | 20 | Tables ≥ 20 rows → appendix |
-| Complete file examples | Always | → appendix |
-| Error catalogs | Always | → appendix |
-| Shell scripts | Always | → appendix |
+## Appendix Directory Structure
+
+When creating appendix files:
+```
+docs/
+  specs/
+    appendices/
+      {topic}/           # Named after the main file (e.g., shell-integration/)
+        {content}.md     # Descriptive name for the appendix content
+```

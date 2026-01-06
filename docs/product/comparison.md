@@ -1,18 +1,31 @@
-# Comparison with Alternatives
+# Contrail Comparison
 
-This document compares Contrail to other tools in the container orchestration and development environment space.
+How Contrail compares to existing solutions for Docker-based development environments.
 
 ---
 
-## Comparison Matrix
+## Why Existing Solutions Fall Short
 
-| Aspect | Contrail | Tilt | DevSpace | Garden | Skaffold |
-|--------|----------|------|----------|--------|----------|
-| **Target** | Docker Compose | Kubernetes | Kubernetes | Kubernetes | Kubernetes |
-| **Philosophy** | Enhance existing workflow | Replace build/deploy | Abstract k8s | Declarative stack | Build/deploy pipeline |
-| **Learning curve** | Low (if you know Compose) | Medium | Medium | High | Medium |
-| **Isolation** | Per-workspace | Per-namespace | Per-namespace | Per-environment | Per-namespace |
-| **Local focus** | Yes | Yes | Yes | Mixed | Mixed |
+| Solution | Limitation |
+|----------|------------|
+| Docker Compose alone | No built-in multi-instance orchestration; manual project naming |
+| Docker Compose `include` | Merges into single application model; doesn't handle parallel instances |
+| DDEV / Lando / Docksal | Single-application focused (one Drupal site, not multi-app stacks) |
+| Skaffold / Tilt / Garden | Kubernetes-focused, not Docker Compose |
+| Manual scripts | Error-prone, hard to maintain, no conventions |
+
+---
+
+## Feature Comparison Matrix
+
+| Feature | Contrail | Docker `include` | DDEV/Lando | Tilt/Garden |
+|---------|----------|------------------|------------|-------------|
+| Multi-app orchestration | Yes | Yes (merged) | No | Yes |
+| Parallel workspace instances | Yes | No | No | No |
+| Apps remain agnostic | Yes | N/A | N/A | No |
+| Docker Compose native | Yes | Yes | Yes | No (K8s) |
+| Generated integration | Yes | No | Yes | Yes |
+| Service discovery | Yes | Manual | Limited | Yes |
 
 ---
 
@@ -81,6 +94,21 @@ This document compares Contrail to other tools in the container orchestration an
 
 ---
 
+## When to Use Contrail
+
+**Use Contrail when you need:**
+- Multiple isolated copies of a multi-application stack running simultaneously
+- Applications that remain portable and framework-agnostic
+- Generated configuration rather than manual Docker Compose wiring
+- Docker Compose (not Kubernetes) as your runtime
+
+**Consider alternatives when:**
+- You only have a single application (DDEV, Lando may be simpler)
+- You're targeting Kubernetes in production (consider Tilt, Garden, Skaffold)
+- You need CI/CD pipeline integration (Contrail focuses on local development)
+
+---
+
 ## Summary
 
 Contrail occupies a specific niche: **enhancing Docker Compose for teams who want workspace isolation, automatic routing, and service discovery without adopting Kubernetes**.
@@ -91,9 +119,9 @@ If you're moving to Kubernetes or need cloud-native features, consider Tilt, Dev
 
 ---
 
-## Related Documents
+## Related Documentation
 
-- [Vision](./vision.md) — Product vision and concepts
-- [Architecture Overview](../architecture/overview.md) — How Contrail works
+- [Product Vision](./vision.md) - What Contrail aims to achieve
+- [Roadmap](./roadmap.md) - Planned enhancements
 
-<!-- Migrated from specs/contrail-prd.md:317-393 -->
+<!-- Migrated from specs/contrail-prd.md:34-42, 317-393, 632-642 -->

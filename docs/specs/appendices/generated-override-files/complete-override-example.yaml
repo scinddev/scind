@@ -1,23 +1,17 @@
-# Generated Override File: Complete Example
-#
-# This is a complete example of a generated override file showing all
-# generated elements for an application with proxied and assigned ports.
-
 # AUTO-GENERATED - Do not edit directly
 # Source: workspace.yaml + app-one/application.yaml
-# Flavor: full
+# Flavor: default
 # Generated: 2024-12-27T10:30:00Z
 
-name: dev-app-one
+name: dev-app-one                         # Explicit project name to prevent conflicts
 
 services:
-  # Web service with HTTPS proxying
   web:
     networks:
       dev-internal:
         aliases:
           - app-one-web
-      contrail-proxy: {}
+      contrail-proxy: {}                   # Connected to proxy for Traefik routing
     labels:
       # Traefik HTTPS router
       - "traefik.enable=true"
@@ -25,48 +19,26 @@ services:
       - "traefik.http.routers.dev-app-one-web-https.entrypoints=websecure"
       - "traefik.http.routers.dev-app-one-web-https.tls=true"
       - "traefik.http.services.dev-app-one-web-https.loadbalancer.server.port=443"
-
-      # Traefik HTTP router
-      - "traefik.http.routers.dev-app-one-web-http.rule=Host(`dev-app-one-web.contrail.test`)"
-      - "traefik.http.routers.dev-app-one-web-http.entrypoints=web"
-      - "traefik.http.services.dev-app-one-web-http.loadbalancer.server.port=80"
-
       # Contrail context labels
       - "contrail.workspace.name=dev"
       - "contrail.workspace.path=/home/user/workspaces/dev"
       - "contrail.app.name=app-one"
       - "contrail.app.path=/home/user/workspaces/dev/app-one"
-
       # Contrail export labels
       - "contrail.export.web.host=dev-app-one-web.contrail.test"
-      - "contrail.export.web.proxy.http.visibility=protected"
-      - "contrail.export.web.proxy.http.url=http://dev-app-one-web.contrail.test"
       - "contrail.export.web.proxy.https.visibility=public"
       - "contrail.export.web.proxy.https.url=https://dev-app-one-web.contrail.test"
-
     environment:
       - CONTRAIL_WORKSPACE_NAME=dev
-
-      # Web service environment variables
       - CONTRAIL_APP_ONE_WEB_HOST=dev-app-one-web.contrail.test
       - CONTRAIL_APP_ONE_WEB_PORT=443
       - CONTRAIL_APP_ONE_WEB_SCHEME=https
       - CONTRAIL_APP_ONE_WEB_URL=https://dev-app-one-web.contrail.test
-      - CONTRAIL_APP_ONE_WEB_HTTPS_HOST=dev-app-one-web.contrail.test
-      - CONTRAIL_APP_ONE_WEB_HTTPS_PORT=443
-      - CONTRAIL_APP_ONE_WEB_HTTPS_URL=https://dev-app-one-web.contrail.test
-      - CONTRAIL_APP_ONE_WEB_HTTP_HOST=dev-app-one-web.contrail.test
-      - CONTRAIL_APP_ONE_WEB_HTTP_PORT=80
-      - CONTRAIL_APP_ONE_WEB_HTTP_URL=http://dev-app-one-web.contrail.test
+      # ... additional environment variables ...
 
-      # Database service environment variables (cross-service discovery)
-      - CONTRAIL_APP_ONE_DB_HOST=app-one-db
-      - CONTRAIL_APP_ONE_DB_PORT=5432
-
-  # Database service with assigned port
   postgres:
     ports:
-      - "5432:5432"
+      - "5432:5432"                        # host:container - assigned port mapping
     networks:
       dev-internal:
         aliases:
@@ -77,38 +49,15 @@ services:
       - "contrail.workspace.path=/home/user/workspaces/dev"
       - "contrail.app.name=app-one"
       - "contrail.app.path=/home/user/workspaces/dev/app-one"
-
       # Contrail export labels
-      - "contrail.export.db.host=app-one-db"
+      - "contrail.export.db.host=dev-app-one-db.contrail.test"
       - "contrail.export.db.port.5432.visibility=protected"
       - "contrail.export.db.port.5432.assigned=5432"
-
     environment:
       - CONTRAIL_WORKSPACE_NAME=dev
       - CONTRAIL_APP_ONE_DB_HOST=app-one-db
       - CONTRAIL_APP_ONE_DB_PORT=5432
-      - CONTRAIL_APP_ONE_WEB_HOST=dev-app-one-web.contrail.test
-      - CONTRAIL_APP_ONE_WEB_PORT=443
-      - CONTRAIL_APP_ONE_WEB_SCHEME=https
-      - CONTRAIL_APP_ONE_WEB_URL=https://dev-app-one-web.contrail.test
-
-  # Worker service (no exports, but gets context labels and env vars)
-  worker:
-    networks:
-      dev-internal: {}
-    labels:
-      - "contrail.workspace.name=dev"
-      - "contrail.workspace.path=/home/user/workspaces/dev"
-      - "contrail.app.name=app-one"
-      - "contrail.app.path=/home/user/workspaces/dev/app-one"
-    environment:
-      - CONTRAIL_WORKSPACE_NAME=dev
-      - CONTRAIL_APP_ONE_WEB_HOST=dev-app-one-web.contrail.test
-      - CONTRAIL_APP_ONE_WEB_PORT=443
-      - CONTRAIL_APP_ONE_WEB_SCHEME=https
-      - CONTRAIL_APP_ONE_WEB_URL=https://dev-app-one-web.contrail.test
-      - CONTRAIL_APP_ONE_DB_HOST=app-one-db
-      - CONTRAIL_APP_ONE_DB_PORT=5432
+      # ... additional environment variables ...
 
 networks:
   dev-internal:

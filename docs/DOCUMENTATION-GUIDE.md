@@ -1,231 +1,375 @@
-# Documentation Guide
+# Contrail Documentation Guide
 
-**Project**: Contrail
-**Generated**: 2026-01-02
-**Tooling**: Tier 2 (markdownlint, Vale, Log4brains, Structurizr)
+**For AI Agents and Contributors**: This guide explains how the documentation in this directory is organized and how to maintain it.
 
 ---
 
-## Overview
+## Migration Note
 
-This documentation follows the Layered Documentation System, organizing content by type and purpose. Each layer serves a specific audience and use case.
+This documentation was migrated from `specs/` on 2026-01-05 using the Layered Documentation System (LDS).
+
+Migration step files are in `.migration/` — execute them in separate sessions to complete the migration.
 
 ---
 
-## Structure
+## Glossary
+
+### Directory Terminology
+
+| Term | Definition |
+|------|------------|
+| `DOCS_DIR` | The documentation root directory (`docs/`) |
+| `LEGACY_DOCS_DIR` | Source documentation being migrated (`specs/`) |
+| `LDS_DIST_DIR` | The Layered Documentation System distribution directory |
+
+### Core System Terms
+
+| Term | Definition |
+|------|------------|
+| **Layer** | A category of documentation organized by purpose (Decisions, Vision, Specifications, etc.) |
+| **Canonical Source** | The authoritative location for a piece of information |
+| **SSOT** | Single Source of Truth — each fact is mastered in exactly one place |
+| **Cross-Link** | A reference from one document to another that provides related context |
+
+### Document Structure Terms
+
+| Term | Definition |
+|------|------------|
+| **Main Document** | The primary `{topic}.md` file in a layer directory |
+| **Appendix** | Supporting content in `appendices/{topic}/` that contains detailed examples, code, etc. |
+| **Appendix Directory** | The `appendices/` subdirectory within a layer, organized by topic |
+
+### Layer-Specific Terms
+
+| Term | Definition |
+|------|------------|
+| **ADR** | Architecture Decision Record — documents why a significant decision was made |
+| **MADR** | Markdown Architecture Decision Record — a template format for ADRs |
+| **PRD** | Product Requirements Document — documents product vision and goals |
+| **Gherkin** | A language for writing executable specifications (Given/When/Then format) |
+
+---
+
+## Content Thresholds (Configurable)
+
+These thresholds control how content is classified. Edit to customize for this project.
+
+| Threshold | Value | Purpose |
+|-----------|-------|---------|
+| `CODE_BLOCK_LINES` | 50 | Code blocks >= this go to appendix |
+| `STEP_LIST_ITEMS` | 10 | Step lists >= this go to appendix |
+| `TABLE_ROWS` | 20 | Tables >= this go to appendix |
+| `EXAMPLE_FILE_ALWAYS_APPENDIX` | true | Complete file examples -> appendix |
+| `ERROR_CATALOG_ALWAYS_APPENDIX` | true | Error catalogs -> appendix |
+| `SHELL_SCRIPT_ALWAYS_APPENDIX` | true | Shell scripts -> appendix |
+
+---
+
+## Layer Overview
+
+This documentation system uses 7 layers, organized by purpose:
+
+| Layer | Directory | Purpose | Template |
+|-------|-----------|---------|----------|
+| 1. Decisions | `decisions/` | Capture WHY significant choices were made | MADR Minimal |
+| 2. Vision | `product/` | Define WHAT we're building and WHY it matters | Lean PRD |
+| 3. Architecture | `architecture/` | Show HOW components relate | C4-Lite |
+| 4. Specifications | `specs/` | Detail HOW features work | Feature Spec |
+| 5. Reference | `reference/` | Provide lookup tables | CLI + Config |
+| 6. Behaviors | `behaviors/features/` | Define verifiable scenarios | Gherkin |
+| 7. Implementation | `implementation/` | Guide HOW to build | Tech Stack |
+
+---
+
+## Classification Decision Tree
+
+When adding new content, use this tree to determine the correct layer:
 
 ```
-docs/
-├── decisions/          # Layer 1: ADRs (Architectural Decision Records)
-├── product/            # Layer 2: Vision, comparison, roadmap
-├── architecture/       # Layer 3: System architecture and diagrams
-├── specs/              # Layer 4: Detailed feature specifications
-├── reference/          # Layer 5: CLI and configuration reference
-├── implementation/     # Layer 7: Technology stack and patterns
-└── .migration/         # Migration plan (delete after migration)
+Is this explaining WHY a choice was made?
+├─ YES → Layer 1: Decisions (ADR)
+└─ NO ↓
 
-features/               # Layer 6: Gherkin behavior scenarios (at project root)
+Is this about product vision, goals, or concepts?
+├─ YES → Layer 2: Vision
+└─ NO ↓
+
+Is this showing how components relate (diagrams, flows)?
+├─ YES → Layer 3: Architecture
+└─ NO ↓
+
+Is this detailing HOW a feature works (behavior, edge cases)?
+├─ YES → Layer 4: Specifications
+└─ NO ↓
+
+Is this a lookup table (commands, options, configs)?
+├─ YES → Layer 5: Reference
+└─ NO ↓
+
+Is this a concrete verifiable scenario (Given/When/Then)?
+├─ YES → Layer 6: Behaviors
+└─ NO ↓
+
+Is this implementation scaffolding (code templates, dependencies)?
+├─ YES → Layer 7: Implementation
+└─ NO → May not need documentation
 ```
 
 ---
 
-## Layers
+## Classification Heuristics
 
-### Layer 1: Decisions (`decisions/`)
+### Layer 1: Decisions (ADRs)
 
-**Purpose**: Capture architectural decisions and their rationale.
+**Signals to look for**:
+- "We chose X over Y because..."
+- "We decided to..." / "Decision:"
+- "This pattern will be used throughout..."
+- Trade-off discussions with rationale
+- Explicit "Decision" blocks or sections
 
-**Audience**: Developers, architects, future maintainers.
+**ADR Structure**:
+- Simple single files: `NNNN-{title}.md`
+- No appendices for ADRs (include code inline)
+- Status: Proposed | Accepted | Deprecated | Superseded
 
-**Format**: MADR Minimal (Status, Context, Decision, Consequences).
+### Layer 2: Vision (PRD)
 
-**When to write**: When making significant architectural or design decisions.
+**Signals to look for**:
+- Problem statements ("The problem we're solving...")
+- Product vision or mission statements
+- Success criteria or goals
+- Non-goals or out-of-scope sections
+- Core concepts and glossary
 
-**Example**: [ADR-0001: Docker Compose Project Name Isolation](./decisions/0001-docker-compose-project-name-isolation.md)
+**Also in Layer 2**:
+- `comparison.md` — How this compares to alternatives
+- `roadmap.md` — Future considerations
 
-### Layer 2: Product (`product/`)
+### Layer 3: Architecture
 
-**Purpose**: Communicate vision, value proposition, and roadmap.
+**Signals to look for**:
+- System diagrams (ASCII art, Mermaid)
+- Network topology descriptions
+- Component relationship descriptions
+- Cross-cutting concerns
 
-**Audience**: Product managers, stakeholders, new team members.
+### Layer 4: Specifications
 
-**Contents**:
-- Vision — Why Contrail exists, core concepts
-- Comparison — How Contrail differs from alternatives
-- Roadmap — Future considerations
+**Signals to look for**:
+- Detailed behavioral descriptions
+- State machines or lifecycle descriptions
+- Data schemas with field-level detail
+- Edge case documentation
+- Configuration file format specifications
 
-### Layer 3: Architecture (`architecture/`)
+### Layer 5: Reference
 
-**Purpose**: Explain how the system works at a high level.
+**Signals to look for**:
+- Command syntax documentation
+- Option/flag tables
+- Environment variable lists
+- Configuration option tables with defaults
+- Error code tables
 
-**Audience**: Developers needing system understanding.
+### Layer 6: Behaviors
 
-**Contents**:
-- System overview
-- Component diagrams
-- Data flow descriptions
-- Network topology
+**Signals to look for**:
+- "Given/When/Then" scenarios
+- Explicit test case descriptions
+- User journey examples with expected outcomes
 
-**Diagram format**: ASCII (inline) or Structurizr DSL (in appendices).
+### Layer 7: Implementation
 
-### Layer 4: Specifications (`specs/`)
-
-**Purpose**: Define detailed behavior for implementation.
-
-**Audience**: Developers implementing or maintaining features.
-
-**Format**: Structured template with:
-- Overview
-- Behavior (normal flow)
-- Data Schema (with tables)
-- Examples
-- Edge Cases
-- Error Handling
-
-**When to write**: Before implementing a feature or when documenting existing behavior.
-
-### Layer 5: Reference (`reference/`)
-
-**Purpose**: Quick lookup for commands and configuration.
-
-**Audience**: Users running commands, writing configuration.
-
-**Format**: Dense tables, minimal prose. Optimized for scanning.
-
-**Contents**:
-- CLI reference — All commands, options, exit codes
-- Configuration reference — All config files and fields
-
-### Layer 6: Behaviors (`features/`)
-
-**Purpose**: Executable specifications in Gherkin.
-
-**Audience**: QA, developers, stakeholders wanting to understand behavior.
-
-**Location**: `features/` at project root (standard convention).
-
-**Format**: Gherkin `.feature` files with Given/When/Then scenarios.
-
-### Layer 7: Implementation (`implementation/`)
-
-**Purpose**: Document technology choices and patterns.
-
-**Audience**: Developers working on the codebase.
-
-**Contents**:
-- Tech stack — Dependencies and rationale
-- Code patterns — Error handling, testing strategy
-- Scaffolding — In appendices
+**Signals to look for**:
+- Technology stack with versions
+- Dependency lists with rationale
+- Project scaffolding instructions
+- Code templates
 
 ---
 
-## Content Thresholds
+## Cross-Layer Linking
 
-Move large content to appendices (`appendices/{feature-name}/`) when:
+Documents should link to related content in other layers:
 
-| Content Type | Threshold |
-|--------------|-----------|
-| Code blocks | >50 lines |
-| Step lists | >10 items |
-| Tables | >20 rows |
-| Embedded images | Any (use appendices) |
+| From | Link To | Purpose |
+|------|---------|---------|
+| Specifications | ADRs | Explain "why" for design choices |
+| Specifications | Reference | Point to detailed syntax |
+| Architecture | ADRs | Justify architectural patterns |
+| Architecture | Specifications | Deep-dive into component behavior |
+| Reference | Specifications | Provide conceptual context |
+| Implementation | ADRs | Explain technology choices |
+| Implementation | Specifications | Reference what's being implemented |
+
+### Link Format
+
+```markdown
+## Related Documents
+
+- [ADR-0008: Traefik Reverse Proxy](../decisions/0008-traefik-reverse-proxy.md) — Design rationale
+- [Proxy Specification](../specs/proxy-infrastructure.md) — Detailed behavior
+
+## Appendices
+
+- [Traefik Configuration](./appendices/proxy-infrastructure/traefik-config.yaml) — Complete config
+```
 
 ---
 
-## Cross-References
+## Document Hierarchy (Authority Order)
 
-Documents should link to related content:
+When content appears in multiple places, this hierarchy determines the canonical source:
 
-- ADRs → link to implementing specs
-- Specs → link to motivating ADRs
-- Architecture → links to both ADRs and specs
-- Reference → links to specs for detailed behavior
+1. **ADRs** (highest authority) — Decisions are final
+2. **Vision** — Product direction
+3. **Architecture** — System design
+4. **Specifications** — Feature behavior
+5. **Reference** — Lookup data
+6. **Behaviors** — Test scenarios
+7. **Implementation** (lowest authority) — Build guidance
 
-Use relative paths: `../specs/context-detection.md`
+For conflicts, defer to the higher-authority document.
 
 ---
 
 ## Tooling (Tier 2)
 
-### markdownlint
+This project uses Tier 2 tooling:
 
-Enforces Markdown consistency.
+| Tool | Purpose | Setup |
+|------|---------|-------|
+| **markdownlint** | Markdown linting | `npm install --save-dev markdownlint-cli` |
+| **Vale** | Prose linting | `brew install vale` |
+| **Log4brains** | ADR browsing | `npm install -g log4brains` |
+| **Structurizr** | Architecture diagrams | Docker or cloud |
+
+### Running Linters
 
 ```bash
+# Markdown linting
 npx markdownlint-cli2 "docs/**/*.md"
-```
 
-Configuration: `.markdownlint.yaml` or `.markdownlint-cli2.yaml`
-
-### Vale
-
-Prose linting for style and terminology.
-
-```bash
+# Prose linting (requires .vale.ini)
 vale docs/
 ```
 
-Configuration: `.vale.ini` and `styles/` directory.
+---
 
-### Log4brains
+## Directory Structure
 
-ADR management and visualization.
-
-```bash
-log4brains preview     # Local preview
-log4brains build       # Static site
+```
+docs/
+├── README.md                    # Documentation index
+├── DOCUMENTATION-GUIDE.md       # This file
+│
+├── decisions/                   # Layer 1: ADRs
+│   ├── README.md               # ADR index
+│   ├── 0000-template.md        # Template
+│   └── 0001-*.md ... 0011-*.md # ADR files
+│
+├── product/                     # Layer 2: Vision
+│   ├── README.md
+│   ├── vision.md
+│   ├── comparison.md
+│   └── roadmap.md
+│
+├── architecture/                # Layer 3: Architecture
+│   ├── README.md
+│   └── overview.md
+│
+├── specs/                       # Layer 4: Specifications
+│   ├── README.md
+│   ├── _template.md
+│   ├── {feature}.md            # Main spec files
+│   └── appendices/
+│       └── {feature}/          # Per-spec appendices
+│
+├── reference/                   # Layer 5: Reference
+│   ├── README.md
+│   ├── cli.md
+│   ├── configuration.md
+│   └── appendices/
+│       ├── cli/
+│       └── configuration/
+│
+├── behaviors/                   # Layer 6: Behaviors
+│   └── features/
+│       └── *.feature
+│
+├── implementation/              # Layer 7: Implementation
+│   ├── README.md
+│   ├── tech-stack.md
+│   └── appendices/
+│       └── tech-stack/
+│
+├── maintenance/                 # Maintenance workflows
+│   ├── audit.md
+│   ├── refine.md
+│   ├── sync.md
+│   └── update.md
+│
+└── .migration/                  # Migration step files (temporary)
+    ├── README.md
+    ├── common-instructions.md
+    └── 01-decisions.md ... 09-cross-links.md
 ```
 
-Configuration: `.log4brains.yaml`
+---
 
-### Structurizr
+## Appendix Guidelines
 
-Architecture diagrams as code.
+### When to Use Appendices
 
-```bash
-# Using Structurizr Lite (Docker)
-docker run -it --rm -p 8080:8080 -v $(pwd)/docs/architecture:/usr/local/structurizr structurizr/lite
+Move content to appendices when it exceeds thresholds:
+- Code blocks >= 50 lines
+- Step lists >= 10 items
+- Tables >= 20 rows
+- Complete file examples (always)
+- Error catalogs (always)
+- Shell scripts (always)
+
+### Appendix Directory Structure
+
+```
+specs/
+├── shell-integration.md          # Main document (overview, key concepts)
+└── appendices/
+    └── shell-integration/        # Named after main document
+        ├── bash-setup.sh         # Complete bash script
+        ├── zsh-setup.zsh         # Complete zsh script
+        └── fish-setup.fish       # Complete fish script
 ```
 
-DSL files: `docs/architecture/appendices/` or `docs/architecture/*.dsl`
+### Linking to Appendices
+
+From main document:
+```markdown
+For complete shell scripts, see:
+- [Bash Setup](./appendices/shell-integration/bash-setup.sh)
+- [Zsh Setup](./appendices/shell-integration/zsh-setup.zsh)
+```
+
+From appendix (back-link):
+```markdown
+> **Parent**: [Shell Integration](../../shell-integration.md)
+```
 
 ---
 
-## Writing Conventions
+## Maintenance Workflows
 
-### Tone
+Four workflows are available in `maintenance/`:
 
-- Technical and direct
-- Use imperative mood for instructions ("Run the command", not "You should run")
-- Avoid marketing language
+| Workflow | Purpose | When to Use |
+|----------|---------|-------------|
+| `audit.md` | Verify documentation completeness | After migration, periodically |
+| `refine.md` | Improve quality without code changes | Documentation reviews |
+| `sync.md` | Verify docs match implementation | Pre-release, after refactoring |
+| `update.md` | Update docs after code changes | When implementation changes |
 
-### Formatting
-
-- Use code fences with language hints
-- Use tables for structured data
-- Keep paragraphs short (3-5 sentences)
-- Use headers to enable scanning
-
-### Naming
-
-- Files: `kebab-case.md`
-- Directories: `kebab-case/`
-- ADRs: `NNNN-title.md` (e.g., `0001-docker-compose-project-name-isolation.md`)
-
----
-
-## Migration Status
-
-This documentation was migrated from existing specs. See:
-
-- [Migration Plan](./.migration/README.md) — Step-by-step migration instructions
-- [Audit](./audit.md) — Post-migration verification checklist
-
-After migration is complete, delete the `.migration/` directory.
-
----
-
-## Related
-
-- [Layered Documentation System](../layered-docs-system/LAYERED-DOCUMENTATION-SYSTEM.md) — The system this guide implements
-
+To execute a workflow:
+```
+Execute the workflow in @docs/maintenance/audit.md
+```

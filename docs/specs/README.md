@@ -6,16 +6,16 @@ This directory contains detailed feature specifications. Each specification desc
 
 | Specification | Status | Description |
 |---------------|--------|-------------|
-| [Configuration Schemas](./configuration-schemas.md) | Accepted | workspace.yaml, application.yaml, proxy.yaml schemas |
-| [Context Detection](./context-detection.md) | Accepted | Directory walking and context resolution |
-| [Docker Labels](./docker-labels.md) | Accepted | Traefik labels and workspace labels |
-| [Environment Variables](./environment-variables.md) | Accepted | Environment variable mapping and overrides |
+| [Configuration Schemas](./configuration-schemas.md) | Accepted | Configuration file schemas (proxy, workspace, application) |
+| [Naming Conventions](./naming-conventions.md) | Accepted | Naming patterns for hostnames, aliases, and projects |
+| [Port Types](./port-types.md) | Accepted | Port type system (proxied vs assigned) |
+| [Proxy Infrastructure](./proxy-infrastructure.md) | Accepted | Traefik proxy configuration and network |
+| [Context Detection](./context-detection.md) | Accepted | Directory context detection algorithm |
+| [Workspace Lifecycle](./workspace-lifecycle.md) | Accepted | Workspace operations (up/down/generate) |
 | [Generated Override Files](./generated-override-files.md) | Accepted | Override file generation specification |
-| [Naming Conventions](./naming-conventions.md) | Accepted | Project names, hostnames, aliases |
-| [Port Types](./port-types.md) | Accepted | Proxied and assigned port handling |
-| [Proxy Infrastructure](./proxy-infrastructure.md) | Accepted | Traefik configuration and network |
-| [Shell Integration](./shell-integration.md) | Accepted | contrail-compose shell function |
-| [Workspace Lifecycle](./workspace-lifecycle.md) | Accepted | up/down/restart semantics |
+| [Docker Labels](./docker-labels.md) | Accepted | Docker label conventions |
+| [Environment Variables](./environment-variables.md) | Accepted | Environment variable injection |
+| [Shell Integration](./shell-integration.md) | Accepted | Shell integration and contrail-compose |
 
 ## Specification Status
 
@@ -44,6 +44,6 @@ Available appendices:
 
 ## Related Documents
 
-- [Architecture](../architecture/overview.md) — System architecture
+- [Architecture](../architecture/README.md) — System architecture
 - [Decisions](../decisions/) — Decision rationale
 - [Reference](../reference/) — CLI and configuration reference

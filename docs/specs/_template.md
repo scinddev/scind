@@ -12,11 +12,10 @@
 
 **Related Documents**:
 - [ADR-NNNN: Relevant Decision](../decisions/NNNN-{title}.md)
-- [Architecture: Relevant Section](../architecture/overview.md#section)
+- [Architecture: Relevant Section](../architecture/README.md#section)
 
 **Appendices** (if applicable):
 - [Detailed Examples](./appendices/{feature-name}/examples.md)
-- [Error Catalog](./appendices/{feature-name}/errors.md)
 
 ---
 
@@ -42,6 +41,8 @@ field_one: value
 field_two:
   nested_field: value
 ```
+
+### Field Reference
 
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
@@ -84,9 +85,9 @@ field_one: example
 
 ## Error Handling
 
-| Error Condition | Error Code/Type | Message | Recovery |
-|-----------------|-----------------|---------|----------|
-| [Condition 1] | [E001] | [User-facing message] | [What user can do] |
+| Error Condition | Message | Recovery |
+|-----------------|---------|----------|
+| [Condition 1] | [User-facing message] | [What user can do] |
 
 ---
 

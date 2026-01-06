@@ -1,185 +1,153 @@
-# Migration Step: Layer Cross-Links
+# Migration Step: Cross-Layer Links
 
-**Prerequisites**: Complete all layer migration steps (01-08)
-**Estimated Time**: Final pass
+**Prerequisites**:
+- Read `common-instructions.md`
+- **All previous steps (01-08) must be completed first**
 
 ---
 
 ## Overview
 
-This final step verifies and adds cross-references between documents across all layers. The layered documentation system works best when documents reference each other appropriately.
+After all content is migrated, add cross-layer links to improve navigation. This step adds "See Also" sections to key documents.
 
 ---
 
-## Cross-Reference Patterns
-
-### ADRs → Specs
-
-Each ADR that describes a decision should link to the specification that implements it.
-
-| ADR | Should Link To |
-|-----|----------------|
-| 0001-docker-compose-project-name-isolation | specs/naming-conventions.md |
-| 0002-two-layer-networking | specs/proxy-infrastructure.md |
-| 0003-pure-overlay-design | specs/generated-override-files.md |
-| 0004-convention-based-naming | specs/naming-conventions.md |
-| 0005-structure-vs-state-separation | specs/configuration-schemas.md |
-| 0006-three-configuration-schemas | specs/configuration-schemas.md, reference/configuration.md |
-| 0007-port-type-system | specs/port-types.md |
-| 0008-traefik-reverse-proxy | specs/proxy-infrastructure.md |
-| 0009-flexible-tls-configuration | specs/proxy-infrastructure.md |
-| 0010-up-down-command-semantics | specs/workspace-lifecycle.md, reference/cli.md |
-| 0011-options-based-targeting | specs/context-detection.md, reference/cli.md |
-
-### Specs → ADRs
-
-Each specification should reference the ADRs that motivated its design.
-
-| Spec | Should Link To |
-|------|----------------|
-| configuration-schemas | ADR-0005, ADR-0006 |
-| context-detection | ADR-0011 |
-| docker-labels | ADR-0008 |
-| environment-variables | ADR-0003 |
-| generated-override-files | ADR-0003 |
-| naming-conventions | ADR-0001, ADR-0004 |
-| port-types | ADR-0007 |
-| proxy-infrastructure | ADR-0002, ADR-0008, ADR-0009 |
-| shell-integration | (no specific ADR) |
-| workspace-lifecycle | ADR-0010 |
-
-### Architecture → Everything
-
-The architecture overview should serve as a hub, linking to:
-- All relevant ADRs for design decisions
-- All specs for detailed behavior
-- Reference docs for quick lookup
-
-### Reference → Specs
-
-Reference documentation should link to specs for detailed behavior:
-
-| Reference | Should Link To |
-|-----------|----------------|
-| cli.md | specs/context-detection.md, specs/workspace-lifecycle.md |
-| configuration.md | specs/configuration-schemas.md |
-
-### Vision → Architecture
-
-The vision document should link down to architecture for "how" questions.
-
----
-
-## Verification Checklist
-
-### ADRs
-
-- [ ] Each ADR has "Related Documents" section
-- [ ] Links to implementing specs are present
-- [ ] Links use relative paths (`../specs/...`)
-
-### Specifications
-
-- [ ] Each spec has "Related Documents" section
-- [ ] Links to relevant ADRs are present
-- [ ] Links to related specs are present
-- [ ] Appendix links work if appendices exist
-
-### Architecture
-
-- [ ] Links to all relevant ADRs
-- [ ] Links to key specs
-- [ ] Diagram references are explained
-
-### Reference
-
-- [ ] Links to detailed specs
-- [ ] Links to relevant ADRs for design rationale
-
-### Product (Vision)
-
-- [ ] Links to architecture
-- [ ] Links to key ADRs
-
----
-
-## Link Syntax
-
-Use relative paths from the document location:
-
-```markdown
-<!-- From specs/port-types.md -->
-[ADR-0007](../decisions/0007-port-type-system.md)
-
-<!-- From decisions/0007-port-type-system.md -->
-[Port Types Spec](../specs/port-types.md)
-
-<!-- From architecture/overview.md -->
-[Configuration Schemas](../specs/configuration-schemas.md)
-[CLI Reference](../reference/cli.md)
-```
-
----
-
-## README Updates
-
-Ensure all README.md index files are updated:
+## Links to Add
 
 ### `decisions/README.md`
 
+Add to bottom:
 ```markdown
-| ADR | Title | Status |
-|-----|-------|--------|
-| [0001](./0001-docker-compose-project-name-isolation.md) | Docker Compose Project Name Isolation | Accepted |
-| [0002](./0002-two-layer-networking.md) | Two-Layer Networking | Accepted |
-...
+## Related Documentation
+
+- [Architecture Overview](../architecture/overview.md) - How these decisions manifest in the system design
+- [Product Vision](../product/vision.md) - The problem these decisions solve
 ```
 
-### `specs/README.md`
+### `product/vision.md`
 
+Add to bottom:
 ```markdown
-| Specification | Description |
-|---------------|-------------|
-| [Configuration Schemas](./configuration-schemas.md) | workspace.yaml, application.yaml, proxy.yaml |
-| [Context Detection](./context-detection.md) | Directory walking and context resolution |
-...
+## Related Documentation
+
+- [Architecture Overview](../architecture/overview.md) - System design implementing this vision
+- [Architectural Decisions](../decisions/README.md) - Key technical decisions
+- [Comparison](./comparison.md) - How Contrail compares to alternatives
 ```
 
-### `product/README.md`
+### `product/comparison.md`
 
+Add to bottom:
 ```markdown
-| Document | Description |
-|----------|-------------|
-| [Vision](./vision.md) | Product vision and core concepts |
-| [Comparison](./comparison.md) | Comparison with alternative tools |
-| [Roadmap](./roadmap.md) | Future considerations |
+## Related Documentation
+
+- [Product Vision](./vision.md) - What Contrail aims to achieve
+- [Roadmap](./roadmap.md) - Planned enhancements
+```
+
+### `architecture/overview.md`
+
+Add to bottom:
+```markdown
+## Related Documentation
+
+- [Product Vision](../product/vision.md) - The problem Contrail solves
+- [Architectural Decisions](../decisions/README.md) - Rationale for design choices
+- [Configuration Schemas](../specs/configuration-schemas.md) - Detailed configuration specification
+- [Workspace Lifecycle](../specs/workspace-lifecycle.md) - How operations work
+```
+
+### `specs/configuration-schemas.md`
+
+Add to bottom:
+```markdown
+## Related Documentation
+
+- [Architecture Overview](../architecture/overview.md) - System context for configuration
+- [CLI Reference](../reference/cli.md) - Commands that use these configurations
+- [Configuration Reference](../reference/configuration.md) - User-facing configuration guide
+```
+
+### `specs/shell-integration.md`
+
+Add to bottom:
+```markdown
+## Related Documentation
+
+- [CLI Reference](../reference/cli.md) - Full CLI documentation
+- [Implementation: Tech Stack](../implementation/tech-stack.md) - Shell script embedding details
+```
+
+### `reference/cli.md`
+
+Add to bottom:
+```markdown
+## Related Documentation
+
+- [Context Detection Spec](../specs/context-detection.md) - How context detection works
+- [Shell Integration Spec](../specs/shell-integration.md) - Shell function details
+- [Configuration Reference](./configuration.md) - Configuration file reference
+```
+
+### `reference/configuration.md`
+
+Add to bottom:
+```markdown
+## Related Documentation
+
+- [Configuration Schemas Spec](../specs/configuration-schemas.md) - Detailed schema specification
+- [CLI Reference](./cli.md) - Commands that use these configurations
+```
+
+### `implementation/tech-stack.md`
+
+Add to bottom:
+```markdown
+## Related Documentation
+
+- [CLI Reference](../reference/cli.md) - Complete CLI documentation
+- [Shell Integration Spec](../specs/shell-integration.md) - Shell scripts to embed
+- [Configuration Schemas Spec](../specs/configuration-schemas.md) - Config types to implement
 ```
 
 ---
 
-## Final Verification
+## Also Create: `docs/README.md`
 
-After completing cross-links:
+The root documentation index:
 
-1. **Link Check**: Run a markdown link checker to find broken links
-   ```bash
-   # If using markdownlint-cli2 (Tier 2 tooling)
-   npx markdownlint-cli2 "docs/**/*.md"
-   ```
+```markdown
+# Contrail Documentation
 
-2. **Visual Review**: Open each README and verify the index tables are complete
+Welcome to the Contrail documentation. Contrail is a workspace orchestration system for Docker Compose.
 
-3. **Navigation Test**: Starting from `docs/README.md`, verify you can navigate to any document within 2-3 clicks
+## Quick Navigation
+
+| Layer | Description | Entry Point |
+|-------|-------------|-------------|
+| **Decisions** | Architectural decision records | [decisions/](./decisions/README.md) |
+| **Product** | Vision, comparison, roadmap | [product/](./product/README.md) |
+| **Architecture** | System design overview | [architecture/](./architecture/README.md) |
+| **Specifications** | Detailed feature specs | [specs/](./specs/README.md) |
+| **Reference** | CLI and configuration reference | [reference/](./reference/README.md) |
+| **Implementation** | Developer guides | [implementation/](./implementation/README.md) |
+
+## Getting Started
+
+1. Read the [Product Vision](./product/vision.md) to understand what Contrail does
+2. Review the [Architecture Overview](./architecture/overview.md) for system design
+3. See the [CLI Reference](./reference/cli.md) for command usage
+
+## Documentation Guide
+
+For contributors, see the [Documentation Guide](./DOCUMENTATION-GUIDE.md) for how to maintain and extend this documentation.
+```
 
 ---
 
 ## Completion Checklist
 
-- [ ] All ADRs have Related Documents sections
-- [ ] All Specs have Related Documents sections
-- [ ] Architecture links to ADRs and Specs
-- [ ] Reference links to Specs
-- [ ] All README index files updated
-- [ ] Link check passes
-- [ ] Navigation test passes
-
+- [ ] All "Related Documentation" sections added
+- [ ] `docs/README.md` created
+- [ ] All links verified to exist
+- [ ] No broken relative paths

@@ -1,8 +1,9 @@
 # CLI Reference
 
-Quick reference for all Contrail commands.
+**Version**: 0.2.3-draft
+**Status**: Design Phase
 
-<!-- Source: specs/contrail-cli-reference.md -->
+This document is the authoritative reference for Contrail's command-line interface. It defines command structure, arguments, flags, and behaviors.
 
 ---
 
@@ -26,12 +27,37 @@ contrail app status
 
 ---
 
-## Global Options
+## Context Detection
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--workspace` | `-w` | Target workspace (overrides context detection) |
-| `--app` | `-a` | Target application (overrides context detection) |
+Contrail automatically detects workspace and application context from the current directory, reducing the need for explicit `--workspace` and `--app` flags.
+
+For complete context detection rules, edge cases, and error handling, see the [Context Detection Specification](../specs/context-detection.md).
+
+---
+
+## Resources
+
+Contrail manages these resource types:
+
+| Resource | Description | Context-Aware |
+|----------|-------------|---------------|
+| `workspace` | Isolated environment containing applications | Yes |
+| `app` | A Docker Compose application within a workspace | Yes |
+| `flavor` | Named configuration for running an application | Yes |
+| `port` | Host port assignments for assigned-type services | No |
+| `proxy` | The Traefik reverse proxy layer | No |
+| `config` | Global and user configuration | No |
+
+---
+
+## Global Flags
+
+These flags are available on all commands:
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--workspace` | `-w` | Specify workspace (overrides context detection) |
+| `--app` | `-a` | Specify application (overrides context detection) |
 | `--quiet` | `-q` | Minimal output, suppress context indicators and progress |
 | `--verbose` | `-v` | Detailed output |
 | `--json` | | Output in JSON format |
@@ -75,47 +101,17 @@ running
 
 ---
 
-## Resources
-
-Contrail manages these resource types:
-
-| Resource | Description | Context-Aware |
-|----------|-------------|---------------|
-| `workspace` | Isolated environment containing applications | Yes |
-| `app` | A Docker Compose application within a workspace | Yes |
-| `flavor` | Named configuration for running an application | Yes |
-| `port` | Host port assignments for assigned-type services | No |
-| `proxy` | The Traefik reverse proxy layer | No |
-| `config` | Global and user configuration | No |
-
----
-
-## Commands
-
-### Top-Level Aliases
-
-For common operations, these aliases are provided:
-
-| Alias | Equivalent |
-|-------|------------|
-| `contrail up` | `contrail workspace up` |
-| `contrail down` | `contrail workspace down` |
-| `contrail ps` | `contrail workspace status` |
-| `contrail generate` | `contrail workspace generate` |
-
-All aliases accept the same flags as their full forms and support context detection.
-
----
-
 ## Workspace Commands
 
 Manage workspace lifecycle and orchestration.
 
-### contrail workspace list
+### `contrail workspace list`
 
 List all registered workspaces.
 
-**Usage**: `contrail workspace list [flags]`
+```bash
+contrail workspace list [flags]
+```
 
 **Flags**:
 | Flag | Description |
@@ -135,11 +131,13 @@ control  2     running  ~/workspaces/control
 
 ---
 
-### contrail workspace prune
+### `contrail workspace prune`
 
 Remove stale entries from the workspace registry.
 
-**Usage**: `contrail workspace prune [flags]`
+```bash
+contrail workspace prune [flags]
+```
 
 **Flags**:
 | Flag | Description |
@@ -160,11 +158,13 @@ contrail workspace prune
 
 ---
 
-### contrail workspace show
+### `contrail workspace show`
 
 Show detailed information about a workspace, including the computed manifest.
 
-**Usage**: `contrail workspace show [flags]`
+```bash
+contrail workspace show [flags]
+```
 
 **Flags**:
 | Flag | Description |
@@ -175,11 +175,13 @@ Show detailed information about a workspace, including the computed manifest.
 
 ---
 
-### contrail workspace init
+### `contrail workspace init`
 
 Initialize a new workspace.
 
-**Usage**: `contrail workspace init [flags]`
+```bash
+contrail workspace init [flags]
+```
 
 **Flags**:
 | Flag | Description |
@@ -218,11 +220,13 @@ contrail workspace init --workspace=dev
 
 ---
 
-### contrail workspace clone
+### `contrail workspace clone`
 
 Clone all application repositories defined in the workspace.
 
-**Usage**: `contrail workspace clone [flags]`
+```bash
+contrail workspace clone [flags]
+```
 
 **Flags**:
 | Flag | Description |
@@ -250,11 +254,13 @@ contrail workspace clone
 
 ---
 
-### contrail workspace generate
+### `contrail workspace generate`
 
 Generate or regenerate Docker Compose override files.
 
-**Usage**: `contrail workspace generate [flags]`
+```bash
+contrail workspace generate [flags]
+```
 
 **Flags**:
 | Flag | Description |
@@ -273,11 +279,13 @@ Generate or regenerate Docker Compose override files.
 
 ---
 
-### contrail workspace up
+### `contrail workspace up`
 
 Bring up a workspace (generate overrides if needed, create networks, start containers).
 
-**Usage**: `contrail workspace up [flags]`
+```bash
+contrail workspace up [flags]
+```
 
 **Flags**:
 | Flag | Description |
@@ -307,11 +315,13 @@ contrail up  # Alias, with context
 
 ---
 
-### contrail workspace down
+### `contrail workspace down`
 
 Tear down a workspace (stop containers, remove networks).
 
-**Usage**: `contrail workspace down [flags]`
+```bash
+contrail workspace down [flags]
+```
 
 **Flags**:
 | Flag | Description |
@@ -330,11 +340,13 @@ Tear down a workspace (stop containers, remove networks).
 
 ---
 
-### contrail workspace restart
+### `contrail workspace restart`
 
 Restart a workspace or specific applications.
 
-**Usage**: `contrail workspace restart [flags]`
+```bash
+contrail workspace restart [flags]
+```
 
 **Flags**:
 | Flag | Description |
@@ -346,11 +358,13 @@ Restart a workspace or specific applications.
 
 ---
 
-### contrail workspace status
+### `contrail workspace status`
 
 Show the running status of a workspace.
 
-**Usage**: `contrail workspace status [flags]`
+```bash
+contrail workspace status [flags]
+```
 
 **Flags**:
 | Flag | Description |
@@ -371,11 +385,13 @@ app-three   lite     stopped  0/2 running      —
 
 ---
 
-### contrail workspace destroy
+### `contrail workspace destroy`
 
 Completely remove a workspace.
 
-**Usage**: `contrail workspace destroy [flags]`
+```bash
+contrail workspace destroy [flags]
+```
 
 **Flags**:
 | Flag | Description |
@@ -400,11 +416,13 @@ Completely remove a workspace.
 
 Manage applications within workspaces.
 
-### contrail app list
+### `contrail app list`
 
 List applications in a workspace.
 
-**Usage**: `contrail app list [flags]`
+```bash
+contrail app list [flags]
+```
 
 **Flags**:
 | Flag | Description |
@@ -421,11 +439,13 @@ app-three  lite     stopped  0/2       ./app-three
 
 ---
 
-### contrail app show
+### `contrail app show`
 
 Show detailed information about an application.
 
-**Usage**: `contrail app show [flags]`
+```bash
+contrail app show [flags]
+```
 
 **Flags**:
 | Flag | Description |
@@ -437,11 +457,13 @@ Show detailed information about an application.
 
 ---
 
-### contrail app init
+### `contrail app init`
 
 Initialize an application configuration in the current directory.
 
-**Usage**: `contrail app init [flags]`
+```bash
+contrail app init [flags]
+```
 
 **Flags**:
 | Flag | Description |
@@ -463,11 +485,13 @@ contrail app init --app=myapp
 
 ---
 
-### contrail app add
+### `contrail app add`
 
 Add an application to a workspace.
 
-**Usage**: `contrail app add [flags]`
+```bash
+contrail app add [flags]
+```
 
 **Flags**:
 | Flag | Description |
@@ -492,11 +516,13 @@ contrail app add --app=main --path=.  # Use current directory
 
 ---
 
-### contrail app remove
+### `contrail app remove`
 
 Remove an application from a workspace.
 
-**Usage**: `contrail app remove [flags]`
+```bash
+contrail app remove [flags]
+```
 
 **Flags**:
 | Flag | Description |
@@ -513,11 +539,13 @@ Remove an application from a workspace.
 
 ---
 
-### contrail app up
+### `contrail app up`
 
 Bring up a single application.
 
-**Usage**: `contrail app up [flags]`
+```bash
+contrail app up [flags]
+```
 
 **Flags**:
 | Flag | Description |
@@ -529,11 +557,13 @@ Equivalent to `contrail workspace up --app=NAME`.
 
 ---
 
-### contrail app down
+### `contrail app down`
 
 Tear down a single application.
 
-**Usage**: `contrail app down [flags]`
+```bash
+contrail app down [flags]
+```
 
 **Flags**:
 | Flag | Description |
@@ -546,11 +576,13 @@ Equivalent to `contrail workspace down --app=NAME`.
 
 ---
 
-### contrail app restart
+### `contrail app restart`
 
 Restart a single application.
 
-**Usage**: `contrail app restart [flags]`
+```bash
+contrail app restart [flags]
+```
 
 **Flags**:
 | Flag | Description |
@@ -562,11 +594,13 @@ Restart a single application.
 
 ---
 
-### contrail app status
+### `contrail app status`
 
 Show status of a single application.
 
-**Usage**: `contrail app status [flags]`
+```bash
+contrail app status [flags]
+```
 
 **Flags**:
 | Flag | Description |
@@ -580,11 +614,13 @@ Show status of a single application.
 
 Manage application flavors (named configurations).
 
-### contrail flavor list
+### `contrail flavor list`
 
 List available flavors for an application.
 
-**Usage**: `contrail flavor list [flags]`
+```bash
+contrail flavor list [flags]
+```
 
 **Flags**:
 | Flag | Description |
@@ -602,11 +638,13 @@ debug    docker-compose.yaml, docker-compose.debug.yaml
 
 ---
 
-### contrail flavor show
+### `contrail flavor show`
 
 Show the current active flavor for an application.
 
-**Usage**: `contrail flavor show [flags]`
+```bash
+contrail flavor show [flags]
+```
 
 **Flags**:
 | Flag | Description |
@@ -616,11 +654,13 @@ Show the current active flavor for an application.
 
 ---
 
-### contrail flavor set
+### `contrail flavor set`
 
 Set the active flavor for an application.
 
-**Usage**: `contrail flavor set <flavor> [flags]`
+```bash
+contrail flavor set <flavor> [flags]
+```
 
 **Arguments**:
 | Argument | Description |
@@ -662,11 +702,13 @@ contrail app restart --app=app-two
 
 Manage host port assignments for `assigned`-type services.
 
-### contrail port list
+### `contrail port list`
 
 List all assigned ports.
 
-**Usage**: `contrail port list [flags]`
+```bash
+contrail port list [flags]
+```
 
 **Flags**:
 | Flag | Description |
@@ -694,11 +736,13 @@ PORT   WORKSPACE  APP      SERVICE  STATUS    BOUND
 
 ---
 
-### contrail port show
+### `contrail port show`
 
 Show details about a specific port assignment.
 
-**Usage**: `contrail port show <port>`
+```bash
+contrail port show <port>
+```
 
 **Arguments**:
 | Argument | Description |
@@ -707,11 +751,13 @@ Show details about a specific port assignment.
 
 ---
 
-### contrail port release
+### `contrail port release`
 
 Manually release a port assignment.
 
-**Usage**: `contrail port release <port> [flags]`
+```bash
+contrail port release <port> [flags]
+```
 
 **Arguments**:
 | Argument | Description |
@@ -725,11 +771,13 @@ Manually release a port assignment.
 
 ---
 
-### contrail port assign
+### `contrail port assign`
 
 Manually assign a port (advanced usage).
 
-**Usage**: `contrail port assign <port> <workspace>/<app>/<service>`
+```bash
+contrail port assign <port> <workspace>/<app>/<service>
+```
 
 **Arguments**:
 | Argument | Description |
@@ -739,11 +787,13 @@ Manually assign a port (advanced usage).
 
 ---
 
-### contrail port gc
+### `contrail port gc`
 
 Garbage collect released and unbound ports.
 
-**Usage**: `contrail port gc [flags]`
+```bash
+contrail port gc [flags]
+```
 
 **Flags**:
 | Flag | Description |
@@ -757,11 +807,13 @@ Garbage collect released and unbound ports.
 
 ---
 
-### contrail port scan
+### `contrail port scan`
 
 Re-scan and update port availability inventory.
 
-**Usage**: `contrail port scan`
+```bash
+contrail port scan
+```
 
 **Behavior**:
 - Checks all tracked ports for current bind status
@@ -774,11 +826,13 @@ Re-scan and update port availability inventory.
 
 Manage the Traefik reverse proxy. The proxy is a shared instance that serves all workspaces on the host.
 
-### contrail proxy init
+### `contrail proxy init`
 
 Bootstrap the proxy configuration. This creates the Traefik Docker Compose project at `~/.config/contrail/proxy/`.
 
-**Usage**: `contrail proxy init [flags]`
+```bash
+contrail proxy init [flags]
+```
 
 **Flags**:
 | Flag | Description |
@@ -801,7 +855,7 @@ $ contrail proxy init
 Created proxy configuration at ~/.config/contrail/proxy/
 
 Next steps:
-  1. Configure DNS for *.contrail.test → 127.0.0.1
+  1. Configure DNS for *.contrail.test -> 127.0.0.1
      (See: contrail doctor for DNS verification)
   2. Start the proxy:
      contrail proxy up
@@ -824,11 +878,13 @@ Domain set to: mydev.local
 
 ---
 
-### contrail proxy up
+### `contrail proxy up`
 
 Start the Traefik proxy.
 
-**Usage**: `contrail proxy up [flags]`
+```bash
+contrail proxy up [flags]
+```
 
 **Flags**:
 | Flag | Description |
@@ -855,27 +911,33 @@ Use 'contrail proxy up --recreate' to recreate the network.
 
 ---
 
-### contrail proxy down
+### `contrail proxy down`
 
 Stop the Traefik proxy.
 
-**Usage**: `contrail proxy down`
+```bash
+contrail proxy down
+```
 
 ---
 
-### contrail proxy restart
+### `contrail proxy restart`
 
 Restart the Traefik proxy.
 
-**Usage**: `contrail proxy restart`
+```bash
+contrail proxy restart
+```
 
 ---
 
-### contrail proxy status
+### `contrail proxy status`
 
 Show proxy status.
 
-**Usage**: `contrail proxy status`
+```bash
+contrail proxy status
+```
 
 **Output** (dashboard enabled):
 ```
@@ -905,11 +967,13 @@ Entrypoints:
 
 Manage Contrail configuration.
 
-### contrail config show
+### `contrail config show`
 
 Show all configuration values.
 
-**Usage**: `contrail config show`
+```bash
+contrail config show
+```
 
 **Output**:
 ```yaml
@@ -922,11 +986,13 @@ paths:
 
 ---
 
-### contrail config get
+### `contrail config get`
 
 Get a specific configuration value.
 
-**Usage**: `contrail config get <key>`
+```bash
+contrail config get <key>
+```
 
 **Example**:
 ```bash
@@ -936,11 +1002,13 @@ contrail config get proxy.domain
 
 ---
 
-### contrail config set
+### `contrail config set`
 
 Set a configuration value.
 
-**Usage**: `contrail config set <key> <value>`
+```bash
+contrail config set <key> <value>
+```
 
 **Example**:
 ```bash
@@ -949,11 +1017,13 @@ contrail config set proxy.domain local.test
 
 ---
 
-### contrail config path
+### `contrail config path`
 
 Show configuration file locations.
 
-**Usage**: `contrail config path`
+```bash
+contrail config path
+```
 
 **Output**:
 ```
@@ -963,11 +1033,13 @@ Global state:  ~/.config/contrail/state.yaml
 
 ---
 
-### contrail config edit
+### `contrail config edit`
 
 Open the global configuration file in your default editor.
 
-**Usage**: `contrail config edit`
+```bash
+contrail config edit
+```
 
 **Behavior**:
 - Opens `~/.config/contrail/proxy.yaml` in `$EDITOR` (or `$VISUAL`, or falls back to `vi`)
@@ -975,113 +1047,19 @@ Open the global configuration file in your default editor.
 
 ---
 
-## Utility Commands
-
-### contrail validate
-
-Validate configuration files.
-
-**Usage**: `contrail validate [flags]`
-
-**Flags**:
-| Flag | Description |
-|------|-------------|
-| `-w, --workspace` | Target workspace (or use context) |
-| `-a, --app` | Target application (or use context) |
-
-**Behavior**:
-- Validates YAML syntax
-- Checks schema compliance
-- Verifies referenced files exist
-- Reports errors with file locations
-
----
-
-### contrail doctor
-
-Check system health and requirements.
-
-**Usage**: `contrail doctor`
-
-**Output**:
-```
-Checking Contrail environment...
-
-✓ Docker: running (version 24.0.7)
-✓ Docker Compose: available (version 2.23.0)
-✓ Proxy network: created
-✓ Traefik: running
-✓ Config directory: ~/.config/contrail
-✓ Domain resolution: contrail.test → 127.0.0.1
-✓ Workspace domains:
-  - dev-app-one-web.contrail.test → 127.0.0.1
-  - dev-app-two-api.contrail.test → 127.0.0.1
-
-All checks passed.
-```
-
-**DNS checking behavior**:
-- Uses the **system DNS resolver** (respects `/etc/hosts` and `/etc/resolv.conf`)
-- Timeout: **5 seconds** per query
-- Checks base domain (`contrail.test`) resolution
-- If workspaces exist, checks all public proxied hostnames from workspace manifests
-- If no workspaces exist, checks a test subdomain (`check-{timestamp}.contrail.test`) to verify wildcard configuration
-
-**Offline/air-gapped environments**: DNS checks may fail in environments without network access. Use `/etc/hosts` entries or a local dnsmasq configuration for offline development.
-
-**Wildcard DNS warning** (when base resolves but subdomains don't):
-```
-⚠ Wildcard DNS not configured. Individual hostnames may not resolve.
-  Configure dnsmasq: address=/contrail.test/127.0.0.1
-```
-
----
-
-### contrail open
-
-Open a service URL in the default browser.
-
-**Usage**: `contrail open [flags]`
-
-**Flags**:
-| Flag | Description |
-|------|-------------|
-| `-w, --workspace` | Target workspace (or use context) |
-| `-a, --app` | Target application (or use context) |
-| `--service` | Specific exported service (default: first web service) |
-
----
-
-### contrail urls
-
-List all accessible URLs for a workspace.
-
-**Usage**: `contrail urls [flags]`
-
-**Flags**:
-| Flag | Description |
-|------|-------------|
-| `-w, --workspace` | Target workspace (or use context) |
-
-**Output**:
-```
-APP        SERVICE  URL
-app-one    web      https://dev-app-one-web.contrail.test
-app-two    web      https://dev-app-two-web.contrail.test
-app-two    api      https://dev-app-two-api.contrail.test
-```
-
----
-
 ## Docker Compose Integration
 
-Contrail provides a `contrail-compose` shell function for direct Docker Compose interaction with automatic context awareness.
+Contrail provides a `contrail-compose` shell function for direct Docker Compose interaction with automatic context awareness. This function is installed via `contrail init-shell` and delegates to Docker Compose with the correct project name and compose files.
 
-### contrail compose-prefix
+For full documentation on `contrail-compose` and shell integration, see the [Shell Integration Specification](../specs/shell-integration.md).
+
+### `contrail compose-prefix`
 
 Output the Docker Compose command prefix for the current context. This is primarily used by the `contrail-compose` shell function.
 
-**Usage**: `contrail compose-prefix [flags]`
+```bash
+contrail compose-prefix [flags]
+```
 
 **Flags**:
 | Flag | Description |
@@ -1115,11 +1093,13 @@ Available workspaces: contrail workspace list
 
 ---
 
-### contrail init-shell
+### `contrail init-shell`
 
-Output shell integration script for the specified shell.
+Output shell integration script for the specified shell. This script provides the `contrail-compose` function and its completion.
 
-**Usage**: `contrail init-shell {bash|zsh|fish}`
+```bash
+contrail init-shell {bash|zsh|fish}
+```
 
 **Installation**:
 ```bash
@@ -1155,12 +1135,161 @@ $ contrail-compose -w dev -a app-one up -d
 
 ---
 
+## Top-Level Aliases
+
+For common operations, these aliases are provided:
+
+| Alias | Equivalent |
+|-------|------------|
+| `contrail up` | `contrail workspace up` |
+| `contrail down` | `contrail workspace down` |
+| `contrail ps` | `contrail workspace status` |
+| `contrail generate` | `contrail workspace generate` |
+
+All aliases accept the same flags as their full forms and support context detection.
+
+---
+
+## Utility Commands
+
+### `contrail validate`
+
+Validate configuration files.
+
+```bash
+contrail validate [flags]
+```
+
+**Flags**:
+| Flag | Description |
+|------|-------------|
+| `-w, --workspace` | Target workspace (or use context) |
+| `-a, --app` | Target application (or use context) |
+
+**Behavior**:
+- Validates YAML syntax
+- Checks schema compliance
+- Verifies referenced files exist
+- Reports errors with file locations
+
+---
+
+### `contrail doctor`
+
+Check system health and requirements.
+
+```bash
+contrail doctor
+```
+
+**Output**:
+```
+Checking Contrail environment...
+
+✓ Docker: running (version 24.0.7)
+✓ Docker Compose: available (version 2.23.0)
+✓ Proxy network: created
+✓ Traefik: running
+✓ Config directory: ~/.config/contrail
+✓ Domain resolution: contrail.test -> 127.0.0.1
+✓ Workspace domains:
+  - dev-app-one-web.contrail.test -> 127.0.0.1
+  - dev-app-two-api.contrail.test -> 127.0.0.1
+
+All checks passed.
+```
+
+**DNS checking behavior**:
+- Uses the **system DNS resolver** (respects `/etc/hosts` and `/etc/resolv.conf`)
+- Timeout: **5 seconds** per query
+- Checks base domain (`contrail.test`) resolution
+- If workspaces exist, checks all public proxied hostnames from workspace manifests
+- If no workspaces exist, checks a test subdomain (`check-{timestamp}.contrail.test`) to verify wildcard configuration
+
+**Offline/air-gapped environments**: DNS checks may fail in environments without network access. Use `/etc/hosts` entries or a local dnsmasq configuration for offline development.
+
+**Wildcard DNS warning** (when base resolves but subdomains don't):
+```
+⚠ Wildcard DNS not configured. Individual hostnames may not resolve.
+  Configure dnsmasq: address=/contrail.test/127.0.0.1
+```
+
+---
+
+### `contrail open`
+
+Open a service URL in the default browser.
+
+```bash
+contrail open [flags]
+```
+
+**Flags**:
+| Flag | Description |
+|------|-------------|
+| `-w, --workspace` | Target workspace (or use context) |
+| `-a, --app` | Target application (or use context) |
+| `--service` | Specific exported service (default: first web service) |
+
+---
+
+### `contrail urls`
+
+List all accessible URLs for a workspace.
+
+```bash
+contrail urls [flags]
+```
+
+**Flags**:
+| Flag | Description |
+|------|-------------|
+| `-w, --workspace` | Target workspace (or use context) |
+
+**Output**:
+```
+APP        SERVICE  URL
+app-one    web      https://dev-app-one-web.contrail.test
+app-two    web      https://dev-app-two-web.contrail.test
+app-two    api      https://dev-app-two-api.contrail.test
+```
+
+---
+
+## Output Formats
+
+All list and show commands support multiple output formats:
+
+| Flag | Format | Description |
+|------|--------|-------------|
+| (default) | Table | Human-readable aligned columns |
+| `--json` | JSON | Machine-readable JSON |
+| `--yaml` | YAML | Machine-readable YAML |
+| `--quiet` | Names | Just names/IDs, one per line |
+
+**Example**:
+```bash
+$ contrail workspace list --json
+[
+  {"name": "dev", "apps": 3, "status": "running"},
+  {"name": "review", "apps": 3, "status": "stopped"}
+]
+
+$ contrail workspace list --quiet
+dev
+review
+```
+
+---
+
 ## Shell Completion
 
 Contrail provides two types of shell integration:
 
 1. **Standard CLI completion**: Completions for the `contrail` command itself
 2. **Docker Compose passthrough**: The `contrail-compose` function with delegated completion
+
+For complete documentation on shell integration, including the `contrail-compose` function and its completion delegation, see the [Shell Integration Specification](../specs/shell-integration.md).
 
 ### Standard CLI Completion
 
@@ -1200,150 +1329,10 @@ contrail init-shell zsh >> ~/.zshrc
 contrail init-shell fish >> ~/.config/fish/conf.d/contrail.fish
 ```
 
----
-
-## Output Formats
-
-All list and show commands support multiple output formats:
-
-| Flag | Format | Description |
-|------|--------|-------------|
-| (default) | Table | Human-readable aligned columns |
-| `--json` | JSON | Machine-readable JSON |
-| `--yaml` | YAML | Machine-readable YAML |
-| `--quiet` | Names | Just names/IDs, one per line |
-
-**Example**:
-```bash
-$ contrail workspace list --json
-[
-  {"name": "dev", "apps": 3, "status": "running"},
-  {"name": "review", "apps": 3, "status": "stopped"}
-]
-
-$ contrail workspace list --quiet
-dev
-review
-```
-
----
-
-## Context Detection
-
-Contrail automatically detects workspace and application context from the current directory, reducing the need for explicit `--workspace` and `--app` flags.
-
-### Detection Rules
-
-Context detection uses a **workspace boundary** approach to prevent accidental detection of config files in vendor packages or nested test fixtures.
-
-1. **Workspace context** (found first): Walk up the directory tree looking for `workspace.yaml`
-   - If found, this establishes the **workspace root**
-   - The `workspace.name` value becomes the implicit `--workspace` value
-
-2. **Application context** (bounded by workspace): Walk up from current directory toward the workspace root looking for `application.yaml`
-   - Only considers `application.yaml` files **within the workspace directory tree**
-   - If found, the directory name containing it becomes the implicit `--app` value
-   - **Never traverses above the workspace root**—this prevents vendor packages from hijacking context
-
-3. **Both can be detected simultaneously**:
-   ```
-   ~/workspaces/dev/app-one/src/components/
-                   │        │
-                   │        └── application.yaml → app = "app-one"
-                   │
-                   └── workspace.yaml → workspace = "dev"
-   ```
-
-4. **Explicit flags override detection**: `--workspace` and `--app` always take precedence over context detection
-   - When any `--app` flag is specified, context-detected application is **completely ignored**
-   - This applies even when multiple `-a` flags are used
-   - To start multiple specific apps: `contrail up -a app-one -a app-two`
-
-5. **Global commands ignore context**: `port`, `proxy`, and `config` commands don't use directory context
-
-### Flag Override Behavior
-
-When explicit flags are provided, they **replace** (not add to) context detection:
-
-```bash
-# From within app-one directory (context would detect app-one)
-$ cd ~/workspaces/dev/app-one
-
-# This starts ONLY app-two, not both app-one and app-two
-$ contrail up -a app-two
-# Starting: app-two
-# (app-one from context is ignored)
-
-# To start multiple apps, list them all explicitly
-$ contrail up -a app-one -a app-two
-# Starting: app-one, app-two
-```
-
-This "explicit replaces context" behavior ensures predictable results—when you specify apps explicitly, you get exactly what you asked for.
-
-### Edge Cases
-
-**Nested vendor packages**: If working in `app-one/vendor/some-package/` where the vendor package has its own `application.yaml`, it is ignored. The workspace's `app-one/application.yaml` is found first when walking toward the workspace root.
-
-**Workspace within workspace**: If a test fixture has its own `workspace.yaml` nested inside a workspace (e.g., for integration tests), the closest `workspace.yaml` wins—this is the test fixture, which is the expected behavior.
-
-### Context Feedback
-
-When context is detected, commands indicate what was found:
-
-```bash
-$ cd ~/workspaces/dev/app-one
-$ contrail app status
-# Using workspace: dev (from ../workspace.yaml)
-# Using app: app-one (from ./application.yaml)
-
-Status: running
-Services: 3 running, 0 stopped
-...
-```
-
-Use `--quiet` or `-q` to suppress context indicators.
-
-### Error Handling
-
-When context is required but not detected, error messages provide debugging hints:
-
-**No workspace found, but application.yaml exists** (helps identify misplaced apps):
-```bash
-$ cd ~/random-project
-$ contrail app status
-Error: No workspace found (workspace.yaml) in current directory or any parent directories,
-but found an application (application.yaml) at: /home/user/random-project/application.yaml
-
-Create a workspace with: contrail workspace init --workspace=NAME
-```
-
-**Neither workspace nor application found**:
-```bash
-$ cd ~
-$ contrail app status
-Error: No workspace found (workspace.yaml) in current directory or any parent directories,
-and no application (application.yaml) found either.
-
-Either:
-  1. Run from within a workspace directory
-  2. Specify explicitly: contrail app status --workspace=NAME --app=NAME
-
-Available workspaces: contrail workspace list
-```
-
-**Workspace found but no application context** (for app-specific commands):
-```bash
-$ cd ~/workspaces/dev
-$ contrail app status
-Error: No application context detected.
-
-Either:
-  1. Run from within an application directory
-  2. Specify explicitly: contrail app status --app=NAME
-
-Available apps in 'dev': app-one, app-two, app-three
-```
+This provides:
+- All standard `contrail` CLI completions
+- The `contrail-compose` shell function
+- Tab completion for `contrail-compose` that delegates to Docker's completion
 
 ---
 
@@ -1373,9 +1362,11 @@ Available apps in 'dev': app-one, app-two, app-three
 
 ## Error Messages
 
+This section covers common errors. For a complete catalog, see [appendices/cli/error-messages.md](./appendices/cli/error-messages.md).
+
 ### Docker Not Available
 
-Commands that require Docker check for availability upfront. If Docker is not installed or not running:
+Commands that require Docker check for availability upfront:
 
 ```
 Error: Docker is not installed or not running.
@@ -1384,15 +1375,97 @@ Run 'contrail doctor' for setup guidance.
 
 Exit code: 4
 
+### Context Detection Errors
+
+When no workspace can be found:
+
+```bash
+$ cd ~
+$ contrail app status
+Error: No workspace found (workspace.yaml) in current directory or any parent directories.
+
+Either:
+  1. Run from within a workspace directory
+  2. Specify explicitly with --workspace flag
+
+Available workspaces: contrail workspace list
+```
+
+Exit code: 5
+
+When application context is required but not found:
+
+```bash
+$ cd ~/workspaces/dev
+$ contrail app status
+Error: No application context detected.
+
+Either:
+  1. Run from within an application directory
+  2. Specify explicitly with -a flag
+
+Available apps in 'dev': app-one, app-two, app-three
+```
+
+Exit code: 5
+
+### Configuration Errors
+
+When workspace name collides with an existing registration:
+
+```bash
+$ contrail workspace init --workspace=dev
+Error: Workspace "dev" already registered at ~/workspaces/dev
+Use a different name, or run `contrail workspace prune` if that path no longer exists
+```
+
+Exit code: 3
+
+When a flavor references a non-existent compose file:
+
+```bash
+$ contrail up
+Error: Flavor "full" references non-existent file: docker-compose.worker.yaml
+  Application: app-two
+  Available compose files: docker-compose.yaml, docker-compose.dev.yaml
+```
+
+Exit code: 3
+
+### Port Conflicts
+
+When a previously assigned port is no longer available:
+
+```
+Error: Port conflict detected for app-one
+
+Port 5432 is assigned to app-one/postgres but is no longer available.
+Another process may be using this port.
+
+To resolve:
+  contrail port scan       # Check which ports are conflicting
+  contrail port release 5432   # Release the conflicting assignment
+  contrail generate --force    # Regenerate with new port assignment
+```
+
+Exit code: 4
+
 ---
 
-## Related Documents
+## Examples
 
-- [Configuration Reference](./configuration.md)
-- [Context Detection Spec](../specs/context-detection.md)
-- [Workspace Lifecycle Spec](../specs/workspace-lifecycle.md)
-- [Shell Integration Spec](../specs/shell-integration.md)
-- [ADR-0010: up/down Command Semantics](../decisions/0010-up-down-command-semantics.md)
-- [ADR-0011: Options-Based Targeting](../decisions/0011-options-based-targeting.md)
+For detailed workflow examples, see [appendices/cli/detailed-examples.md](./appendices/cli/detailed-examples.md).
 
-<!-- See appendices/cli/ for detailed examples and error messages -->
+---
+
+## Related Documentation
+
+- [Context Detection Spec](../specs/context-detection.md) - How context detection works
+- [Shell Integration Spec](../specs/shell-integration.md) - Shell function details
+- [Configuration Reference](./configuration.md) - Configuration file reference
+
+---
+
+## Source Attribution
+
+<!-- Source: specs/contrail-cli-reference.md -->

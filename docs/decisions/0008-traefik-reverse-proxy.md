@@ -1,14 +1,12 @@
 # ADR-0008: Traefik for Reverse Proxy
 
-**Status**: Accepted
-**Date**: 2024-12
-**Decision-Makers**: Contrail Design Team
+## Status
 
----
+Accepted
 
 ## Context
 
-Contrail needs a reverse proxy that can dynamically route to containers based on hostname, without requiring config file changes when containers are started or stopped.
+Need a reverse proxy that can dynamically route to containers.
 
 ## Decision
 
@@ -19,8 +17,8 @@ Use Traefik with Docker provider, reading labels from containers.
 ### Positive
 
 - Traefik's Docker integration allows dynamic routing without config file changes
-- Labels on containers (added via generated overrides) define routing rules
 - Traefik automatically discovers containers and their routing configuration
+- Labels on containers (added via generated overrides) define routing rules
 - Industry-standard tool with good documentation
 
 ### Negative
@@ -31,15 +29,12 @@ Use Traefik with Docker provider, reading labels from containers.
 
 ### Neutral
 
+- Single shared proxy instance serves all workspaces
 - Traefik dashboard available for debugging routing issues
-
----
 
 ## Related Documents
 
 - [Proxy Infrastructure Spec](../specs/proxy-infrastructure.md) - Implements the Traefik-based proxy layer
 - [Docker Labels Spec](../specs/docker-labels.md) - Defines the labels used for Traefik routing
 
----
-
-<!-- Migrated from specs/contrail-prd.md:266-272 -->
+<!-- Migrated from specs/contrail-prd.md:265-271 -->

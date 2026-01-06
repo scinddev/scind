@@ -48,6 +48,15 @@ exported_services:
 
 **Environment variables contain proxy values** (hostname and proxy port 80/443), not the container port.
 
+#### Field Reference
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `type` | string | Yes | - | Must be `proxied` |
+| `protocol` | string | Yes | - | `http`, `https`, or future SNI types |
+| `port` | integer | No | (inferred) | Container port |
+| `visibility` | string | No | `protected` | `public` or `protected` |
+
 #### Protocol Options
 
 | Protocol | Entrypoint | Port | TLS |
@@ -71,6 +80,14 @@ exported_services:
 ```
 
 **Environment variables point to the internal alias and assigned host port.**
+
+#### Field Reference
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `type` | string | Yes | - | Must be `assigned` |
+| `port` | integer | Yes | - | Preferred host port |
+| `visibility` | string | No | `protected` | `public` or `protected` |
 
 ---
 
@@ -151,7 +168,9 @@ exported_services:
 
 ---
 
-## Port Type Constraints
+## Validation Rules
+
+### Port Type Constraints
 
 - Each exported service may have at most **one `http`** and **one `https`** proxied port
 - Each exported service may have **multiple `assigned`** ports
@@ -199,8 +218,11 @@ Services not listed in `exported_services` remain private. They are only accessi
 3. Record the assignment in global state (`~/.config/contrail/state.yaml`)
 4. Subsequent runs use the recorded port (sticky assignment)
 
-**Port conflict at startup**: If a previously assigned port has become unavailable when `workspace up` runs:
+### Port Conflict at Startup
 
+**Scenario**: Previously assigned port has become unavailable when `workspace up` runs.
+
+**Behavior**: Error with resolution steps:
 ```
 Error: Port conflict detected for app-one
 
@@ -233,49 +255,15 @@ This method is reliable across platforms and doesn't require parsing system-spec
 
 ---
 
-## Global Port State
-
-**Location**: `~/.config/contrail/state.yaml`
-
-Tracks port assignments across all workspaces:
-
-```yaml
-assigned_ports:
-  dev:                                  # Workspace name
-    app-one:                            # Application name
-      db: 5432                          # Exported service: assigned host port
-    app-two:
-      db: 5433                          # Incremented because 5432 was taken
-      cache: 6379
-  review:
-    app-one:
-      db: 5434                          # Different workspace, different port
-
-port_inventory:
-  5432:
-    status: assigned                    # assigned | unavailable | released
-    first_seen: 2025-12-28T17:53:55Z
-    last_checked: 2025-12-29T13:01:33Z
-    assignment:                         # Present only if status=assigned
-      workspace: dev
-      application: app-one
-      exported_service: db
-  5434:
-    status: unavailable                 # External process using this port
-    first_seen: 2025-12-28T17:54:00Z
-    last_checked: 2025-12-29T13:01:40Z
-```
-
----
-
 ## Error Handling
 
-| Error Condition | Error Code/Type | Message | Recovery |
-|-----------------|-----------------|---------|----------|
-| Port conflict at startup | PORT_CONFLICT | `Port {port} is assigned but no longer available` | Release port and regenerate |
-| Invalid port type | VALIDATION | `Port type must be "proxied" or "assigned"` | Fix configuration |
-| Missing protocol | VALIDATION | `Protocol is required for proxied ports` | Add protocol field |
-| Multiple HTTP protocols | VALIDATION | `Each exported service may have at most one http and one https port` | Split into separate exports |
+| Error Condition | Message | Recovery |
+|-----------------|---------|----------|
+| Port conflict at startup | `Port {port} is assigned but no longer available` | Release port and regenerate |
+| Invalid port type | `Port type must be "proxied" or "assigned"` | Fix configuration |
+| Missing protocol | `Protocol is required for proxied ports` | Add protocol field |
+| Multiple HTTP protocols | `Each exported service may have at most one http and one https port` | Split into separate exports |
+| Port out of range | `Port must be between 1 and 65535` | Use valid port number |
 
 ---
 

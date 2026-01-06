@@ -1,14 +1,12 @@
 # ADR-0006: Three Configuration Schemas
 
-**Status**: Accepted
-**Date**: 2024-12
-**Decision-Makers**: Contrail Design Team
+## Status
 
----
+Accepted
 
 ## Context
 
-Configuration could be in one monolithic file or separated by concern and ownership.
+Configuration could be in one monolithic file or separated by concern.
 
 ## Decision
 
@@ -24,6 +22,7 @@ Three schema types that can be combined:
 - Separation of concerns—proxy config rarely changes, workspace config defines the environment, application config is owned by the application team
 - Application config (`application.yaml`) can live in the application's own repository
 - Changes to one layer don't require touching others
+- Clear ownership boundaries between teams
 
 ### Negative
 
@@ -36,13 +35,9 @@ Three schema types that can be combined:
 - Workspace config: `{workspace}/workspace.yaml`
 - Application config: `{app}/application.yaml`
 
----
-
 ## Related Documents
 
 - [Configuration Schemas Spec](../specs/configuration-schemas.md) - Full specification of each configuration schema
 - [Configuration Reference](../reference/configuration.md) - Quick reference for configuration files
 
----
-
-<!-- Migrated from specs/contrail-prd.md:224-233 -->
+<!-- Migrated from specs/contrail-prd.md:223-233 -->

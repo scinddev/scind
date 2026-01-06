@@ -14,7 +14,7 @@ The algorithm uses a **workspace boundary** approach to prevent accidental detec
 
 **Related Documents**:
 - [ADR-0011: Options-Based Targeting](../decisions/0011-options-based-targeting.md)
-- [Architecture: Overview](../architecture/overview.md)
+- [Architecture: Overview](../architecture/README.md)
 - [CLI Reference](../reference/cli.md)
 
 ---
@@ -82,6 +82,74 @@ application:                               # May be null if not in an app direct
 
 ---
 
+## Detection Rules
+
+1. **Workspace context** (found first): Walk up the directory tree looking for `workspace.yaml`
+   - If found, this establishes the **workspace root**
+   - The `workspace.name` value becomes the implicit `--workspace` value
+
+2. **Application context** (bounded by workspace): Walk up from current directory toward the workspace root looking for `application.yaml`
+   - Only considers `application.yaml` files **within the workspace directory tree**
+   - If found, the directory name containing it becomes the implicit `--app` value
+   - **Never traverses above the workspace root**—this prevents vendor packages from hijacking context
+
+3. **Both can be detected simultaneously**
+
+4. **Explicit flags override detection**: `--workspace` and `--app` always take precedence over context detection
+   - When any `--app` flag is specified, context-detected application is **completely ignored**
+   - This applies even when multiple `-a` flags are used
+   - To start multiple specific apps: `contrail up -a app-one -a app-two`
+
+5. **Global commands ignore context**: `port`, `proxy`, and `config` commands don't use directory context
+
+---
+
+## Flag Override Behavior
+
+When explicit flags are provided, they **replace** (not add to) context detection:
+
+```bash
+# From within app-one directory (context would detect app-one)
+$ cd ~/workspaces/dev/app-one
+
+# This starts ONLY app-two, not both app-one and app-two
+$ contrail up -a app-two
+# Starting: app-two
+# (app-one from context is ignored)
+
+# To start multiple apps, list them all explicitly
+$ contrail up -a app-one -a app-two
+# Starting: app-one, app-two
+```
+
+This "explicit replaces context" behavior ensures predictable results—when you specify apps explicitly, you get exactly what you asked for.
+
+---
+
+## Context Feedback
+
+When context is detected, commands indicate what was found:
+
+```bash
+$ cd ~/workspaces/dev/app-one
+$ contrail app status
+# Using workspace: dev (from ../workspace.yaml)
+# Using app: app-one (from ./application.yaml)
+
+Status: running
+Services: 3 running, 0 stopped
+...
+```
+
+Use `--quiet` or `-q` to suppress context indicators:
+
+```bash
+$ contrail app status -q
+running
+```
+
+---
+
 ## Examples
 
 ### Example 1: Full Context Detection
@@ -104,37 +172,7 @@ application:                               # May be null if not in an app direct
 - Workspace: `dev` (from `../../../workspace.yaml`)
 - Application: `app-one` (from `../../application.yaml`)
 
-**CLI Output**:
-```bash
-$ contrail app status
-# Using workspace: dev (from ../../../workspace.yaml)
-# Using app: app-one (from ../../application.yaml)
-
-Status: running
-Services: 3 running, 0 stopped
-```
-
-### Example 2: Workspace Root (No Application)
-
-**Directory**: `~/workspaces/dev/`
-
-**Detected Context**:
-- Workspace: `dev`
-- Application: none
-
-**Behavior for app-specific commands**:
-```bash
-$ contrail app status
-Error: No application context detected.
-
-Either:
-  1. Run from within an application directory
-  2. Specify explicitly: contrail app status --app=NAME
-
-Available apps in 'dev': app-one, app-two, app-three
-```
-
-### Example 3: Single-App Workspace
+### Example 2: Single-App Workspace
 
 **Directory**: `~/my-project/src/`
 
@@ -150,61 +188,57 @@ Available apps in 'dev': app-one, app-two, app-three
 - Workspace: `dev`
 - Application: `myapp`
 
-Both `workspace.yaml` and `application.yaml` are in the same directory, so detection finds both immediately.
-
-### Example 4: Nested Vendor Package (Ignored)
-
-**Directory**: `~/workspaces/dev/app-one/vendor/some-package/`
-
-**Directory Structure**:
-```
-~/workspaces/dev/
-├── workspace.yaml
-└── app-one/
-    ├── application.yaml
-    └── vendor/
-        └── some-package/
-            └── application.yaml  # This package has its own application.yaml
-```
-
-**Detected Context**:
-- Workspace: `dev`
-- Application: `app-one` (NOT `some-package`)
-
-**Rationale**: The vendor package's `application.yaml` is ignored because we walk **toward** the workspace root, finding `app-one/application.yaml` first.
-
-### Example 5: Nested Workspace (Test Fixtures)
-
-**Directory**: `~/workspaces/dev/app-one/tests/fixtures/workspace-test/`
-
-**Directory Structure**:
-```
-~/workspaces/dev/
-├── workspace.yaml              # Parent workspace
-└── app-one/
-    ├── application.yaml
-    └── tests/
-        └── fixtures/
-            └── workspace-test/
-                └── workspace.yaml  # Test fixture workspace
-```
-
-**Detected Context**:
-- Workspace: from `workspace-test/workspace.yaml` (the closest/innermost wins)
-- Application: none (no application.yaml found in test fixture)
-
-**Rationale**: Test fixtures that create their own workspace should be isolated. The closest `workspace.yaml` is used.
+Both `workspace.yaml` and `application.yaml` are in the same directory.
 
 ---
 
 ## Edge Cases
 
-### No Workspace Found, Application.yaml Present
+### Nested Vendor Packages
 
-**Scenario**: User is in a directory containing `application.yaml` but no `workspace.yaml` anywhere up the tree.
+**Scenario**: User is in `app-one/vendor/some-package/` where the vendor package has its own `application.yaml`.
 
-**Behavior**:
+**Behavior**: The vendor package's `application.yaml` is ignored. The workspace's `app-one/application.yaml` is found first when walking toward the workspace root.
+
+**Rationale**: Prevents accidental hijacking by dependencies.
+
+### Workspace Within Workspace
+
+**Scenario**: A test fixture has its own `workspace.yaml` nested inside a workspace (e.g., for integration tests).
+
+**Behavior**: The closest `workspace.yaml` wins—this is the test fixture, which is the expected behavior.
+
+**Rationale**: Test fixtures that create their own workspace should be isolated.
+
+### Single-App Workspaces
+
+**Scenario**: Workspace uses `path: .`, so both `workspace.yaml` and `application.yaml` are in the same directory.
+
+**Behavior**: Detection finds both immediately.
+
+### Symlinked Directories
+
+**Scenario**: Application directory is a symlink.
+
+**Behavior**: Symlinks are resolved before detection. The resolved (real) path is used for the application name.
+
+**Rationale**: Ensures consistent naming regardless of how the directory is accessed.
+
+---
+
+## Error Handling
+
+| Error Condition | Exit Code | Message | Recovery |
+|-----------------|-----------|---------|----------|
+| No workspace found | 5 | `No workspace found (workspace.yaml) in current directory or any parent directories` | Navigate to workspace or use explicit flags |
+| No app context for app-specific command | 5 | `No application context detected` | Navigate to app directory or use `--app` flag |
+| Application.yaml outside workspace | 5 | `Found application.yaml but no workspace.yaml above it` | Create workspace or move application.yaml |
+
+### Detailed Error Messages
+
+**No Workspace Found, but application.yaml Exists**:
 ```bash
+$ cd ~/random-project
 $ contrail app status
 Error: No workspace found (workspace.yaml) in current directory or any parent directories,
 but found an application (application.yaml) at: /home/user/random-project/application.yaml
@@ -212,12 +246,9 @@ but found an application (application.yaml) at: /home/user/random-project/applic
 Create a workspace with: contrail workspace init --workspace=NAME
 ```
 
-### Neither Workspace Nor Application Found
-
-**Scenario**: User is in a directory with no Contrail configuration files.
-
-**Behavior**:
+**Neither Workspace nor Application Found**:
 ```bash
+$ cd ~
 $ contrail app status
 Error: No workspace found (workspace.yaml) in current directory or any parent directories,
 and no application (application.yaml) found either.
@@ -229,70 +260,22 @@ Either:
 Available workspaces: contrail workspace list
 ```
 
-### Explicit Flags Override Detection
-
-**Scenario**: User provides `--app` flag while in a different application directory.
-
-**Behavior**: Explicit flags completely replace context detection.
-
+**Workspace Found but No Application Context**:
 ```bash
-# From within app-one directory (context would detect app-one)
-$ cd ~/workspaces/dev/app-one
-$ contrail up -a app-two
-# Starting: app-two
-# (app-one from context is ignored)
+$ cd ~/workspaces/dev
+$ contrail app status
+Error: No application context detected.
 
-# To start multiple apps, list them all explicitly
-$ contrail up -a app-one -a app-two
-# Starting: app-one, app-two
+Either:
+  1. Run from within an application directory
+  2. Specify explicitly: contrail app status --app=NAME
+
+Available apps in 'dev': app-one, app-two, app-three
 ```
-
-This "explicit replaces context" behavior ensures predictable results—when you specify apps explicitly, you get exactly what you asked for.
-
-### Symlinked Directories
-
-**Scenario**: Application directory is a symlink.
-
-**Behavior**: Symlinks are resolved before detection. The resolved (real) path is used for the application name.
-
-**Rationale**: This ensures consistent naming regardless of how the directory is accessed.
-
----
-
-## Error Handling
-
-| Error Condition | Error Code | Message | Recovery |
-|-----------------|------------|---------|----------|
-| No workspace found | 5 | `No workspace found (workspace.yaml) in current directory or any parent directories` | Navigate to workspace or use explicit flags |
-| No app context for app-specific command | 5 | `No application context detected` | Navigate to app directory or use `--app` flag |
-| Application.yaml outside workspace | 5 | `Found application.yaml but no workspace.yaml above it` | Create workspace or move application.yaml |
 
 ### Exit Code 5
 
 Context detection failures use exit code 5 specifically to distinguish from general errors (code 1). This allows scripts to detect when explicit flags are needed.
-
----
-
-## Context Feedback
-
-When context is detected, commands indicate what was found:
-
-```bash
-$ cd ~/workspaces/dev/app-one
-$ contrail app status
-# Using workspace: dev (from ../workspace.yaml)
-# Using app: app-one (from ./application.yaml)
-
-Status: running
-Services: 3 running, 0 stopped
-```
-
-Use `--quiet` or `-q` to suppress context indicators:
-
-```bash
-$ contrail app status -q
-running
-```
 
 ---
 

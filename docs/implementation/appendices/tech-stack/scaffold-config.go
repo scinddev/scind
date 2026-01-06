@@ -1,77 +1,78 @@
-// internal/config/workspace.go
-// Workspace configuration types
+// scaffold-config.go
+// Config commands scaffold for Contrail CLI
+// Create as: internal/cli/config.go
 
-package config
+package cli
 
-// WorkspaceConfig represents workspace.yaml
-type WorkspaceConfig struct {
-	Workspace WorkspaceSpec `yaml:"workspace" validate:"required"`
+import (
+    "github.com/spf13/cobra"
+)
+
+var configCmd = &cobra.Command{
+    Use:   "config",
+    Short: "Manage Contrail configuration",
+    Long:  `View and modify Contrail configuration settings.`,
 }
 
-type WorkspaceSpec struct {
-	Name         string                    `yaml:"name" validate:"required,dns_label"`
-	Domain       string                    `yaml:"domain,omitempty"`
-	Templates    *TemplateOverrides        `yaml:"templates,omitempty"`
-	Applications map[string]ApplicationRef `yaml:"applications,omitempty"`
+var configShowCmd = &cobra.Command{
+    Use:   "show",
+    Short: "Show current configuration",
+    RunE: func(cmd *cobra.Command, args []string) error {
+        // Implementation
+        return nil
+    },
 }
 
-type TemplateOverrides struct {
-	Hostname    string `yaml:"hostname,omitempty"`
-	Alias       string `yaml:"alias,omitempty"`
-	ProjectName string `yaml:"project_name,omitempty"`
+var configGetCmd = &cobra.Command{
+    Use:   "get <key>",
+    Short: "Get a configuration value",
+    Args:  cobra.ExactArgs(1),
+    RunE: func(cmd *cobra.Command, args []string) error {
+        // args[0] contains the key
+        return nil
+    },
 }
 
-type ApplicationRef struct {
-	Path       string `yaml:"path,omitempty"`
-	Repository string `yaml:"repository,omitempty"`
+var configSetCmd = &cobra.Command{
+    Use:   "set <key> <value>",
+    Short: "Set a configuration value",
+    Args:  cobra.ExactArgs(2),
+    RunE: func(cmd *cobra.Command, args []string) error {
+        // args[0] = key, args[1] = value
+        return nil
+    },
 }
 
-// internal/config/application.go
-// Application configuration types
-
-// ApplicationConfig represents application.yaml
-type ApplicationConfig struct {
-	ExportedServices map[string]ExportedService `yaml:"exported_services" validate:"required"`
-	Flavors          map[string]Flavor          `yaml:"flavors,omitempty"`
-	DefaultFlavor    string                     `yaml:"default_flavor,omitempty"`
+var configPathCmd = &cobra.Command{
+    Use:   "path",
+    Short: "Show configuration file paths",
+    RunE: func(cmd *cobra.Command, args []string) error {
+        // Implementation
+        return nil
+    },
 }
 
-type ExportedService struct {
-	Service string `yaml:"service,omitempty" validate:"omitempty"` // Optional: defaults to map key
-	Ports   []Port `yaml:"ports" validate:"required,dive"`
+var configEditCmd = &cobra.Command{
+    Use:   "edit",
+    Short: "Open configuration in editor",
+    RunE: func(cmd *cobra.Command, args []string) error {
+        // Implementation: open $EDITOR or default editor
+        return nil
+    },
 }
 
-type Port struct {
-	Type       string `yaml:"type" validate:"required,oneof=proxied assigned"`
-	Protocol   string `yaml:"protocol,omitempty" validate:"required_if=Type proxied,omitempty,oneof=http https tcp postgresql mysql"`
-	Port       int    `yaml:"port,omitempty" validate:"omitempty,min=1,max=65535"` // Optional: inferred from Compose service
-	Visibility string `yaml:"visibility,omitempty" validate:"omitempty,oneof=public protected"` // Defaults to "protected"
-}
+func init() {
+    rootCmd.AddCommand(configCmd)
 
-type Flavor struct {
-	ComposeFiles []string `yaml:"compose_files" validate:"required,min=1"`
-}
+    configCmd.AddCommand(configShowCmd)
+    configCmd.AddCommand(configGetCmd)
+    configCmd.AddCommand(configSetCmd)
+    configCmd.AddCommand(configPathCmd)
+    configCmd.AddCommand(configEditCmd)
 
-// Config Loading: Inference and Defaults
-//
-// The config loader (internal/config/loader.go) applies these inference rules after unmarshaling:
-//
-// Service name defaulting (C-3):
-// - If ExportedService.Service is empty, set it to the map key from exported_services
-// - Example: exported_services.web with no service: field defaults to Compose service "web"
-//
-// Port inference (C-2):
-// - If Port.Port is zero (omitted), infer from the Compose service's ports: configuration
-// - If the Compose service has exactly one port, use that port
-// - If the Compose service has multiple ports, return a clear error:
-//   Error: Port must be specified for exported service "web"
-//     Application: app-one
-//     Compose service "web" has multiple ports: 80, 443, 9229
-//     Specify which port to use in application.yaml
-//
-// Compose file existence validation (A-10):
-// - At generate time, validate that all files in Flavor.ComposeFiles exist on disk
-// - If a file is missing, return a clear error:
-//   Error: Flavor "full" references non-existent file: docker-compose.worker.yaml
-//     Application: app-two
-//     Available compose files: docker-compose.yaml, docker-compose.dev.yaml
+    // config show flags
+    configShowCmd.Flags().Bool("resolved", false, "show fully resolved configuration with all defaults")
+
+    // config edit flags
+    configEditCmd.Flags().String("file", "proxy", "which config to edit: proxy, workspace, or application")
+}

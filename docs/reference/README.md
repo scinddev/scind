@@ -1,21 +1,16 @@
 # Reference Documentation
 
-This directory contains reference documentation for quick lookup of commands, options, and configuration.
+API and configuration reference for Contrail.
 
-## Documents
+## Contents
 
 | Document | Description |
 |----------|-------------|
-| [CLI Reference](./cli.md) | Command-line interface documentation |
-| [Configuration Reference](./configuration.md) | Configuration file schemas and options |
+| [cli.md](./cli.md) | CLI command reference |
+| [configuration.md](./configuration.md) | Configuration file reference |
 
 ## Appendices
 
-Large content is stored in:
-- `appendices/cli/` — Detailed examples, error messages
-- `appendices/configuration/` — Complete examples, schemas
-
-## Related Documents
-
-- [Specifications](../specs/) — Detailed behavior specifications
-- [Architecture](../architecture/overview.md) — System architecture
+- `appendices/cli/detailed-examples.md` - Complete workflow examples
+- `appendices/cli/error-messages.md` - Error message catalog
+- `appendices/configuration/complete-examples.md` - Full configuration examples

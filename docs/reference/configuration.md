@@ -1,26 +1,44 @@
 # Configuration Reference
 
-Quick reference for all configuration files and options.
+**Status**: Draft
 
-<!-- Source: specs/contrail-technical-spec.md, specs/contrail-cli-reference.md -->
-
----
-
-## File Locations
-
-| File | Location | Purpose |
-|------|----------|---------|
-| proxy.yaml | `~/.config/contrail/proxy.yaml` | Global proxy settings |
-| state.yaml | `~/.config/contrail/state.yaml` | Global port assignments and inventory |
-| workspaces.yaml | `~/.config/contrail/workspaces.yaml` | Workspace registry |
-| workspace.yaml | `{workspace}/workspace.yaml` | Workspace definition |
-| application.yaml | `{app}/application.yaml` | Application settings |
+This document is the authoritative reference for all Contrail configuration files, their schemas, and their locations.
 
 ---
 
-## proxy.yaml
+## Overview
 
-Global Traefik and TLS configuration.
+Contrail uses three schema types, separating structure (configuration) from state (runtime):
+
+| Aspect | Structure (config) | State (runtime) |
+|--------|-------------------|-----------------|
+| Proxy settings | `proxy.yaml` | - |
+| Port assignments | - | `~/.config/contrail/state.yaml` |
+| What apps exist | `workspace.yaml` | - |
+| Available flavors | `application.yaml` | - |
+| Active flavor | - | `.generated/state.yaml` or CLI |
+| Active branch | - | git working directory |
+| Running containers | - | Docker |
+
+---
+
+## Configuration Files
+
+### File Locations Summary
+
+| File | Location | Scope | Purpose |
+|------|----------|-------|---------|
+| `proxy.yaml` | `~/.config/contrail/proxy.yaml` | Global | Proxy domain, TLS, dashboard settings |
+| `state.yaml` | `~/.config/contrail/state.yaml` | Global | Port assignments, port inventory |
+| `workspaces.yaml` | `~/.config/contrail/workspaces.yaml` | Global | Workspace registry |
+| `workspace.yaml` | `{workspace}/workspace.yaml` | Per-workspace | Workspace definition, applications |
+| `application.yaml` | `{app}/application.yaml` | Per-application | Flavors, exported services |
+| `state.yaml` | `{workspace}/.generated/state.yaml` | Per-workspace | Active flavors (runtime) |
+| `manifest.yaml` | `{workspace}/.generated/manifest.yaml` | Per-workspace | Computed values (read-only) |
+
+---
+
+## Proxy Configuration
 
 **Location**: `~/.config/contrail/proxy.yaml` (global/per-user)
 
@@ -39,18 +57,6 @@ proxy:
     key_file: ~/.config/contrail/certs/wildcard.key
 ```
 
-### Field Reference
-
-| Field | Type | Required | Default | Description |
-|-------|------|----------|---------|-------------|
-| `proxy.domain` | string | No | `contrail.test` | Base domain for public hostnames |
-| `proxy.traefik_image` | string | No | `traefik:v3.2.3` | Traefik Docker image |
-| `proxy.dashboard.enabled` | bool | No | `true` | Enable Traefik dashboard |
-| `proxy.dashboard.port` | int | No | `8080` | Dashboard port |
-| `proxy.tls.mode` | enum | No | `auto` | TLS mode: `auto`, `custom`, `disabled` |
-| `proxy.tls.cert_file` | string | If custom | - | Path to certificate file |
-| `proxy.tls.key_file` | string | If custom | - | Path to private key file |
-
 ### TLS Modes
 
 | Mode | Behavior |
@@ -67,11 +73,129 @@ proxy:
 
 ---
 
-## state.yaml (Global)
+## Proxy Infrastructure
 
-Global port assignments and inventory.
+**Location**: `~/.config/contrail/proxy/` (global/per-user)
+
+The proxy is implemented as a Docker Compose project managed by Contrail. It runs a Traefik instance that handles reverse proxying for all workspaces on the host.
+
+### Directory Structure
+
+Created by `contrail proxy init`:
+
+```
+~/.config/contrail/proxy/
+├── docker-compose.yaml    # Traefik service definition
+├── traefik.yaml          # Traefik static configuration
+├── dynamic/              # Dynamic configuration (auto-discovered)
+│   └── tls.yaml          # TLS certificate configuration (generated)
+└── certs/                # TLS certificates (copied or generated here)
+```
+
+### Generated docker-compose.yaml
+
+```yaml
+name: contrail-proxy
+
+services:
+  traefik:
+    image: ${TRAEFIK_IMAGE:-traefik:v3.2.3}  # Configurable via proxy.yaml
+    command:
+      - "--configFile=/etc/traefik/traefik.yaml"
+      - "--api.dashboard=true"               # Set to false if dashboard.enabled: false
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"                          # Only included if dashboard.enabled: true (port from dashboard.port)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik.yaml:/etc/traefik/traefik.yaml:ro
+      - ./dynamic:/etc/traefik/dynamic:ro
+      - ./certs:/etc/traefik/certs:ro
+    networks:
+      - contrail-proxy
+    restart: unless-stopped
+    labels:
+      - "contrail.managed=true"
+      - "contrail.component=proxy"
+
+networks:
+  contrail-proxy:
+    external: true
+```
+
+### Generated traefik.yaml
+
+```yaml
+api:
+  dashboard: true                          # Set based on proxy.yaml dashboard.enabled (default: true)
+
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+
+providers:
+  docker:
+    exposedByDefault: false
+    network: contrail-proxy
+  file:
+    directory: /etc/traefik/dynamic
+    watch: true
+```
+
+### Proxy Lifecycle
+
+- `proxy init`: Creates the directory structure and configuration files
+- `proxy up`: Starts the Traefik container (creates `contrail-proxy` network if needed)
+- `proxy down`: Stops the Traefik container
+- `workspace up`: Automatically runs `proxy up` if proxy is not running
+
+**Recovery**: If a user manually edits the proxy configuration and breaks it, `proxy init --force` regenerates the default configuration.
+
+---
+
+## Workspace Registry
+
+**Location**: `~/.config/contrail/workspaces.yaml` (global/per-user)
+
+This file tracks all known workspaces across the system, enabling `workspace list` and preventing workspace name collisions.
+
+```yaml
+# AUTO-GENERATED - Managed by Contrail
+# Records known workspaces and their locations
+
+workspaces:
+  dev:
+    path: /home/user/workspaces/dev
+    registered_at: 2024-12-28T10:30:00Z
+    last_seen: 2024-12-29T14:22:00Z
+  review:
+    path: /home/user/workspaces/review
+    registered_at: 2024-12-28T11:00:00Z
+    last_seen: 2024-12-29T13:15:00Z
+  myapp-dev:
+    path: /home/user/projects/myapp
+    registered_at: 2024-12-29T09:00:00Z
+    last_seen: 2024-12-29T14:30:00Z
+```
+
+### Registry Behavior
+
+- `workspace init` automatically registers the workspace, failing if the name is already registered to a different path
+- `workspace list` reads the registry and optionally validates entries still exist
+- `workspace prune` removes stale entries (paths that no longer contain `workspace.yaml`)
+
+**Docker label fallback**: If the registry file is missing or corrupted, Contrail can reconstruct it by querying Docker for containers with `workspace.name` and `workspace.path` labels. This provides resilience against accidental deletion of `~/.config/contrail/workspaces.yaml`.
+
+---
+
+## Global State
 
 **Location**: `~/.config/contrail/state.yaml` (global/per-user)
+
+This file tracks port assignments for `assigned` type ports across all workspaces, plus an inventory of port availability for garbage collection and debugging.
 
 ```yaml
 # AUTO-GENERATED - Managed by Contrail
@@ -120,18 +244,9 @@ port_inventory:
 4. Subsequent runs use the recorded port (sticky assignment)
 5. The `--force` flag on `workspace generate` regenerates override files but preserves existing port assignments
 
-### Port Status Values
-
-| Status | Description |
-|--------|-------------|
-| `assigned` | Port is assigned to a Contrail service |
-| `unavailable` | Port is in use by an external process |
-| `released` | Port was previously assigned but is now free |
-
 ### Port Conflict at Startup
 
 If a previously assigned port has become unavailable (e.g., taken by an external process) when `workspace up` runs, Contrail fails with a clear error:
-
 ```
 Error: Port conflict detected for app-one
 
@@ -144,91 +259,78 @@ To resolve:
   contrail generate --force    # Regenerate with new port assignment
 ```
 
----
+### Port Status Transitions
 
-## workspaces.yaml
+- `unavailable` -> `assigned`: Port became free, Contrail claimed it
+- `assigned` -> `released`: Workspace/app removed, port freed
+- `unavailable` -> `released`: External process stopped, `contrail port gc` cleaned it up
 
-Workspace registry tracking all known workspaces.
+### Port Availability Checking
 
-**Location**: `~/.config/contrail/workspaces.yaml` (global/per-user)
-
-```yaml
-# AUTO-GENERATED - Managed by Contrail
-# Records known workspaces and their locations
-
-workspaces:
-  dev:
-    path: /home/user/workspaces/dev
-    registered_at: 2024-12-28T10:30:00Z
-    last_seen: 2024-12-29T14:22:00Z
-  review:
-    path: /home/user/workspaces/review
-    registered_at: 2024-12-28T11:00:00Z
-    last_seen: 2024-12-29T13:15:00Z
-  myapp-dev:
-    path: /home/user/projects/myapp
-    registered_at: 2024-12-29T09:00:00Z
-    last_seen: 2024-12-29T14:30:00Z
-```
-
-### Registry Behavior
-
-- `workspace init` automatically registers the workspace, failing if the name is already registered to a different path
-- `workspace list` reads the registry and optionally validates entries still exist
-- `workspace prune` removes stale entries (paths that no longer contain `workspace.yaml`)
-
-**Docker label fallback**: If the registry file is missing or corrupted, Contrail can reconstruct it by querying Docker for containers with `workspace.name` and `workspace.path` labels.
+`contrail port scan` and `contrail port gc` check port availability by attempting to bind to each tracked port using `net.Listen("tcp", ":PORT")`. Ports that can be bound are marked as available; ports that fail with "address already in use" remain in their current state. This method is reliable across platforms and doesn't require parsing system-specific files like `/proc/net`.
 
 ---
 
-## workspace.yaml
-
-Workspace definition and application references.
+## Workspace Configuration
 
 **Location**: `{workspace}/workspace.yaml`
 
 ```yaml
 workspace:
-  name: main                            # Workspace name (required)
-  # network: main-custom                # Optional. Defaults to {name}-internal
+  name: dev                           # Required. Used as prefix for project names and hostnames
+  # network: dev-custom               # Optional. Defaults to {name}-internal
   applications:
-    frontend:
-      repository: git@github.com:company/frontend.git  # Optional. For initial cloning
-    backend:
-      repository: git@github.com:company/backend.git
-    shared-db:
-      repository: git@github.com:company/shared-db.git
-      path: ./custom-path               # Optional. Defaults to ./{app-name}
-  templates:                            # Optional. Template customization
-    hostname: "%WORKSPACE_NAME%-%APPLICATION_NAME%-%EXPORTED_SERVICE%.%PROXY_DOMAIN%"
-    alias: "%APPLICATION_NAME%-%EXPORTED_SERVICE%"
-    project-name: "%WORKSPACE_NAME%-%APPLICATION_NAME%"
+    app-one:
+      repository: git@github.com:company/app-one.git  # Optional. For initial cloning
+    app-two:
+      repository: git@github.com:company/app-two.git
+    app-three:
+      repository: git@github.com:company/app-three.git
+      path: ./custom-path             # Optional. Defaults to ./{app-name}
 ```
 
-### Field Reference
-
-| Field | Type | Required | Default | Description |
-|-------|------|----------|---------|-------------|
-| `workspace.name` | string | Yes | - | Workspace name (used in hostnames) |
-| `workspace.network` | string | No | `{name}-internal` | Custom network name |
-| `workspace.applications` | object | Yes | - | Map of applications |
-| `workspace.applications.<name>.repository` | string | No | - | Git repository URL for cloning |
-| `workspace.applications.<name>.path` | string | No | `./{name}` | Path to application directory |
-| `workspace.templates` | object | No | (defaults) | Template variable patterns |
-
 ### Single-Application Workspace
-
-When promoting an existing Docker Compose project:
 
 ```yaml
 workspace:
   name: dev
   applications:
     myapp:
-      path: .                           # Application in workspace root directory
+      path: .                         # Application in workspace root directory
 ```
 
-### Template Variables
+### Conventions
+
+- Application name = directory path (e.g., `app-one` -> `./{workspace}/app-one/`)
+- Network name defaults to `{workspace.name}-internal`
+
+**Note**: Branch (`ref`) and flavor are runtime state, not configuration.
+
+---
+
+## Template Variables
+
+Contrail uses template variables to generate hostnames, aliases, and other computed values. Templates can be customized at the workspace level.
+
+### Default Templates
+
+Built-in defaults:
+
+```yaml
+workspace:
+  name: dev
+  templates:
+    # Public hostname pattern
+    hostname: "%WORKSPACE_NAME%-%APPLICATION_NAME%-%EXPORTED_SERVICE%.%PROXY_DOMAIN%"
+
+    # Internal network alias pattern
+    alias: "%APPLICATION_NAME%-%EXPORTED_SERVICE%"
+
+    # Docker Compose project name
+    project-name: "%WORKSPACE_NAME%-%APPLICATION_NAME%"
+```
+
+### Available Variables
 
 | Variable | Scope | Description | Example |
 |----------|-------|-------------|---------|
@@ -239,16 +341,49 @@ workspace:
 | `%APPLICATION_FLAVOR%` | Application | Resolved flavor | `default` |
 | `%EXPORTED_SERVICE%` | Export | Key from `exported_services` | `web-debug` |
 | `%SERVICE_NAME%` | Export | Underlying Compose service | `web` |
-| `%SERVICE_PORT%` | Export | Container port number | `8080` |
+| `%SERVICE_PORT%` | Export | Container port number (see note) | `8080` |
 | `%SERVICE_PROTOCOL%` | Export | Protocol (for proxied) | `https` |
+
+**Note on `%SERVICE_PORT%`**: This variable provides the container's internal port number. While not used in the default templates, it's available for advanced customization such as adding debugging labels or custom routing rules that need to reference the original container port (e.g., `contrail.debug.port=%SERVICE_PORT%`).
+
+### Template Resolution Timing
+
+Template variables are resolved at **generation time** (when `workspace generate` or `workspace up` runs). The resolved values are written into the generated override files.
+
+**Flavor changes**: When `contrail flavor set FLAVOR` is executed, it:
+1. Updates `.generated/state.yaml` with the new flavor
+2. Immediately regenerates the affected application's override file
+3. If the application is currently running, displays a warning:
+   ```
+   Warning: Application "app-name" is currently running.
+   The new flavor has been applied to the configuration, but running
+   containers still use the previous flavor.
+
+   To apply the flavor change:
+     contrail app restart -a app-name
+   ```
+
+This ensures override files always reflect the current flavor without requiring a separate `generate` step.
+
+### Running Application Considerations
+
+Flavor changes affect running applications in different ways:
+
+| Scenario | Effect | Resolution |
+|----------|--------|------------|
+| Flavor adds services | New services defined in override but not running | Run `contrail up` to start new services |
+| Flavor removes services | Services still running but not in override | Run `contrail up` to stop orphaned services |
+| Flavor changes environment | Running containers have old values | Run `contrail app restart` to pick up changes |
+
+**Orphaned service handling**: When `contrail up` is run after a flavor change that removes services, Contrail passes `--remove-orphans` to Docker Compose to stop and remove containers for services no longer defined in the active configuration.
 
 ---
 
-## application.yaml
-
-Application-specific configuration (service contract).
+## Application Configuration (Service Contract)
 
 **Location**: `{application}/application.yaml` (lives in the application's git repository)
+
+This file defines the application's exported services and flavors. The application name is inferred from the directory name.
 
 ```yaml
 default_flavor: full                    # Optional. Defaults to "default" if not specified
@@ -269,106 +404,125 @@ exported_services:
       - type: proxied
         protocol: https
         visibility: public
-        container_port: 80
       - type: proxied
         protocol: http
         visibility: protected
-        container_port: 80
   api:
-    service: node                       # Map to different Compose service name
     ports:
       - type: proxied
-        protocol: http
+        protocol: https
+        visibility: public
+  worker:
+    ports:
+      - type: assigned
+        port: 9000
         visibility: protected
-        container_port: 3000
+```
+
+### Exported Service Configuration
+
+Each key in `exported_services` is the "exported service name" used for hostname generation, network aliases, and environment variables. By default, this key maps to a Compose service of the same name.
+
+**Mapping to a different Compose service**: Use the `service:` property when the exported name differs from the Compose service name:
+
+```yaml
+exported_services:
   db:
-    service: postgres
+    service: postgres                   # Maps to Compose service "postgres", exported as "db"
     ports:
       - type: assigned
         port: 5432
         visibility: protected
 ```
 
-### Field Reference
-
-| Field | Type | Required | Default | Description |
-|-------|------|----------|---------|-------------|
-| `default_flavor` | string | No | `default` | Default flavor to use |
-| `flavors` | object | No | `{default: {}}` | Named configurations |
-| `flavors.<name>.compose_files` | array | No | `[docker-compose.yaml]` | Docker Compose files for this flavor |
-| `exported_services` | object | No | `{}` | Services to expose |
-| `exported_services.<name>.service` | string | No | key name | Compose service name |
-| `exported_services.<name>.ports` | array | Yes | - | Port configurations |
-
 ### Port Configuration
 
-| Field | Type | Required | Default | Description |
-|-------|------|----------|---------|-------------|
-| `type` | enum | Yes | - | `proxied` or `assigned` |
-| `protocol` | string | If proxied | - | `http`, `https`, or future SNI types |
-| `visibility` | enum | No | `protected` | `public` or `protected` |
-| `container_port` | int | See rules | - | Container port |
-| `port` | int | If assigned | - | Preferred host port |
+Each exported service declares one or more ports:
 
-### Port Inference Rules
+```yaml
+ports:
+  - type: proxied                       # Required: proxied or assigned
+    protocol: https                     # Required for proxied: http, https, or future SNI types
+    port: 8080                          # Optional: container port (see inference rules below)
+    visibility: public                  # Optional: public or protected (documentation only)
+```
 
-- If the Compose service has exactly one port in its `ports:` configuration, that port is used as the default
-- If the Compose service has multiple ports, `container_port:` or `port:` must be explicitly specified
-- For Compose port mappings like `"80:8080"`, the container port (`8080`) is used
-
-### Port Type Constraints
-
+**Port type constraints**:
 - Each exported service may have at most **one `http`** and **one `https`** proxied port
 - Each exported service may have **multiple `assigned`** ports
 - If an exported service needs more than one http or https proxy mapping, create separate exported services
 
+**Port inference rules**:
+- If the Compose service has exactly one port in its `ports:` configuration, that port is used as the default
+- If the Compose service has multiple ports, `port:` must be explicitly specified
+- For Compose port mappings like `"80:8080"`, the container port (`8080`) is used
+
+### Application Configuration Examples
+
+**Simple web service** (single port in Compose, inferred):
+
+```yaml
+# docker-compose.yaml
+services:
+  web:
+    ports:
+      - "8080"
+```
+
+```yaml
+# application.yaml
+exported_services:
+  web:
+    ports:
+      - type: proxied
+        protocol: https
+        visibility: public
+```
+
+Result: HTTPS proxy to container port 8080. Environment variables will use proxy port 443.
+
+**Database with direct port** (assigned port, auto-assigned if unavailable):
+
+```yaml
+# application.yaml
+exported_services:
+  db:
+    service: mysql
+    ports:
+      - type: assigned
+        port: 3306
+        visibility: protected
+```
+
+**Service with both proxy and direct ports**:
+
+```yaml
+# application.yaml
+exported_services:
+  web:
+    ports:
+      - type: proxied
+        protocol: https
+        port: 443
+        visibility: public
+      - type: proxied
+        protocol: http
+        port: 80
+        visibility: protected
+      - type: assigned
+        port: 9229
+        visibility: protected           # Node.js debug port
+```
+
+For complete configuration examples, see [appendices/configuration/complete-examples.md](./appendices/configuration/complete-examples.md).
+
 ---
 
-## Port Types and Proxying
-
-| Type | Protocol | Behavior | Traefik | Environment Variables |
-|------|----------|----------|---------|----------------------|
-| `proxied` | `https` | HTTPS proxy via Traefik | Yes (HTTPS router) | `*_HOST`, `*_PORT`, `*_SCHEME`, `*_URL` |
-| `proxied` | `http` | HTTP proxy via Traefik | Yes (HTTP router) | `*_HOST`, `*_PORT`, `*_SCHEME`, `*_URL` |
-| `proxied` | `tcp`, `postgresql`, etc. | SNI-based TCP proxy (future) | Yes (TCP router) | `*_HOST`, `*_PORT` |
-| `assigned` | - | Direct port binding, auto-assigned if unavailable | No | `*_HOST`, `*_PORT` |
-
-### Type Descriptions
-
-- **proxied**: Traffic is routed through Traefik. The exported service gets a hostname (`{workspace}-{app}-{export}.{domain}`) and Traefik labels are generated. Environment variables contain the **proxy values** (hostname and proxy port 80/443), not the container port.
-- **assigned**: The port is bound directly to the host. If the specified port is unavailable (used by another workspace or external process), Contrail increments until an available port is found and records the assignment in global state. Environment variables point to the internal alias and assigned host port.
-
-### Visibility
-
-Each port can have a `visibility` of `public` or `protected` (defaults to `protected` if not specified). This is primarily **documentation** to communicate intent:
-
-- **public**: This port is intended for external/production use
-- **protected** (default): This port exists for development/debugging but should not be depended on in production
-
-Visibility does not change Contrail's core behavior—all exported services receive internal network aliases and environment variables regardless of visibility. Both public and protected proxied services route through Traefik.
-
-**Docker label exposure**: Visibility is included in the generated Docker labels (`contrail.export.<name>.proxy.<protocol>.visibility`), enabling external tools to distinguish between public and protected services.
-
----
-
-## Flavor Resolution
-
-Flavor is resolved in this order:
-
-1. CLI flag (`--flavor=X`)
-2. State file (`.generated/state.yaml`)
-3. Application's `default_flavor`
-4. `"default"`
-
----
-
-## Generated Files
-
-### .generated/state.yaml
-
-Runtime state tracking active flavors.
+## Workspace State
 
 **Location**: `{workspace}/.generated/state.yaml` (gitignored)
+
+Runtime state is tracked separately from configuration. State represents explicit choices made by the user (e.g., which flavor to use), not computed values.
 
 ```yaml
 # AUTO-GENERATED - Managed by workspace tooling
@@ -379,13 +533,25 @@ applications:
     flavor: lite                      # Overridden from default
 ```
 
+### Flavor Resolution Order
+
+1. CLI flag (`--flavor=X`)
+2. State file (`.generated/state.yaml`)
+3. Application's `default_flavor`
+4. `"default"`
+
 ---
 
-### .generated/manifest.yaml
-
-Computed, read-only view of workspace topology.
+## Generated Manifest
 
 **Location**: `{workspace}/.generated/manifest.yaml` (gitignored)
+
+The manifest is a computed, read-only view of the workspace's current state. It captures all resolved values (hostnames, aliases, environment variables) derived from configuration and state. This serves several purposes:
+
+- **Discoverability**: Humans and tools can inspect one file to understand the workspace topology
+- **Tool integration**: Dashboards, DNS updaters, or service discovery tools can consume this structured data
+- **Debugging**: Inspect computed hostnames and environment variables without reconstructing from templates
+- **Caching**: Contrail can compare the manifest against configuration to determine if regeneration is needed
 
 ```yaml
 # AUTO-GENERATED - Computed from configuration and state
@@ -436,11 +602,11 @@ applications:
 
 ---
 
-### .generated/*.override.yaml
-
-Generated Docker Compose override files.
+## Generated Override Files
 
 **Location**: `{workspace}/.generated/{application-name}.override.yaml`
+
+Generated Docker Compose override files wire applications into the Contrail infrastructure. These files are regenerated when configuration changes.
 
 ```yaml
 # AUTO-GENERATED - Do not edit directly
@@ -511,9 +677,7 @@ networks:
     external: true
 ```
 
----
-
-## Manual Override Files
+### Manual Override Files
 
 **Location**: `{workspace}/overrides/{application-name}.yaml`
 
@@ -540,6 +704,35 @@ services:
 ```
 docker compose -f base.yaml -f .generated/app.override.yaml -f overrides/app.yaml
 ```
+
+---
+
+## Port Types and Proxying
+
+| Type | Protocol | Behavior | Traefik | Environment Variables |
+|------|----------|----------|---------|----------------------|
+| `proxied` | `https` | HTTPS proxy via Traefik | Yes (HTTPS router) | `*_HOST`, `*_PORT`, `*_SCHEME`, `*_URL` |
+| `proxied` | `http` | HTTP proxy via Traefik | Yes (HTTP router) | `*_HOST`, `*_PORT`, `*_SCHEME`, `*_URL` |
+| `proxied` | `tcp`, `postgresql`, etc. | SNI-based TCP proxy (future) | Yes (TCP router) | `*_HOST`, `*_PORT` |
+| `assigned` | - | Direct port binding, auto-assigned if unavailable | No | `*_HOST`, `*_PORT` |
+
+### Type Descriptions
+
+- **proxied**: Traffic is routed through Traefik. The exported service gets a hostname (`{workspace}-{app}-{export}.{domain}`) and Traefik labels are generated. Environment variables contain the **proxy values** (hostname and proxy port 80/443), not the container port.
+- **assigned**: The port is bound directly to the host. If the specified port is unavailable (used by another workspace or external process), Contrail increments until an available port is found and records the assignment in global state. Environment variables point to the internal alias and assigned host port.
+
+---
+
+## Visibility
+
+Each port can have a `visibility` of `public` or `protected` (defaults to `protected` if not specified). This is primarily **documentation** to communicate intent:
+
+- **public**: This port is intended for external/production use
+- **protected** (default): This port exists for development/debugging but should not be depended on in production
+
+Visibility does not change Contrail's core behavior—all exported services receive internal network aliases and environment variables regardless of visibility. Both public and protected proxied services route through Traefik.
+
+**Docker label exposure**: Visibility is included in the generated Docker labels (`contrail.export.<name>.proxy.<protocol>.visibility`), enabling external tools to distinguish between public and protected services.
 
 ---
 
@@ -763,12 +956,16 @@ workspaces/
 
 ---
 
-## Related Documents
+## Related Documentation
 
-- [CLI Reference](./cli.md)
-- [Configuration Schemas Spec](../specs/configuration-schemas.md)
-- [Port Types Spec](../specs/port-types.md)
-- [Docker Labels Spec](../specs/docker-labels.md)
-- [ADR-0006: Three Configuration Schemas](../decisions/0006-three-configuration-schemas.md)
+- [Configuration Schemas Spec](../specs/configuration-schemas.md) - Detailed schema specification
+- [Port Types Spec](../specs/port-types.md) - Port type behaviors
+- [Docker Labels Spec](../specs/docker-labels.md) - Label conventions
+- [CLI Reference](./cli.md) - Commands that use these configurations
+- [ADR-0006: Three Configuration Schemas](../decisions/0006-three-configuration-schemas.md) - Design rationale
 
-<!-- See appendices/configuration/ for complete examples and JSON schemas -->
+---
+
+## Source Attribution
+
+<!-- Source: specs/contrail-technical-spec.md:216-765 -->

@@ -1,14 +1,12 @@
 # ADR-0002: Two-Layer Networking
 
-**Status**: Accepted
-**Date**: 2024-12
-**Decision-Makers**: Contrail Design Team
+## Status
 
----
+Accepted
 
 ## Context
 
-Services need both external access (via reverse proxy) and internal access (between applications in the same workspace).
+Services need both external access (via reverse proxy) and internal access (between applications).
 
 ## Decision
 
@@ -33,12 +31,8 @@ Implement two network layers:
 
 - Each workspace has its own internal network named `{workspace}-internal`
 
----
-
 ## Related Documents
 
 - [Proxy Infrastructure Spec](../specs/proxy-infrastructure.md) - Implements the two-layer networking architecture
 
----
-
-<!-- Migrated from specs/contrail-prd.md:171-179 -->
+<!-- Migrated from specs/contrail-prd.md:170-179 -->

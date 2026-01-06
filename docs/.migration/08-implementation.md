@@ -1,301 +1,138 @@
-# Migration Step: Layer 7 — Implementation
+# Migration Step: Layer 7 - Implementation
 
-**Prerequisites**: Read `common-instructions.md`, complete Layers 4-5
-**Estimated Size**: 1 file + appendices, approximately 1,700 lines total
+**Prerequisites**: Read `common-instructions.md`
+**Estimated Size**: 1 file + appendices, approximately 1,600 lines
 
 ---
 
 ## Overview
 
-Extract implementation documentation from the Go stack specification. This includes dependency decisions, code patterns, and scaffolding.
+Create implementation documentation from `specs/contrail-go-stack.md`.
 
-**Source document**: `specs/contrail-go-stack.md` (entire file, 1,615 lines)
+**Target Files**:
+1. `implementation/tech-stack.md` - Go technology stack and scaffolding
 
 ---
 
-## File: `implementation/tech-stack.md`
+## Implementation: `implementation/tech-stack.md`
 
-**Sources**:
-- `specs/contrail-go-stack.md:1-58` (Overview, Philosophy)
-- `specs/contrail-go-stack.md:86-400` (Core Dependencies)
-- `specs/contrail-go-stack.md:400-800` (Patterns)
-- `specs/contrail-go-stack.md:800-1200` (Code Structure)
+**Source**: `specs/contrail-go-stack.md` (entire file ~1,616 lines)
 
-### Content Structure
+This file contains significant code blocks that exceed the appendix threshold. Create with appendices:
+
+**Main file content**:
+- Stack Overview (lines 9-55)
+- Dependency Rationale (lines 57-88)
+- Architecture Patterns (lines 88-182)
+- Project Structure (lines 184-267)
+- CLI to Cobra Command Mapping table (lines 1479-1529)
+- Testing Strategy overview (lines 1530-1561)
+- Implementation Priority (lines 1563-1594)
+
+**Appendices** (code blocks >= 50 lines):
+- `implementation/appendices/tech-stack/scaffold-main.go` - Entry point scaffold
+- `implementation/appendices/tech-stack/scaffold-app.go` - App commands scaffold
+- `implementation/appendices/tech-stack/scaffold-cmd-root.go` - Root command scaffold
+- `implementation/appendices/tech-stack/scaffold-workspace.go` - Workspace commands scaffold
+- `implementation/appendices/tech-stack/scaffold-aliases.go` - Aliases scaffold
+- `implementation/appendices/tech-stack/scaffold-config.go` - Config types scaffold
+- `implementation/appendices/tech-stack/scaffold-context.go` - Context detection scaffold
+- `implementation/appendices/tech-stack/scaffold-generator.go` - Generator scaffold
+- `implementation/appendices/tech-stack/goreleaser.yaml` - GoReleaser config
+- `implementation/appendices/tech-stack/makefile` - Makefile
+
+---
+
+## Code Block Mapping
+
+| Source Lines | Content | Target |
+|--------------|---------|--------|
+| 17-43 | go.mod dependencies | Main file |
+| 47-54 | Future dependencies | Main file |
+| 94-105 | Context detection pattern | Main file (small) |
+| 123-128 | Shell completion pattern | Main file (small) |
+| 134-143 | Embed shell scripts | Main file (small) |
+| 155-167 | Docker compose pattern | Main file (small) |
+| 175-181 | Port check pattern | Main file (small) |
+| 306-427 | root.go scaffold | Appendix: scaffold-cmd-root.go |
+| 432-572 | workspace.go scaffold | Appendix: scaffold-workspace.go |
+| 578-700 | app.go scaffold | Appendix: scaffold-app.go |
+| 706-757 | flavor.go scaffold | Appendix: scaffold-flavor.go |
+| 763-838 | aliases.go scaffold | Appendix: scaffold-aliases.go |
+| 844-898 | compose_prefix.go scaffold | Appendix: scaffold-compose-prefix.go |
+| 904-1011 | proxy.go scaffold | Appendix: scaffold-proxy.go |
+| 1017-1115 | port.go scaffold | Appendix: scaffold-port.go |
+| 1120-1196 | config.go scaffold | Appendix: scaffold-config.go |
+| 1200-1249 | validate.go scaffold | Appendix: scaffold-validate.go |
+| 1254-1301 | urls.go + open.go scaffold | Appendix: scaffold-utility.go |
+| 1305-1363 | init_shell.go scaffold | Appendix: scaffold-init-shell.go |
+| 1369-1425 | config/workspace.go types | Appendix: scaffold-config-types.go |
+| 1455-1467 | main.go entry point | Appendix: scaffold-main.go |
+
+---
+
+## Also Create: `implementation/README.md`
 
 ```markdown
-# Technology Stack
+# Implementation Documentation
 
-**Version**: 1.0.0
-**Date**: 2024-12
+Implementation guides and developer documentation for Contrail.
 
----
+## Contents
 
-## Overview
+| Document | Description |
+|----------|-------------|
+| [tech-stack.md](./tech-stack.md) | Go technology stack and project scaffolding |
 
-Contrail is implemented in Go, chosen for:
-- Single binary distribution (no runtime dependencies)
-- Excellent CLI library ecosystem
-- Strong Docker SDK support
-- Fast compilation and execution
+## Appendices
 
----
-
-## Philosophy
-
-### Minimal Dependencies
-
-Only include dependencies that provide significant value. Prefer standard library where reasonable.
-
-### No Frameworks
-
-Use libraries, not frameworks. Keep control of the application lifecycle.
-
-### Explicit Over Magic
-
-Configuration and behavior should be explicit and traceable.
-
----
-
-## Core Dependencies
-
-### CLI: Cobra + Viper
-
-**Cobra** provides command structure, **Viper** handles configuration.
-
-```go
-import (
-    "github.com/spf13/cobra"
-    "github.com/spf13/viper"
-)
-```
-
-**Why**: Industry standard for Go CLIs. Used by kubectl, docker, gh.
-
-**Patterns**:
-- One command per file in `cmd/`
-- Viper binds flags to config automatically
-- Environment variables via `CONTRAIL_` prefix
-
-### YAML: gopkg.in/yaml.v3
-
-```go
-import "gopkg.in/yaml.v3"
-```
-
-**Why**: Full YAML 1.2 support, better than encoding/json for config files.
-
-**Patterns**:
-- Strict unmarshaling to catch typos
-- Custom unmarshalers for complex types
-
-### Docker: docker/docker
-
-```go
-import (
-    "github.com/docker/docker/client"
-    "github.com/docker/docker/api/types"
-)
-```
-
-**Why**: Official Docker SDK, required for container and network operations.
-
-**Patterns**:
-- Create client with `client.NewClientWithOpts(client.FromEnv)`
-- Always close response bodies
-- Use context for cancellation
-
-### Validation: go-playground/validator
-
-```go
-import "github.com/go-playground/validator/v10"
-```
-
-**Why**: Declarative validation via struct tags.
-
-**Patterns**:
-- Validate at load time, not use time
-- Custom validators for domain rules
-
-### Testing: testify
-
-```go
-import (
-    "github.com/stretchr/testify/assert"
-    "github.com/stretchr/testify/require"
-    "github.com/stretchr/testify/mock"
-)
-```
-
-**Why**: Cleaner assertions, mock generation.
-
-**Patterns**:
-- `assert` for non-fatal checks
-- `require` for fatal preconditions
-- Mocks generated with mockery
-
----
-
-## Project Structure
-
-```
-contrail/
-├── cmd/                    # CLI commands
-│   ├── root.go
-│   ├── up.go
-│   ├── down.go
-│   └── ...
-├── internal/               # Private packages
-│   ├── config/             # Configuration loading
-│   ├── context/            # Context detection
-│   ├── generator/          # Override generation
-│   ├── docker/             # Docker client wrapper
-│   └── workspace/          # Workspace operations
-├── pkg/                    # Public packages (if any)
-├── main.go                 # Entry point
-├── go.mod
-└── go.sum
-```
-
-**Key principle**: `internal/` for all application code. Only expose `pkg/` if building a library.
-
----
-
-## Patterns
-
-### Error Handling
-
-Wrap errors with context:
-
-```go
-if err != nil {
-    return fmt.Errorf("loading workspace config: %w", err)
-}
-```
-
-Use error types for programmatic handling:
-
-```go
-type ConfigNotFoundError struct {
-    Path string
-}
-
-func (e *ConfigNotFoundError) Error() string {
-    return fmt.Sprintf("config not found: %s", e.Path)
-}
-```
-
-### Configuration Loading
-
-```go
-type Config struct {
-    Proxy     ProxyConfig
-    Workspace WorkspaceConfig
-    App       AppConfig
-}
-
-func LoadConfig(workspacePath string) (*Config, error) {
-    // Load in order: proxy (global) -> workspace -> app
-}
-```
-
-### Context Detection
-
-```go
-type Context struct {
-    WorkspacePath string
-    WorkspaceName string
-    AppPath       string
-    AppName       string
-}
-
-func DetectContext(startDir string) (*Context, error) {
-    // Walk up directories looking for markers
-}
+Code scaffolds are in `appendices/tech-stack/`:
+- Go source file scaffolds for all commands
+- Configuration type definitions
+- Build configuration files (Makefile, GoReleaser)
 ```
 
 ---
 
-## Testing Strategy
+## Appendix Directories to Create
 
-### Unit Tests
-
-Test pure functions and logic in isolation.
-
-```bash
-go test ./internal/...
 ```
-
-### Integration Tests
-
-Test Docker interactions with real containers.
-
-```bash
-go test -tags=integration ./...
-```
-
-### End-to-End Tests
-
-Test full CLI workflows.
-
-```bash
-go test -tags=e2e ./...
+implementation/appendices/
+  tech-stack/
+    scaffold-main.go
+    scaffold-cmd-root.go
+    scaffold-workspace.go
+    scaffold-app.go
+    scaffold-flavor.go
+    scaffold-aliases.go
+    scaffold-compose-prefix.go
+    scaffold-proxy.go
+    scaffold-port.go
+    scaffold-config.go
+    scaffold-validate.go
+    scaffold-utility.go
+    scaffold-init-shell.go
+    scaffold-config-types.go
+    goreleaser.yaml
+    makefile
 ```
 
 ---
 
-## Build & Release
+## Notes for Migration
 
-### Local Build
-
-```bash
-go build -o contrail .
-```
-
-### Release Build
-
-```bash
-goreleaser release --snapshot --clean
-```
-
-### Supported Platforms
-
-- linux/amd64
-- linux/arm64
-- darwin/amd64
-- darwin/arm64
-- windows/amd64
-
----
-
-## Related Documents
-
-- [Architecture Overview](../architecture/overview.md)
-- [CLI Reference](../reference/cli.md)
-
-<!-- See appendices/tech-stack/ for complete code examples -->
-```
-
-### Appendix Content
-
-Create `implementation/appendices/tech-stack/`:
-- `scaffold-main.go` — Complete main.go scaffold
-- `scaffold-cmd-root.go` — Root command scaffold
-- `scaffold-config.go` — Configuration loading scaffold
-- `scaffold-context.go` — Context detection scaffold
-- `scaffold-generator.go` — Override generator scaffold
-- `makefile` — Complete Makefile
-- `goreleaser.yaml` — GoReleaser configuration
-
-**Note**: These are large code blocks (>50 lines each) that belong in appendices.
+1. **Preserve all Go code exactly**: The scaffolding code is meant to be copy-pasted, so preserve formatting and comments
+2. **Include package declarations**: Each Go file appendix should include the package declaration
+3. **CLI mapping table**: The CLI to Cobra Command Mapping table is valuable reference material - preserve in main file
+4. **Testing section**: Include testing strategy and Afero example in main file
 
 ---
 
 ## Completion Checklist
 
 - [ ] `implementation/tech-stack.md` created
-- [ ] Appendix directory created
-- [ ] Scaffold files extracted to appendices
-- [ ] Code blocks in main doc are <50 lines
-- [ ] Cross-references added
-
+- [ ] `implementation/README.md` created
+- [ ] All scaffold appendix files created
+- [ ] Complete Go code preserved in appendices
+- [ ] CLI mapping table preserved
+- [ ] Source attributions present

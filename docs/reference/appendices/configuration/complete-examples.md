@@ -8,6 +8,8 @@ Full working configuration examples for Contrail.
 
 ## Multi-Application Workspace
 
+A complete multi-application workspace with frontend, backend, and shared database.
+
 ### workspace.yaml
 
 ```yaml
@@ -166,7 +168,7 @@ exported_services:
 
 ## Proxy Configuration
 
-### ~/.config/contrail/proxy.yaml
+**Location**: `~/.config/contrail/proxy.yaml`
 
 ```yaml
 proxy:
@@ -184,6 +186,8 @@ proxy:
 
 ### Custom TLS Configuration
 
+For enterprise environments with custom CA certificates:
+
 ```yaml
 proxy:
   domain: dev.company.local
@@ -200,7 +204,7 @@ proxy:
 
 ## Service with Multiple Port Types
 
-### application.yaml
+An exported service can combine proxied and assigned ports:
 
 ```yaml
 exported_services:
@@ -227,7 +231,7 @@ exported_services:
 
 ## Manual Override Example
 
-### overrides/frontend.yaml
+**Location**: `{workspace}/overrides/frontend.yaml`
 
 Workspace-specific customizations that persist across regeneration:
 
@@ -243,6 +247,124 @@ services:
   node:
     volumes:
       - ./local-dev-data:/app/data:rw
+```
+
+---
+
+## Global State
+
+**Location**: `~/.config/contrail/state.yaml`
+
+```yaml
+# AUTO-GENERATED - Managed by Contrail
+# Records assigned ports and port availability inventory
+
+assigned_ports:
+  dev:
+    app-one:
+      db: 5432
+    app-two:
+      db: 5433
+      cache: 6379
+  review:
+    app-one:
+      db: 5434
+
+port_inventory:
+  5432:
+    status: assigned
+    first_seen: 2025-12-28T17:53:55Z
+    last_checked: 2025-12-29T13:01:33Z
+    assignment:
+      workspace: dev
+      application: app-one
+      exported_service: db
+  5433:
+    status: assigned
+    first_seen: 2025-12-28T17:53:58Z
+    last_checked: 2025-12-29T13:01:37Z
+    assignment:
+      workspace: dev
+      application: app-two
+      exported_service: db
+```
+
+---
+
+## Workspace Registry
+
+**Location**: `~/.config/contrail/workspaces.yaml`
+
+```yaml
+# AUTO-GENERATED - Managed by Contrail
+# Records known workspaces and their locations
+
+workspaces:
+  dev:
+    path: /home/user/workspaces/dev
+    registered_at: 2024-12-28T10:30:00Z
+    last_seen: 2024-12-29T14:22:00Z
+  review:
+    path: /home/user/workspaces/review
+    registered_at: 2024-12-28T11:00:00Z
+    last_seen: 2024-12-29T13:15:00Z
+  myapp-dev:
+    path: /home/user/projects/myapp
+    registered_at: 2024-12-29T09:00:00Z
+    last_seen: 2024-12-29T14:30:00Z
+```
+
+---
+
+## Generated State
+
+**Location**: `{workspace}/.generated/state.yaml`
+
+```yaml
+# AUTO-GENERATED - Managed by workspace tooling
+applications:
+  app-one:
+    flavor: default
+  app-two:
+    flavor: lite
+```
+
+---
+
+## Generated Manifest
+
+**Location**: `{workspace}/.generated/manifest.yaml`
+
+```yaml
+# AUTO-GENERATED - Computed from configuration and state
+# Generated: 2024-12-27T10:30:00Z
+
+workspace:
+  name: dev
+  network: dev-internal
+
+proxy:
+  domain: contrail.test
+
+applications:
+  app-one:
+    flavor: default
+    project: dev-app-one
+    exported_services:
+      web:
+        service: web
+        alias: app-one-web
+        ports:
+          - type: proxied
+            protocol: https
+            container_port: 443
+            visibility: public
+            hostname: dev-app-one-web.contrail.test
+        environment:
+          CONTRAIL_APP_ONE_WEB_HOST: dev-app-one-web.contrail.test
+          CONTRAIL_APP_ONE_WEB_PORT: 443
+          CONTRAIL_APP_ONE_WEB_SCHEME: https
+          CONTRAIL_APP_ONE_WEB_URL: https://dev-app-one-web.contrail.test
 ```
 
 ---
@@ -297,4 +419,4 @@ services:
 ## Related Documents
 
 - [Configuration Reference](../../configuration.md)
-- [Generated Override Example](../specs/appendices/generated-override-files/complete-override-example.yaml)
+- [Generated Override Files](../../../specs/appendices/generated-override-files/complete-override-example.yaml)

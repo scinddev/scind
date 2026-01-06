@@ -1,29 +1,16 @@
 # Implementation Documentation
 
-This directory contains implementation guides and technology stack documentation.
+Implementation guides and developer documentation for Contrail.
 
-## Documents
+## Contents
 
 | Document | Description |
 |----------|-------------|
-| [Technology Stack](./tech-stack.md) | Go dependencies, patterns, and scaffolding |
+| [tech-stack.md](./tech-stack.md) | Go technology stack and project scaffolding |
 
 ## Appendices
 
-Large content is stored in:
-- `appendices/tech-stack/` — Scaffold scripts, full code examples
-  - `scaffold-main.go` — Entry point scaffold
-  - `scaffold-cmd-root.go` — Root command with context detection
-  - `scaffold-config.go` — Configuration type definitions
-  - `scaffold-context.go` — Context detection logic
-  - `scaffold-generator.go` — Override file generation
-  - `scaffold-workspace.go` — Workspace subcommands
-  - `scaffold-app.go` — App subcommands
-  - `scaffold-aliases.go` — Top-level command aliases
-  - `makefile` — Complete Makefile for build/test
-  - `goreleaser.yaml` — GoReleaser configuration
-
-## Related Documents
-
-- [Architecture](../architecture/overview.md) — System architecture
-- [Specifications](../specs/) — Feature specifications
+Code scaffolds are in `appendices/tech-stack/`:
+- Go source file scaffolds for all commands
+- Configuration type definitions
+- Build configuration files (Makefile, GoReleaser)

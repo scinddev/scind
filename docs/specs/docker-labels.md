@@ -40,12 +40,12 @@ All Contrail labels use the `contrail.` prefix to avoid conflicts with other too
 
 Applied to **all application containers** for workspace discovery and registry reconstruction.
 
-| Label | Description | Example |
-|-------|-------------|---------|
-| `contrail.workspace.name` | Workspace identifier | `dev` |
-| `contrail.workspace.path` | Absolute path to workspace directory | `/Users/beau/workspaces/dev` |
-| `contrail.app.name` | Application identifier | `app-one` |
-| `contrail.app.path` | Absolute path to application directory | `/Users/beau/workspaces/dev/app-one` |
+| Label | Type | Description | Example |
+|-------|------|-------------|---------|
+| `contrail.workspace.name` | string | Workspace identifier | `dev` |
+| `contrail.workspace.path` | string | Absolute path to workspace directory | `/Users/beau/workspaces/dev` |
+| `contrail.app.name` | string | Application identifier | `app-one` |
+| `contrail.app.path` | string | Absolute path to application directory | `/Users/beau/workspaces/dev/app-one` |
 
 **Example**:
 ```yaml
@@ -71,15 +71,11 @@ contrail.export.{name}.proxy.https.visibility={public|protected|private}
 contrail.export.{name}.proxy.https.url={url}
 ```
 
-**Example** — web service with HTTP and HTTPS:
-```yaml
-labels:
-  - "contrail.export.web.host=dev-app-one-web.contrail.test"
-  - "contrail.export.web.proxy.http.visibility=protected"
-  - "contrail.export.web.proxy.http.url=http://dev-app-one-web.contrail.test"
-  - "contrail.export.web.proxy.https.visibility=public"
-  - "contrail.export.web.proxy.https.url=https://dev-app-one-web.contrail.test"
-```
+| Label Pattern | Type | Description |
+|---------------|------|-------------|
+| `contrail.export.{name}.host` | string | Generated hostname for the export |
+| `contrail.export.{name}.proxy.{protocol}.visibility` | enum | `public`, `protected`, or `private` |
+| `contrail.export.{name}.proxy.{protocol}.url` | string | Full URL for the proxied service |
 
 #### Assigned Port Exports (Direct Port Mapping)
 
@@ -90,19 +86,15 @@ contrail.export.{name}.port.{internal-port}.visibility={public|protected|private
 contrail.export.{name}.port.{internal-port}.assigned={external-port}
 ```
 
-**Example** — database with assigned port:
-```yaml
-labels:
-  - "contrail.export.db.host=dev-app-one-db.contrail.test"
-  - "contrail.export.db.port.5432.visibility=protected"
-  - "contrail.export.db.port.5432.assigned=5432"
-```
+| Label Pattern | Type | Description |
+|---------------|------|-------------|
+| `contrail.export.{name}.host` | string | Generated hostname for the export |
+| `contrail.export.{name}.port.{port}.visibility` | enum | `public`, `protected`, or `private` |
+| `contrail.export.{name}.port.{port}.assigned` | integer | Actual assigned host port |
 
 ### Traefik Labels
 
 Applied to containers with proxied exported services to configure Traefik routing.
-
-#### Standard Traefik Labels
 
 | Label | Description |
 |-------|-------------|
@@ -111,16 +103,6 @@ Applied to containers with proxied exported services to configure Traefik routin
 | `traefik.http.routers.{name}.entrypoints` | Entrypoint (web or websecure) |
 | `traefik.http.routers.{name}.tls` | Enable TLS (for websecure) |
 | `traefik.http.services.{name}.loadbalancer.server.port` | Container port to route to |
-
-**Example** — HTTPS router for web service:
-```yaml
-labels:
-  - "traefik.enable=true"
-  - "traefik.http.routers.dev-app-one-web-https.rule=Host(`dev-app-one-web.contrail.test`)"
-  - "traefik.http.routers.dev-app-one-web-https.entrypoints=websecure"
-  - "traefik.http.routers.dev-app-one-web-https.tls=true"
-  - "traefik.http.services.dev-app-one-web-https.loadbalancer.server.port=443"
-```
 
 #### Router Naming Convention
 
@@ -144,43 +126,33 @@ Applied to the Contrail-managed Traefik proxy container:
 
 ## Examples
 
-### Example 1: Complete Label Set for Web Service
-
-A web service with both HTTP and HTTPS proxying and a debug port:
+### Example 1: Web Service with Proxied HTTP/HTTPS
 
 ```yaml
 services:
   web:
     labels:
-      # Context labels
+      # Context
       - "contrail.workspace.name=dev"
       - "contrail.workspace.path=/Users/beau/workspaces/dev"
       - "contrail.app.name=app-one"
       - "contrail.app.path=/Users/beau/workspaces/dev/app-one"
-
       # Traefik HTTPS router
       - "traefik.enable=true"
       - "traefik.http.routers.dev-app-one-web-https.rule=Host(`dev-app-one-web.contrail.test`)"
       - "traefik.http.routers.dev-app-one-web-https.entrypoints=websecure"
       - "traefik.http.routers.dev-app-one-web-https.tls=true"
       - "traefik.http.services.dev-app-one-web-https.loadbalancer.server.port=443"
-
       # Traefik HTTP router
       - "traefik.http.routers.dev-app-one-web-http.rule=Host(`dev-app-one-web.contrail.test`)"
       - "traefik.http.routers.dev-app-one-web-http.entrypoints=web"
       - "traefik.http.services.dev-app-one-web-http.loadbalancer.server.port=80"
-
       # Proxied export: web
       - "contrail.export.web.host=dev-app-one-web.contrail.test"
       - "contrail.export.web.proxy.http.visibility=protected"
       - "contrail.export.web.proxy.http.url=http://dev-app-one-web.contrail.test"
       - "contrail.export.web.proxy.https.visibility=public"
       - "contrail.export.web.proxy.https.url=https://dev-app-one-web.contrail.test"
-
-      # Assigned port export: debug
-      - "contrail.export.debug.host=dev-app-one-debug.contrail.test"
-      - "contrail.export.debug.port.9229.visibility=protected"
-      - "contrail.export.debug.port.9229.assigned=9229"
 ```
 
 ### Example 2: Database with Assigned Port
@@ -189,16 +161,30 @@ services:
 services:
   postgres:
     labels:
-      # Context labels
+      # Context
       - "contrail.workspace.name=dev"
       - "contrail.workspace.path=/Users/beau/workspaces/dev"
       - "contrail.app.name=app-one"
       - "contrail.app.path=/Users/beau/workspaces/dev/app-one"
-
-      # Assigned port export: db (mapped from postgres service)
+      # Assigned port export: db
       - "contrail.export.db.host=dev-app-one-db.contrail.test"
       - "contrail.export.db.port.5432.visibility=protected"
-      - "contrail.export.db.port.5432.assigned=5433"  # Assigned 5433 because 5432 was taken
+      - "contrail.export.db.port.5432.assigned=5433"
+```
+
+### Example 3: Service with Debug Port
+
+```yaml
+services:
+  web:
+    labels:
+      # Context (abbreviated)
+      - "contrail.workspace.name=dev"
+      - "contrail.app.name=app-one"
+      # Assigned port export: debug
+      - "contrail.export.debug.host=dev-app-one-debug.contrail.test"
+      - "contrail.export.debug.port.9229.visibility=protected"
+      - "contrail.export.debug.port.9229.assigned=9229"
 ```
 
 ---
@@ -217,7 +203,6 @@ labels:
   - "contrail.export.web.host=dev-app-one-web.contrail.test"
   - "contrail.export.web.proxy.https.visibility=public"
   - "contrail.export.web.proxy.https.url=https://dev-app-one-web.contrail.test"
-
   # Second export
   - "contrail.export.debug.host=dev-app-one-debug.contrail.test"
   - "contrail.export.debug.port.9229.visibility=protected"
@@ -246,10 +231,10 @@ labels:
 
 ## Error Handling
 
-| Error Condition | Error Code/Type | Message | Recovery |
-|-----------------|-----------------|---------|----------|
-| Label collision | GENERATION | `Router name collision: {name} already defined` | Use unique exported service names |
-| Invalid label value | GENERATION | `Invalid label value: {label}` | Check for special characters |
+| Error Condition | Message | Recovery |
+|-----------------|---------|----------|
+| Label collision | `Router name collision: {name} already defined` | Use unique exported service names |
+| Invalid label value | `Invalid label value: {label}` | Check for special characters in names |
 
 ---
 

@@ -235,7 +235,7 @@ contrail proxy init
 # Created proxy configuration at ~/.config/contrail/proxy/
 #
 # Next steps:
-#   1. Configure DNS for *.contrail.test → 127.0.0.1
+#   1. Configure DNS for *.contrail.test -> 127.0.0.1
 #      (See: contrail doctor for DNS verification)
 #   2. Start the proxy:
 #      contrail proxy up
@@ -398,10 +398,10 @@ contrail doctor
 # ✓ Proxy network: created
 # ✓ Traefik: running
 # ✓ Config directory: ~/.config/contrail
-# ✓ Domain resolution: contrail.test → 127.0.0.1
+# ✓ Domain resolution: contrail.test -> 127.0.0.1
 # ✓ Workspace domains:
-#   - dev-app-one-web.contrail.test → 127.0.0.1
-#   - dev-app-two-api.contrail.test → 127.0.0.1
+#   - dev-app-one-web.contrail.test -> 127.0.0.1
+#   - dev-app-two-api.contrail.test -> 127.0.0.1
 #
 # All checks passed.
 ```

@@ -1,421 +1,232 @@
-# Migration Step: Layer 4 — Specifications
+# Migration Step: Layer 4 - Specifications
 
-**Prerequisites**: Read `common-instructions.md`, complete Layer 3 steps
-**Estimated Size**: 10 files, approximately 2,500 lines total
+**Prerequisites**: Read `common-instructions.md`
+**Estimated Size**: 10 spec files + appendices, approximately 2,500 lines
 
 ---
 
 ## Overview
 
-Extract detailed specifications from source documents. Each spec follows the template in `specs/_template.md`. Large content (code blocks >50 lines, tables >20 rows) goes to appendices.
+Create specification files from `specs/contrail-technical-spec.md` and `specs/contrail-shell-integration.md`.
 
-**Source documents**:
-- `specs/contrail-technical-spec.md` (primary)
-- `specs/contrail-cli-reference.md` (context detection, port handling)
-- `specs/contrail-shell-integration.md` (shell integration spec)
+**Target Files**:
+1. `specs/configuration-schemas.md` - Configuration file schemas
+2. `specs/naming-conventions.md` - Naming patterns and conventions
+3. `specs/port-types.md` - Port type system specification
+4. `specs/proxy-infrastructure.md` - Traefik proxy configuration
+5. `specs/context-detection.md` - Directory context detection algorithm
+6. `specs/workspace-lifecycle.md` - Workspace operations (up/down/generate)
+7. `specs/generated-override-files.md` - Override file generation
+8. `specs/docker-labels.md` - Docker label conventions
+9. `specs/environment-variables.md` - Environment variable injection
+10. `specs/shell-integration.md` - Shell integration and contrail-compose
 
 ---
 
 ## Spec 1: `specs/configuration-schemas.md`
 
-**Source**: `specs/contrail-technical-spec.md:200-400` (Configuration section)
+**Source**: `specs/contrail-technical-spec.md:216-712`
 
-### Summary
+Create this file by reading and copying the entire Configuration Schemas section, including:
+- Proxy Configuration (lines 233-263)
+- Proxy Infrastructure (lines 264-337)
+- Workspace Registry (lines 339-369)
+- Global State (lines 371-442)
+- Workspace Configuration (lines 443-476)
+- Template Variables (lines 477-548)
+- Application Configuration (lines 549-683)
+- State Management (lines 685-707)
+- Generated Manifest (lines 709-765)
 
-Documents the three configuration file schemas: `proxy.yaml`, `workspace.yaml`, `application.yaml`.
-
-### Content Structure
-
-```markdown
-# Configuration Schemas Specification
-
-**Version**: 1.0.0
-**Status**: Accepted
-
-## Overview
-Three configuration schemas define Contrail's behavior...
-
-## proxy.yaml Schema
-[Full schema with field table]
-
-## workspace.yaml Schema
-[Full schema with field table]
-
-## application.yaml Schema
-[Full schema with field table]
-
-## Validation Rules
-[Combined validation rules]
-
-## Examples
-[Minimal and complete examples for each]
-
-<!-- See appendices/configuration-schemas/ for complete schema files -->
-```
-
-### Appendix Content
-
-Create `specs/appendices/configuration-schemas/`:
-- `proxy-schema.yaml` — JSON Schema for proxy.yaml
-- `workspace-schema.yaml` — JSON Schema for workspace.yaml
-- `application-schema.yaml` — JSON Schema for application.yaml
-- `complete-examples.md` — Full working examples
+**Include complete YAML examples inline** - these are reference material.
 
 ---
 
-## Spec 2: `specs/context-detection.md`
+## Spec 2: `specs/naming-conventions.md`
 
-**Source**: `specs/contrail-cli-reference.md:100-200` (Context Detection section)
+**Source**: `specs/contrail-technical-spec.md:1247-1295`
 
-### Summary
+Create with the full "Conventions and Best Practices" content including:
+- Application requirements
+- Service contract description
+- Naming conventions table
+- Collision warning
 
-Documents how Contrail detects workspace and application from current directory.
+---
 
-### Content Structure
+## Spec 3: `specs/port-types.md`
+
+**Source**: `specs/contrail-technical-spec.md:96-135`
+
+Create with the complete "Port Types and Proxying" section including:
+- Type/protocol table
+- Port type descriptions
+- Protocol details
+- Visibility documentation
+- Private services
+
+---
+
+## Spec 4: `specs/proxy-infrastructure.md`
+
+**Source**: `specs/contrail-technical-spec.md:264-337`
+
+Create with appendix for complete configuration files:
+- Main spec content in `specs/proxy-infrastructure.md`
+- Create `specs/appendices/proxy-infrastructure/traefik-compose.yaml`
+- Create `specs/appendices/proxy-infrastructure/traefik-config.yaml`
+
+---
+
+## Spec 5: `specs/context-detection.md`
+
+**Source**: `specs/contrail-technical-spec.md:1053-1122`, `specs/contrail-cli-reference.md:30-147`
+
+Combine context detection content from both sources into a single specification.
+
+---
+
+## Spec 6: `specs/workspace-lifecycle.md`
+
+**Source**: `specs/contrail-technical-spec.md:1125-1245`
+
+Create with the complete "Operations" section including:
+- Startup sequence
+- Staleness detection
+- Generation logic
+- Shutdown sequence
+- Destroy sequence
+- Viewing logs
+- Listing status
+
+---
+
+## Spec 7: `specs/generated-override-files.md`
+
+**Source**: `specs/contrail-technical-spec.md:768-873`
+
+Create with complete override file example:
+- Main spec with explanation
+- Create `specs/appendices/generated-override-files/complete-override-example.yaml`
+
+---
+
+## Spec 8: `specs/docker-labels.md`
+
+**Source**: `specs/contrail-technical-spec.md:875-954`
+
+Create with complete label documentation including:
+- Context labels
+- Export labels
+- Proxy container labels
+- External tool integration examples
+
+---
+
+## Spec 9: `specs/environment-variables.md`
+
+**Source**: `specs/contrail-technical-spec.md:955-1026`
+
+Create with complete environment variable documentation including:
+- Naming convention
+- Variable generation rules
+- Type/protocol table
+- Usage examples in PHP and JavaScript
+
+---
+
+## Spec 10: `specs/shell-integration.md`
+
+**Source**: `specs/contrail-shell-integration.md` (entire file ~844 lines)
+
+This is the largest spec. Create with appendices for shell scripts:
+- Main spec in `specs/shell-integration.md` (overview, architecture, compose-prefix, usage)
+- Create `specs/appendices/shell-integration/bash-setup.sh` (lines 152-344)
+- Create `specs/appendices/shell-integration/zsh-setup.zsh` (lines 350-555)
+- Create `specs/appendices/shell-integration/fish-setup.fish` (lines 561-707)
+
+---
+
+## Also Create: `specs/README.md`
 
 ```markdown
-# Context Detection Specification
+# Specifications
 
-**Version**: 1.0.0
-**Status**: Accepted
+Detailed specifications for Contrail's features and behaviors.
+
+## Index
+
+| Specification | Description |
+|---------------|-------------|
+| [configuration-schemas.md](./configuration-schemas.md) | Configuration file schemas (proxy, workspace, application) |
+| [naming-conventions.md](./naming-conventions.md) | Naming patterns for hostnames, aliases, and projects |
+| [port-types.md](./port-types.md) | Port type system (proxied vs assigned) |
+| [proxy-infrastructure.md](./proxy-infrastructure.md) | Traefik proxy configuration |
+| [context-detection.md](./context-detection.md) | Directory context detection algorithm |
+| [workspace-lifecycle.md](./workspace-lifecycle.md) | Workspace operations (up/down/generate) |
+| [generated-override-files.md](./generated-override-files.md) | Override file generation |
+| [docker-labels.md](./docker-labels.md) | Docker label conventions |
+| [environment-variables.md](./environment-variables.md) | Environment variable injection |
+| [shell-integration.md](./shell-integration.md) | Shell integration and contrail-compose |
+
+## Appendices
+
+Large code examples and complete file contents are in `appendices/{spec-name}/`.
+```
+
+---
+
+## Also Create: `specs/_template.md`
+
+```markdown
+# [Feature Name] Specification
+
+**Status**: Draft | Review | Accepted
+
+---
 
 ## Overview
-Context detection allows commands to infer workspace/app from directory...
 
-## Detection Algorithm
-1. Start from current directory
-2. Walk up looking for markers
-3. Return context or empty
+[Brief description of the feature]
 
-## Marker Files
-- workspace.yaml → workspace root
-- application.yaml → application root
-- docker-compose.yaml → application root (fallback)
+---
+
+## Specification
+
+[Detailed specification content]
+
+---
 
 ## Examples
-[Directory structure examples with detected context]
+
+[Usage examples]
+
+---
 
 ## Edge Cases
-[Nested workspaces, missing files, etc.]
+
+[Edge case handling]
+
+<!-- Template for new specifications -->
 ```
 
 ---
 
-## Spec 3: `specs/docker-labels.md`
+## Appendix Directories to Create
 
-**Source**: `specs/contrail-technical-spec.md:500-600` (Labels section)
-
-### Summary
-
-Documents the Traefik labels and workspace labels added to containers.
-
-### Content Structure
-
-```markdown
-# Docker Labels Specification
-
-**Version**: 1.0.0
-**Status**: Accepted
-
-## Overview
-Contrail adds labels to containers for routing and identification...
-
-## Traefik Labels
-[Label patterns for HTTP, HTTPS, routers, services]
-
-## Workspace Labels
-[contrail.workspace, contrail.app, contrail.service labels]
-
-## Label Generation
-[How labels are generated from configuration]
-
-## Examples
-[Complete label sets for different scenarios]
 ```
-
----
-
-## Spec 4: `specs/environment-variables.md`
-
-**Source**: `specs/contrail-technical-spec.md:600-700` (Environment section)
-
-### Summary
-
-Documents environment variable injection for service discovery.
-
-### Content Structure
-
-```markdown
-# Environment Variables Specification
-
-**Version**: 1.0.0
-**Status**: Accepted
-
-## Overview
-Contrail injects environment variables for service discovery...
-
-## Variable Naming Convention
-{APP}_{SERVICE}_{PROTOCOL}_URL
-{APP}_{SERVICE}_HOST
-{APP}_{SERVICE}_PORT
-
-## Variable Values
-[How values are determined based on port type]
-
-## Override Behavior
-[How explicit env vars in compose override generated ones]
-
-## Examples
-[Variable sets for different service configurations]
-```
-
----
-
-## Spec 5: `specs/generated-override-files.md`
-
-**Source**: `specs/contrail-technical-spec.md:400-500` (Override Generation section)
-
-### Summary
-
-Documents the structure and generation of Docker Compose override files.
-
-### Content Structure
-
-```markdown
-# Generated Override Files Specification
-
-**Version**: 1.0.0
-**Status**: Accepted
-
-## Overview
-Contrail generates override files to integrate apps into workspaces...
-
-## File Location
-.generated/contrail-override.yaml
-
-## File Structure
-[YAML structure with networks, services, labels, environment]
-
-## Generation Process
-[Step-by-step generation algorithm]
-
-## Merge Behavior
-[How overrides merge with base compose file]
-
-## Examples
-[Before/after showing base + override = effective config]
-```
-
-### Appendix Content
-
-Create `specs/appendices/generated-override-files/`:
-- `complete-override-example.yaml` — Full generated override file
-
----
-
-## Spec 6: `specs/naming-conventions.md`
-
-**Source**: `specs/contrail-technical-spec.md:300-350` (Naming section)
-
-### Summary
-
-Documents all naming conventions for projects, hostnames, aliases, and networks.
-
-### Content Structure
-
-```markdown
-# Naming Conventions Specification
-
-**Version**: 1.0.0
-**Status**: Accepted
-
-## Overview
-Contrail uses convention-based naming for predictability...
-
-## Project Names
-Pattern: {workspace}-{app}
-Example: main-frontend → project name "main-frontend"
-
-## Hostnames (Public)
-Pattern: {workspace}-{app}-{service}.{domain}
-Example: main-frontend-web.test
-
-## Network Aliases (Protected)
-Pattern: {app}-{service}
-Example: frontend-web
-
-## Network Names
-- Proxy: contrail-proxy
-- Internal: {workspace}-internal
-
-## Validation Rules
-[Character restrictions, length limits]
-```
-
----
-
-## Spec 7: `specs/port-types.md`
-
-**Source**: `specs/contrail-technical-spec.md:700-800` (Port Types section)
-
-### Summary
-
-Documents the port type system: proxied vs assigned.
-
-### Content Structure
-
-```markdown
-# Port Types Specification
-
-**Version**: 1.0.0
-**Status**: Accepted
-
-## Overview
-Each exported service port has a type determining how it's exposed...
-
-## Type: proxied
-- Traffic routes through Traefik
-- Protocols: http, https
-- Uses standard ports (80, 443)
-
-## Type: assigned
-- Direct host port binding
-- Port assignment algorithm (preferred → next available)
-- Persistence across restarts
-
-## Visibility
-- public: Accessible via hostname
-- protected: Internal network only
-
-## Examples
-[Configuration and resulting behavior]
-```
-
----
-
-## Spec 8: `specs/proxy-infrastructure.md`
-
-**Source**: `specs/contrail-technical-spec.md:800-900` (Proxy section)
-
-### Summary
-
-Documents Traefik configuration and the contrail-proxy network.
-
-### Content Structure
-
-```markdown
-# Proxy Infrastructure Specification
-
-**Version**: 1.0.0
-**Status**: Accepted
-
-## Overview
-Traefik provides reverse proxy capabilities...
-
-## Traefik Configuration
-[Static and dynamic config]
-
-## contrail-proxy Network
-[Network creation, attachment, purpose]
-
-## TLS Handling
-[Certificate modes: auto, custom, disabled]
-
-## Health Checks
-[Traefik health and container health]
-
-## Examples
-[Traefik docker-compose.yaml]
-```
-
-### Appendix Content
-
-Create `specs/appendices/proxy-infrastructure/`:
-- `traefik-compose.yaml` — Complete Traefik docker-compose file
-- `traefik-config.yaml` — Traefik static configuration
-
----
-
-## Spec 9: `specs/shell-integration.md`
-
-**Source**: `specs/contrail-shell-integration.md:1-600` (Shell Integration sections)
-
-### Summary
-
-Documents the `contrail-compose` shell function and shell integration.
-
-### Content Structure
-
-```markdown
-# Shell Integration Specification
-
-**Version**: 1.0.0
-**Status**: Accepted
-
-## Overview
-Shell integration provides context-aware docker compose commands...
-
-## contrail-compose Function
-[Function behavior, when it activates, pass-through mode]
-
-## Shell Setup
-[bash, zsh, fish installation]
-
-## Completion
-[Tab completion for commands and options]
-
-## Environment Variables
-[CONTRAIL_WORKSPACE, CONTRAIL_APP, etc.]
-
-## Examples
-[Usage examples in different shells]
-```
-
-### Appendix Content
-
-Create `specs/appendices/shell-integration/`:
-- `bash-setup.sh` — Bash integration script
-- `zsh-setup.zsh` — Zsh integration script
-- `fish-setup.fish` — Fish integration script
-
----
-
-## Spec 10: `specs/workspace-lifecycle.md`
-
-**Source**: `specs/contrail-technical-spec.md:900-1000` (Lifecycle section)
-
-### Summary
-
-Documents workspace and application lifecycle: up, down, restart semantics.
-
-### Content Structure
-
-```markdown
-# Workspace Lifecycle Specification
-
-**Version**: 1.0.0
-**Status**: Accepted
-
-## Overview
-Lifecycle commands manage workspace and application state...
-
-## up Command
-[What happens: generate, network, start]
-
-## down Command
-[What happens: stop, remove containers, optionally volumes]
-
-## restart Command
-[Behavior: down + up vs reload]
-
-## Status Tracking
-[How Contrail tracks what's running]
-
-## Partial Operations
-[Starting/stopping individual apps]
-
-## Examples
-[Command sequences and resulting states]
+specs/appendices/
+  proxy-infrastructure/
+    traefik-compose.yaml
+    traefik-config.yaml
+  generated-override-files/
+    complete-override-example.yaml
+  shell-integration/
+    bash-setup.sh
+    zsh-setup.zsh
+    fish-setup.fish
+  configuration-schemas/
+    complete-examples.md
 ```
 
 ---
@@ -423,8 +234,8 @@ Lifecycle commands manage workspace and application state...
 ## Completion Checklist
 
 - [ ] All 10 spec files created
-- [ ] Appendix directories created where needed
-- [ ] Large content moved to appendices
-- [ ] Cross-references to ADRs added
-- [ ] Update `specs/README.md` to list all specifications
-
+- [ ] `specs/README.md` created
+- [ ] `specs/_template.md` created
+- [ ] All appendix directories and files created
+- [ ] Complete code examples in appendices (not truncated)
+- [ ] Source attributions present

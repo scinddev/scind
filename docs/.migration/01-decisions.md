@@ -1,18 +1,15 @@
-# Migration Step: Layer 1 — Decisions (ADRs)
+# Migration Step: Layer 1 - Decisions (ADRs)
 
 **Prerequisites**: Read `common-instructions.md`
-**Estimated Size**: 11 ADRs, approximately 550 lines total
+**Estimated Size**: 11 ADRs, approximately 450 lines total
 
 ---
 
 ## Overview
 
-Extract decision blocks from the source documents and create individual ADR files. ADRs are single files (not directories) using the MADR Minimal template.
+Extract 11 architectural decisions from `specs/contrail-prd.md` (lines 162-315) into individual ADR files using the MADR Minimal template.
 
-**Source documents containing decisions**:
-- `specs/contrail-prd.md` lines 161-315 (Key Architectural Decisions section)
-- `specs/contrail-shell-integration.md` lines 818-825 (Alternative Approaches Considered)
-- `specs/contrail-go-stack.md` lines 59-85 (Dependency Rationale, Intentionally Excluded)
+**Source Section**: "Key Architectural Decisions" in contrail-prd.md
 
 ---
 
@@ -25,15 +22,13 @@ Extract decision blocks from the source documents and create individual ADR file
 ```markdown
 # ADR-0001: Docker Compose Project Name Isolation
 
-**Status**: Accepted
-**Date**: 2024-12
-**Decision-Makers**: Contrail Design Team
+## Status
 
----
+Accepted
 
 ## Context
 
-Contrail needs to run multiple instances of the same application simultaneously. Each instance must have isolated containers, networks, and volumes.
+Need to run multiple instances of the same application simultaneously.
 
 ## Decision
 
@@ -41,26 +36,9 @@ Use Docker Compose's native `--project-name` (or `name:` in compose file) to cre
 
 ## Consequences
 
-### Positive
-
-- Uses Docker's official mechanism for running multiple copies of the same stack
-- Isolates containers, networks, and volumes without requiring modifications to the application
-- Works with any existing Docker Compose project
-
-### Negative
-
-- Project names must be unique across all workspaces on a host
-- Creative naming that produces identical project names could cause conflicts
-
-### Neutral
-
-- Naming follows convention: `{workspace}-{app}` (e.g., `dev-app-one`)
-
----
-
-## Notes
-
-Example collision to avoid: workspace `dev-app` with app `one` and workspace `dev` with app `app-one` both produce project name `dev-app-one`.
+- This is Docker's official mechanism for running multiple copies of the same stack
+- It isolates containers, networks, and volumes without requiring modifications to the application
+- Applications can run independently with different project names
 
 <!-- Migrated from specs/contrail-prd.md:162-169 -->
 ```
@@ -69,22 +47,20 @@ Example collision to avoid: workspace `dev-app` with app `one` and workspace `de
 
 ## ADR 2: `decisions/0002-two-layer-networking.md`
 
-**Source**: `specs/contrail-prd.md:171-179`
+**Source**: `specs/contrail-prd.md:170-179`
 
 ### Content
 
 ```markdown
 # ADR-0002: Two-Layer Networking
 
-**Status**: Accepted
-**Date**: 2024-12
-**Decision-Makers**: Contrail Design Team
+## Status
 
----
+Accepted
 
 ## Context
 
-Services need both external access (via reverse proxy) and internal access (between applications in the same workspace).
+Services need both external access (via reverse proxy) and internal access (between applications).
 
 ## Decision
 
@@ -94,46 +70,31 @@ Implement two network layers:
 
 ## Consequences
 
-### Positive
-
 - Separating concerns allows public services to be routable via Traefik while protected services remain internal
 - The workspace-internal network provides isolation between workspaces
-- Applications in different workspaces cannot accidentally communicate
+- Applications in different workspaces cannot communicate directly
 
-### Negative
-
-- More complex network topology than a single flat network
-- Debugging network issues requires understanding both layers
-
-### Neutral
-
-- Each workspace has its own internal network named `{workspace}-internal`
-
----
-
-<!-- Migrated from specs/contrail-prd.md:171-179 -->
+<!-- Migrated from specs/contrail-prd.md:170-179 -->
 ```
 
 ---
 
 ## ADR 3: `decisions/0003-pure-overlay-design.md`
 
-**Source**: `specs/contrail-prd.md:181-192`
+**Source**: `specs/contrail-prd.md:180-191`
 
 ### Content
 
 ```markdown
 # ADR-0003: Pure Overlay Design (Applications Remain Workspace-Agnostic)
 
-**Status**: Accepted
-**Date**: 2024-12
-**Decision-Makers**: Contrail Design Team
+## Status
 
----
+Accepted
 
 ## Context
 
-Applications could embed workspace configuration (labels, network definitions, environment variables), or this integration could be applied externally.
+Applications could embed workspace configuration, or it could be applied externally.
 
 ## Decision
 
@@ -141,47 +102,33 @@ Applications' own `docker-compose.yaml` files have no knowledge of workspaces. A
 
 ## Consequences
 
-### Positive
-
 - Applications can run standalone without Contrail
 - No vendor lock-in or special conventions in application code
 - Workspace concerns are cleanly separated from application concerns
 - Same application can participate in multiple workspace systems
+- Override files must be regenerated when configuration changes
 
-### Negative
-
-- Requires a generation step before running
-- Generated files must be kept in sync with source configuration
-
-### Neutral
-
-- Override files are stored in `.generated/` and gitignored
-
----
-
-<!-- Migrated from specs/contrail-prd.md:181-192 -->
+<!-- Migrated from specs/contrail-prd.md:180-191 -->
 ```
 
 ---
 
 ## ADR 4: `decisions/0004-convention-based-naming.md`
 
-**Source**: `specs/contrail-prd.md:194-202`
+**Source**: `specs/contrail-prd.md:192-202`
 
 ### Content
 
 ```markdown
 # ADR-0004: Convention-Based Naming
 
-**Status**: Accepted
-**Date**: 2024-12
-**Decision-Makers**: Contrail Design Team
+## Status
 
----
+Accepted
 
 ## Context
 
-Hostnames, network aliases, and project names could be explicitly configured per-service, or derived from conventions.
+Hostnames and aliases could be explicitly configured or derived from conventions.
 
 ## Decision
 
@@ -189,51 +136,35 @@ Derive names from conventions:
 - Public hostname: `{workspace}-{app}-{service}.{domain}`
 - Protected alias: `{app}-{service}`
 - Network name: `{workspace}-internal`
-- Project name: `{workspace}-{app}`
 
 ## Consequences
 
-### Positive
-
-- Reduces configuration burden
-- Ensures consistency across workspaces
-- Makes the system predictable and debuggable
-- Given workspace and app names, hostnames are deterministic
-
-### Negative
-
-- Less flexibility for unusual naming requirements
+- Conventions reduce configuration and ensure consistency
+- System behavior is predictable - given workspace and app names, hostnames are deterministic
 - Explicit overrides were considered but removed to keep the schema simple
+- Users must follow naming conventions for names to avoid collisions
 
-### Neutral
-
-- Templates can be customized at the workspace level for advanced use cases
-
----
-
-<!-- Migrated from specs/contrail-prd.md:194-202 -->
+<!-- Migrated from specs/contrail-prd.md:192-202 -->
 ```
 
 ---
 
 ## ADR 5: `decisions/0005-structure-vs-state-separation.md`
 
-**Source**: `specs/contrail-prd.md:204-222`
+**Source**: `specs/contrail-prd.md:203-222`
 
 ### Content
 
 ```markdown
 # ADR-0005: Structure vs State Separation
 
-**Status**: Accepted
-**Date**: 2024-12
-**Decision-Makers**: Contrail Design Team
+## Status
 
----
+Accepted
 
 ## Context
 
-Configuration could include runtime choices (which branch to use, which flavor is active) or only structural definitions.
+Configuration could include runtime choices (which branch, which flavor) or only structural definitions.
 
 ## Decision
 
@@ -249,47 +180,32 @@ Separate structure (what exists) from state (what's active):
 
 ## Consequences
 
-### Positive
-
 - Configuration files describe the system's shape, not its current state
 - State changes frequently; structure changes rarely
 - Avoids polluting config files with transient information
 - Branch management stays with git where it belongs
 
-### Negative
-
-- State must be tracked separately (in `.generated/state.yaml`)
-- Users must understand the distinction
-
-### Neutral
-
-- State file is gitignored to avoid conflicts
-
----
-
-<!-- Migrated from specs/contrail-prd.md:204-222 -->
+<!-- Migrated from specs/contrail-prd.md:203-222 -->
 ```
 
 ---
 
 ## ADR 6: `decisions/0006-three-configuration-schemas.md`
 
-**Source**: `specs/contrail-prd.md:224-233`
+**Source**: `specs/contrail-prd.md:223-233`
 
 ### Content
 
 ```markdown
 # ADR-0006: Three Configuration Schemas
 
-**Status**: Accepted
-**Date**: 2024-12
-**Decision-Makers**: Contrail Design Team
+## Status
 
----
+Accepted
 
 ## Context
 
-Configuration could be in one monolithic file or separated by concern and ownership.
+Configuration could be in one monolithic file or separated by concern.
 
 ## Decision
 
@@ -300,48 +216,31 @@ Three schema types that can be combined:
 
 ## Consequences
 
-### Positive
+- Separation of concerns - proxy config rarely changes, workspace config defines the environment, application config is owned by the application team
+- Configuration is distributed across files, requiring multiple reads
+- Clear ownership boundaries between teams
 
-- Separation of concerns—proxy config rarely changes, workspace config defines the environment, application config is owned by the application team
-- Application config (`application.yaml`) can live in the application's own repository
-- Changes to one layer don't require touching others
-
-### Negative
-
-- Multiple files to understand and maintain
-- Configuration hierarchy must be documented
-
-### Neutral
-
-- Proxy config: `~/.config/contrail/proxy.yaml`
-- Workspace config: `{workspace}/workspace.yaml`
-- Application config: `{app}/application.yaml`
-
----
-
-<!-- Migrated from specs/contrail-prd.md:224-233 -->
+<!-- Migrated from specs/contrail-prd.md:223-233 -->
 ```
 
 ---
 
 ## ADR 7: `decisions/0007-port-type-system.md`
 
-**Source**: `specs/contrail-prd.md:235-264`
+**Source**: `specs/contrail-prd.md:234-264`
 
 ### Content
 
 ```markdown
 # ADR-0007: Port Type System for Exported Services
 
-**Status**: Accepted
-**Date**: 2024-12
-**Decision-Makers**: Contrail Design Team
+## Status
 
----
+Accepted
 
 ## Context
 
-Services need different handling based on how they're accessed—some need HTTP proxying through Traefik, others need direct port binding for database connections.
+Services need different handling based on how they're accessed - some need HTTP proxying, others need direct port binding.
 
 ## Decision
 
@@ -365,54 +264,36 @@ exported_services:
         visibility: protected
 ```
 
-**Port types**:
-- `proxied`: Traffic routed through Traefik; protocol specifies how (http, https, future SNI types)
-- `assigned`: Direct port binding; if port unavailable, Contrail finds next available
-
 ## Consequences
-
-### Positive
 
 - `type` determines routing: `proxied` (through Traefik) or `assigned` (direct port binding)
 - `protocol` specifies how proxied traffic is handled: `http`, `https`, or future SNI types
 - Supports multiple protocols on the same exported service (both HTTP and HTTPS)
 - Environment variables use proxy values (port 80/443) for proxied services
 - Enables future plugin system for additional protocols (postgresql, mysql SNI routing)
+- `visibility` remains as documentation for collaborators
 
-### Negative
-
-- More complex configuration than a single port type
-- Users must understand the distinction between type and protocol
-
-### Neutral
-
-- `visibility` remains as documentation for collaborators (public vs protected)
-
----
-
-<!-- Migrated from specs/contrail-prd.md:235-264 -->
+<!-- Migrated from specs/contrail-prd.md:234-264 -->
 ```
 
 ---
 
 ## ADR 8: `decisions/0008-traefik-reverse-proxy.md`
 
-**Source**: `specs/contrail-prd.md:266-272`
+**Source**: `specs/contrail-prd.md:265-271`
 
 ### Content
 
 ```markdown
 # ADR-0008: Traefik for Reverse Proxy
 
-**Status**: Accepted
-**Date**: 2024-12
-**Decision-Makers**: Contrail Design Team
+## Status
 
----
+Accepted
 
 ## Context
 
-Contrail needs a reverse proxy that can dynamically route to containers based on hostname, without requiring config file changes when containers are started or stopped.
+Need a reverse proxy that can dynamically route to containers.
 
 ## Decision
 
@@ -420,48 +301,32 @@ Use Traefik with Docker provider, reading labels from containers.
 
 ## Consequences
 
-### Positive
-
 - Traefik's Docker integration allows dynamic routing without config file changes
 - Labels on containers (added via generated overrides) define routing rules
-- Traefik automatically discovers containers and their routing configuration
-- Industry-standard tool with good documentation
+- Single shared proxy instance serves all workspaces
+- Requires Traefik knowledge for advanced customization
 
-### Negative
-
-- Adds a dependency on Traefik
-- Traefik must be running for proxied services to be accessible
-- Users unfamiliar with Traefik may need to learn its concepts
-
-### Neutral
-
-- Traefik dashboard available for debugging routing issues
-
----
-
-<!-- Migrated from specs/contrail-prd.md:266-272 -->
+<!-- Migrated from specs/contrail-prd.md:265-271 -->
 ```
 
 ---
 
 ## ADR 9: `decisions/0009-flexible-tls-configuration.md`
 
-**Source**: `specs/contrail-prd.md:274-289`
+**Source**: `specs/contrail-prd.md:272-289`
 
 ### Content
 
 ```markdown
 # ADR-0009: Flexible TLS Configuration
 
-**Status**: Accepted
-**Date**: 2024-12
-**Decision-Makers**: Contrail Design Team
+## Status
 
----
+Accepted
 
 ## Context
 
-HTTPS support for local development requires TLS certificates. Different environments have different constraints—personal dev machines may use mkcert, while enterprise networks may have managed CAs.
+HTTPS support for local development requires TLS certificates. Different environments have different constraints (personal dev machines, enterprise networks with managed CAs).
 
 ## Decision
 
@@ -469,52 +334,37 @@ Support three TLS modes via `proxy.yaml`:
 
 | Mode | Use Case |
 |------|----------|
-| `auto` | Personal development—uses mkcert if available, falls back to self-signed |
-| `custom` | Enterprise environments—user provides cert/key signed by enterprise CA |
+| `auto` | Personal development - uses mkcert if available, falls back to self-signed |
+| `custom` | Enterprise environments - user provides cert/key signed by enterprise CA |
 | `disabled` | HTTP-only development (not recommended) |
 
 ## Consequences
-
-### Positive
 
 - `auto` provides zero-config HTTPS for most users with mkcert installed
 - `custom` supports enterprise environments where developers already have CA-signed certs
 - Avoids mandating a specific certificate tool while still enabling secure-by-default development
 
-### Negative
-
-- Multiple modes add complexity to documentation
-- Users must understand which mode fits their environment
-
-### Neutral
-
-- Default mode is `auto` for simplicity
-
----
-
-<!-- Migrated from specs/contrail-prd.md:274-289 -->
+<!-- Migrated from specs/contrail-prd.md:272-289 -->
 ```
 
 ---
 
 ## ADR 10: `decisions/0010-up-down-command-semantics.md`
 
-**Source**: `specs/contrail-prd.md:291-303`
+**Source**: `specs/contrail-prd.md:290-303`
 
 ### Content
 
 ```markdown
 # ADR-0010: up/down Command Semantics
 
-**Status**: Accepted
-**Date**: 2024-12
-**Decision-Makers**: Contrail Design Team
+## Status
 
----
+Accepted
 
 ## Context
 
-Commands could use `start`/`stop` or `up`/`down` terminology. The naming affects user expectations about what the commands do.
+Commands could use `start`/`stop` or `up`/`down` terminology.
 
 ## Decision
 
@@ -524,47 +374,32 @@ Use `up` and `down` as primary commands, matching Docker Compose semantics:
 
 ## Consequences
 
-### Positive
-
 - Semantic alignment with Docker Compose, which users already know
 - `up` conveys "bring the environment into existence" (more than just starting)
 - `down` conveys "tear down" rather than just pausing
 - Matches the underlying `docker compose up/down` commands Contrail invokes
 
-### Negative
-
-- Users expecting `start`/`stop` may be initially confused
-- `down` removes containers by default (unlike `stop` which just pauses)
-
-### Neutral
-
-- Aliases (`start`/`stop`) could be added later if needed
-
----
-
-<!-- Migrated from specs/contrail-prd.md:291-303 -->
+<!-- Migrated from specs/contrail-prd.md:290-303 -->
 ```
 
 ---
 
 ## ADR 11: `decisions/0011-options-based-targeting.md`
 
-**Source**: `specs/contrail-prd.md:305-315`
+**Source**: `specs/contrail-prd.md:304-315`
 
 ### Content
 
 ```markdown
 # ADR-0011: Options-Based Targeting with Context Detection
 
-**Status**: Accepted
-**Date**: 2024-12
-**Decision-Makers**: Contrail Design Team
+## Status
 
----
+Accepted
 
 ## Context
 
-Commands need to target specific workspaces and applications. This could be done via positional arguments or named options.
+Commands need to target specific workspaces and applications.
 
 ## Decision
 
@@ -572,25 +407,68 @@ Use `--workspace` and `--app` options (not positional arguments) with automatic 
 
 ## Consequences
 
-### Positive
-
 - Consistent command structure across all commands
 - Context detection reduces typing for common workflows
 - Explicit flags available when needed
 - Easy to extend with additional targeting options
 
-### Negative
-
-- Slightly more verbose than positional arguments
-- Context detection behavior must be documented and understood
-
-### Neutral
-
-- Global flags are always available: `-w/--workspace`, `-a/--app`
+<!-- Migrated from specs/contrail-prd.md:304-315 -->
+```
 
 ---
 
-<!-- Migrated from specs/contrail-prd.md:305-315 -->
+## Also Create: `decisions/README.md`
+
+```markdown
+# Architectural Decision Records
+
+This directory contains Architecture Decision Records (ADRs) documenting significant technical and product decisions for Contrail.
+
+## Index
+
+| ADR | Title | Status |
+|-----|-------|--------|
+| [0001](./0001-docker-compose-project-name-isolation.md) | Docker Compose Project Name Isolation | Accepted |
+| [0002](./0002-two-layer-networking.md) | Two-Layer Networking | Accepted |
+| [0003](./0003-pure-overlay-design.md) | Pure Overlay Design | Accepted |
+| [0004](./0004-convention-based-naming.md) | Convention-Based Naming | Accepted |
+| [0005](./0005-structure-vs-state-separation.md) | Structure vs State Separation | Accepted |
+| [0006](./0006-three-configuration-schemas.md) | Three Configuration Schemas | Accepted |
+| [0007](./0007-port-type-system.md) | Port Type System | Accepted |
+| [0008](./0008-traefik-reverse-proxy.md) | Traefik for Reverse Proxy | Accepted |
+| [0009](./0009-flexible-tls-configuration.md) | Flexible TLS Configuration | Accepted |
+| [0010](./0010-up-down-command-semantics.md) | up/down Command Semantics | Accepted |
+| [0011](./0011-options-based-targeting.md) | Options-Based Targeting | Accepted |
+
+## Creating New ADRs
+
+Use `0000-template.md` as a starting point for new decisions.
+```
+
+---
+
+## Also Create: `decisions/0000-template.md`
+
+```markdown
+# ADR-NNNN: [Title]
+
+## Status
+
+[Proposed | Accepted | Deprecated | Superseded]
+
+## Context
+
+[Describe the context and problem statement]
+
+## Decision
+
+[Describe the decision and its justification]
+
+## Consequences
+
+[Describe the consequences of this decision]
+
+<!-- Template for new ADRs -->
 ```
 
 ---
@@ -598,6 +476,6 @@ Use `--workspace` and `--app` options (not positional arguments) with automatic 
 ## Completion Checklist
 
 - [ ] All 11 ADR files created
+- [ ] README.md created with index
+- [ ] 0000-template.md created
 - [ ] Source attributions present in each file
-- [ ] Template structure followed (MADR Minimal)
-- [ ] Update `decisions/README.md` index with new entries
