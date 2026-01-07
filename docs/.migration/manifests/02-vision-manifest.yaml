@@ -11,14 +11,14 @@ metadata:
   description: "Vision layer extraction manifest - Product requirements and concepts"
 
 sources:
-  "specs/contrail-prd.md":
+  "specs/scind-prd.md":
     hash: "prd-placeholder-hash-a1b2c3d4e5f6"
     hash_algorithm: "sha256"
 
 entries:
   - id: "vision-main"
     source:
-      file: "specs/contrail-prd.md"
+      file: "specs/scind-prd.md"
       start_line: 1
       end_line: 108
     target: "product/vision.md"
@@ -29,7 +29,7 @@ entries:
 
   - id: "vision-non-goals"
     source:
-      file: "specs/contrail-prd.md"
+      file: "specs/scind-prd.md"
       start_line: 562
       end_line: 571
     target: "product/vision.md"
@@ -40,7 +40,7 @@ entries:
 
   - id: "vision-success-criteria"
     source:
-      file: "specs/contrail-prd.md"
+      file: "specs/scind-prd.md"
       start_line: 580
       end_line: 588
     target: "product/vision.md"
@@ -51,7 +51,7 @@ entries:
 
   - id: "vision-known-limitations"
     source:
-      file: "specs/contrail-prd.md"
+      file: "specs/scind-prd.md"
       start_line: 574
       end_line: 578
     target: "product/vision.md"
@@ -62,7 +62,7 @@ entries:
 
   - id: "vision-roadmap"
     source:
-      file: "specs/contrail-prd.md"
+      file: "specs/scind-prd.md"
       start_line: 515
       end_line: 559
     target: "product/roadmap.md"
@@ -72,7 +72,7 @@ entries:
 
   - id: "vision-comparison"
     source:
-      file: "specs/contrail-prd.md"
+      file: "specs/scind-prd.md"
       start_line: 632
       end_line: 643
     target: "product/comparison.md"
@@ -82,7 +82,7 @@ entries:
 
   - id: "vision-glossary"
     source:
-      file: "specs/contrail-prd.md"
+      file: "specs/scind-prd.md"
       start_line: 600
       end_line: 616
     target: "product/glossary.md"

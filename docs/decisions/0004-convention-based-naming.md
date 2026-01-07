@@ -1,4 +1,4 @@
-<!-- Migrated from specs/contrail-prd.md:194-202 -->
+<!-- Migrated from specs/scind-prd.md:194-202 -->
 <!-- Extraction ID: adr-0004-convention-based-naming -->
 
 # Convention-Based Naming

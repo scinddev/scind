@@ -3,7 +3,7 @@
 
 # Specifications
 
-This directory contains detailed technical specifications for Contrail features and behaviors.
+This directory contains detailed technical specifications for Scind features and behaviors.
 
 ## Contents
 
@@ -19,7 +19,7 @@ This directory contains detailed technical specifications for Contrail features 
 - [Context Detection](./context-detection.md) - Workspace/app detection algorithm
 - [Workspace Lifecycle](./workspace-lifecycle.md) - Operations and sequences
 - [Naming Conventions](./naming-conventions.md) - Best practices and conventions
-- [Shell Integration](./shell-integration.md) - contrail-compose function spec
+- [Shell Integration](./shell-integration.md) - scind-compose function spec
 
 ## Appendices
 

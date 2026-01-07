@@ -1,5 +1,5 @@
 # goreleaser.yaml
-# GoReleaser configuration for Contrail
+# GoReleaser configuration for Scind
 #
 # This file should be created based on the project's release requirements.
 # See https://goreleaser.com/customization/ for configuration options.
@@ -16,9 +16,9 @@ before:
     - go generate ./...
 
 builds:
-  - id: contrail
-    main: ./cmd/contrail
-    binary: contrail
+  - id: scind
+    main: ./cmd/scind
+    binary: scind
     env:
       - CGO_ENABLED=0
     goos:
@@ -35,7 +35,7 @@ builds:
       - -X main.date={{.Date}}
 
 archives:
-  - id: contrail
+  - id: scind
     format: tar.gz
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     format_overrides:
@@ -54,24 +54,24 @@ changelog:
       - '^chore:'
 
 brews:
-  - name: contrail
+  - name: scind
     repository:
       owner: yourorg
       name: homebrew-tap
-    homepage: "https://github.com/yourorg/contrail"
+    homepage: "https://github.com/yourorg/scind"
     description: "Workspace orchestration for Docker Compose"
     license: "MIT"
     folder: Formula
     install: |
-      bin.install "contrail"
+      bin.install "scind"
     test: |
-      system "#{bin}/contrail", "--version"
+      system "#{bin}/scind", "--version"
 
 nfpms:
   - id: packages
-    package_name: contrail
+    package_name: scind
     vendor: Your Organization
-    homepage: https://github.com/yourorg/contrail
+    homepage: https://github.com/yourorg/scind
     maintainer: Your Name <your@email.com>
     description: Workspace orchestration for Docker Compose
     license: MIT
@@ -83,7 +83,7 @@ nfpms:
 release:
   github:
     owner: yourorg
-    name: contrail
+    name: scind
   draft: false
   prerelease: auto
   name_template: "v{{ .Version }}"
@@ -92,7 +92,7 @@ release:
 
     ### Homebrew (macOS/Linux)
     ```bash
-    brew install yourorg/tap/contrail
+    brew install yourorg/tap/scind
     ```
 
     ### Binary
@@ -100,5 +100,5 @@ release:
 
     ### From Source
     ```bash
-    go install github.com/yourorg/contrail/cmd/contrail@v{{ .Version }}
+    go install github.com/yourorg/scind/cmd/scind@v{{ .Version }}
     ```

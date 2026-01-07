@@ -1,5 +1,5 @@
 // scaffold-utility.go
-// Utility commands scaffold for Contrail CLI
+// Utility commands scaffold for Scind CLI
 // Create as: internal/cli/doctor.go, internal/cli/open.go, internal/cli/urls.go
 
 // --- doctor.go ---

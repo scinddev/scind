@@ -1,5 +1,5 @@
 // scaffold-flavor.go
-// Flavor commands scaffold for Contrail CLI
+// Flavor commands scaffold for Scind CLI
 // Create as: internal/cli/flavor.go
 
 package cli

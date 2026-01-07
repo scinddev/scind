@@ -1,5 +1,5 @@
 // Scaffold: internal/cli/workspace.go
-// Migrated from specs/contrail-go-stack.md
+// Migrated from specs/scind-go-stack.md
 
 package cli
 

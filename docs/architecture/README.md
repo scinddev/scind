@@ -3,7 +3,7 @@
 
 # Architecture Documentation
 
-This directory contains architecture-level documentation for Contrail.
+This directory contains architecture-level documentation for Scind.
 
 ## Contents
 

@@ -1,4 +1,4 @@
-<!-- Migrated from specs/contrail-technical-spec.md:686-706 -->
+<!-- Migrated from specs/scind-technical-spec.md:686-706 -->
 <!-- Extraction ID: spec-state-management -->
 
 # State Management Specification
@@ -11,7 +11,7 @@
 
 ## Overview
 
-Contrail separates structure (configuration) from state (runtime). State represents explicit choices made by the user and system-managed assignments, not computed values. This specification covers both workspace-level state and global state.
+Scind separates structure (configuration) from state (runtime). State represents explicit choices made by the user and system-managed assignments, not computed values. This specification covers both workspace-level state and global state.
 
 ---
 
@@ -41,12 +41,12 @@ applications:
 
 ## Global State
 
-**Location**: `~/.config/contrail/state.yaml` (global/per-user)
+**Location**: `~/.config/scind/state.yaml` (global/per-user)
 
 This file tracks port assignments for `assigned` type ports across all workspaces, plus an inventory of port availability for garbage collection and debugging.
 
 ```yaml
-# AUTO-GENERATED - Managed by Contrail
+# AUTO-GENERATED - Managed by Scind
 # Records assigned ports and port availability inventory
 
 assigned_ports:
@@ -98,7 +98,7 @@ port_inventory:
 
 ## Port Conflict at Startup
 
-If a previously assigned port has become unavailable (e.g., taken by an external process) when `workspace up` runs, Contrail fails with a clear error:
+If a previously assigned port has become unavailable (e.g., taken by an external process) when `workspace up` runs, Scind fails with a clear error:
 
 ```
 Error: Port conflict detected for app-one
@@ -107,9 +107,9 @@ Port 5432 is assigned to app-one/postgres but is no longer available.
 Another process may be using this port.
 
 To resolve:
-  contrail port scan       # Check which ports are conflicting
-  contrail port release 5432   # Release the conflicting assignment
-  contrail generate --force    # Regenerate with new port assignment
+  scind port scan       # Check which ports are conflicting
+  scind port release 5432   # Release the conflicting assignment
+  scind generate --force    # Regenerate with new port assignment
 ```
 
 ---
@@ -118,23 +118,23 @@ To resolve:
 
 | Status | Description |
 |--------|-------------|
-| `assigned` | Port is assigned to a Contrail workspace/application |
-| `unavailable` | Port is in use by an external process (not managed by Contrail) |
+| `assigned` | Port is assigned to a Scind workspace/application |
+| `unavailable` | Port is in use by an external process (not managed by Scind) |
 | `released` | Port was previously tracked but has been freed |
 
 ---
 
 ## Port Status Transitions
 
-- `unavailable` -> `assigned`: Port became free, Contrail claimed it
+- `unavailable` -> `assigned`: Port became free, Scind claimed it
 - `assigned` -> `released`: Workspace/app removed, port freed
-- `unavailable` -> `released`: External process stopped, `contrail port gc` cleaned it up
+- `unavailable` -> `released`: External process stopped, `scind port gc` cleaned it up
 
 ---
 
 ## Port Availability Checking
 
-`contrail port scan` and `contrail port gc` check port availability by attempting to bind to each tracked port using `net.Listen("tcp", ":PORT")`. Ports that can be bound are marked as available; ports that fail with "address already in use" remain in their current state. This method is reliable across platforms and doesn't require parsing system-specific files like `/proc/net`.
+`scind port scan` and `scind port gc` check port availability by attempting to bind to each tracked port using `net.Listen("tcp", ":PORT")`. Ports that can be bound are marked as available; ports that fail with "address already in use" remain in their current state. This method is reliable across platforms and doesn't require parsing system-specific files like `/proc/net`.
 
 ---
 
@@ -143,7 +143,7 @@ To resolve:
 | Field | Type | Description |
 |-------|------|-------------|
 | `status` | string | One of: `assigned`, `unavailable`, `released` |
-| `first_seen` | timestamp | When this port was first tracked by Contrail |
+| `first_seen` | timestamp | When this port was first tracked by Scind |
 | `last_checked` | timestamp | When port availability was last verified |
 | `assignment` | object | Present only when `status=assigned` |
 | `assignment.workspace` | string | Workspace name that owns this port |

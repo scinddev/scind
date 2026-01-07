@@ -1,8 +1,8 @@
 # CLI Detailed Examples
 
-Extended examples for Contrail CLI commands.
+Extended examples for Scind CLI commands.
 
-<!-- Source: specs/contrail-cli-reference.md -->
+<!-- Source: specs/scind-cli-reference.md -->
 
 ---
 
@@ -15,20 +15,20 @@ Extended examples for Contrail CLI commands.
 mkdir ~/workspaces && cd ~/workspaces
 
 # Initialize a new workspace
-contrail workspace init --workspace=dev
+scind workspace init --workspace=dev
 
 # Navigate into the workspace
 cd dev
 
 # Add applications with git repositories
-contrail app add --app=frontend --repo=git@github.com:org/frontend.git
-contrail app add --app=backend --repo=git@github.com:org/backend.git
+scind app add --app=frontend --repo=git@github.com:org/frontend.git
+scind app add --app=backend --repo=git@github.com:org/backend.git
 
 # Start all applications
-contrail up
+scind up
 
 # View all accessible URLs
-contrail urls
+scind urls
 ```
 
 ### Promote Existing Project to Workspace
@@ -38,16 +38,16 @@ contrail urls
 cd ~/my-docker-project
 
 # Initialize as a workspace
-contrail workspace init --workspace=dev
+scind workspace init --workspace=dev
 
 # Initialize the application configuration
-contrail app init --app=myapp
+scind app init --app=myapp
 
 # Edit application.yaml to define exported_services
 # (manual step)
 
 # Start the workspace
-contrail up
+scind up
 ```
 
 ---
@@ -60,59 +60,59 @@ contrail up
 cd ~/workspaces/dev/frontend
 
 # Start the entire dev workspace
-contrail up
+scind up
 
 # Check status
-contrail workspace status
+scind workspace status
 ```
 
 ### Working on an Application
 
 ```bash
 # Tail logs for the current application (context detected)
-contrail-compose logs -f
+scind-compose logs -f
 
 # Restart after code changes
-contrail app restart
+scind app restart
 
 # Shell into a container
-contrail-compose exec php bash
+scind-compose exec php bash
 
 # Run a command in a container
-contrail-compose exec php php artisan migrate
+scind-compose exec php php artisan migrate
 ```
 
 ### Checking Another Application
 
 ```bash
 # Check status of a different app (from anywhere in workspace)
-contrail app status -a backend
+scind app status -a backend
 
 # View logs for a different app
-contrail-compose -a backend logs --tail=50
+scind-compose -a backend logs --tail=50
 
 # Run tests in a different app
-contrail-compose -a backend exec node npm test
+scind-compose -a backend exec node npm test
 ```
 
 ### End of Day
 
 ```bash
 # Stop all applications
-contrail down
+scind down
 ```
 
 ---
 
 ## Direct Docker Compose Operations
 
-The `contrail-compose` function provides context-aware Docker Compose access:
+The `scind-compose` function provides context-aware Docker Compose access:
 
 ```bash
 cd ~/workspaces/dev/app-one
 
 # These are equivalent:
-contrail-compose exec php bash
+scind-compose exec php bash
 
 # ...to running:
 docker compose -p dev-app-one \
@@ -128,13 +128,13 @@ docker compose -p dev-app-one \
 cd ~/workspaces/dev
 
 # Target specific app with -a flag
-contrail-compose -a app-two logs -f php
+scind-compose -a app-two logs -f php
 
 # Build without cache
-contrail-compose build --no-cache php
+scind-compose build --no-cache php
 
 # Run one-off commands
-contrail-compose run --rm php composer install
+scind-compose run --rm php composer install
 ```
 
 ---
@@ -145,7 +145,7 @@ contrail-compose run --rm php composer install
 
 ```bash
 # List available flavors for an application
-contrail flavor list -a backend
+scind flavor list -a backend
 
 # Output:
 # NAME     COMPOSE FILES                                    ACTIVE
@@ -154,18 +154,18 @@ contrail flavor list -a backend
 # debug    docker-compose.yaml, docker-compose.debug.yaml
 
 # Switch to a different flavor
-contrail flavor set lite -a backend
+scind flavor set lite -a backend
 
 # Apply the change (if app is running)
-contrail app restart -a backend
+scind app restart -a backend
 ```
 
 ### Flavor Change Scenarios
 
 | Scenario | Command |
 |----------|---------|
-| Flavor adds/removes services | `contrail up` (starts new services, stops orphaned services) |
-| Flavor changes environment or config | `contrail app restart -a APP` |
+| Flavor adds/removes services | `scind up` (starts new services, stops orphaned services) |
+| Flavor changes environment or config | `scind app restart -a APP` |
 
 ---
 
@@ -175,7 +175,7 @@ contrail app restart -a backend
 
 ```bash
 # List all assigned ports
-contrail port list
+scind port list
 
 # Output:
 # PORT   WORKSPACE  APP      SERVICE  STATUS
@@ -185,7 +185,7 @@ contrail port list
 # 6379   dev        app-one  cache    assigned
 
 # With bind status check
-contrail port list --verbose
+scind port list --verbose
 
 # Output:
 # PORT   WORKSPACE  APP      SERVICE  STATUS    BOUND
@@ -199,26 +199,26 @@ contrail port list --verbose
 
 ```bash
 # Check which ports would be released
-contrail port gc --dry-run
+scind port gc --dry-run
 
 # Actually release stale ports
-contrail port gc
+scind port gc
 ```
 
 ### Manual Port Operations
 
 ```bash
 # View details about a specific port
-contrail port show 5432
+scind port show 5432
 
 # Manually release a port
-contrail port release 5432
+scind port release 5432
 
 # Force release even if in use
-contrail port release 5432 --force
+scind port release 5432 --force
 
 # Manually assign a port (advanced)
-contrail port assign 5432 dev/app-one/db
+scind port assign 5432 dev/app-one/db
 ```
 
 ---
@@ -229,29 +229,29 @@ contrail port assign 5432 dev/app-one/db
 
 ```bash
 # Bootstrap the proxy
-contrail proxy init
+scind proxy init
 
 # Output:
-# Created proxy configuration at ~/.config/contrail/proxy/
+# Created proxy configuration at ~/.config/scind/proxy/
 #
 # Next steps:
-#   1. Configure DNS for *.contrail.test -> 127.0.0.1
-#      (See: contrail doctor for DNS verification)
+#   1. Configure DNS for *.scind.test -> 127.0.0.1
+#      (See: scind doctor for DNS verification)
 #   2. Start the proxy:
-#      contrail proxy up
+#      scind proxy up
 
 # Start the proxy
-contrail proxy up
+scind proxy up
 ```
 
 ### Custom Domain Setup
 
 ```bash
 # Use a custom domain
-contrail proxy init --domain mydev.local
+scind proxy init --domain mydev.local
 
 # Output:
-# Created proxy configuration at ~/.config/contrail/proxy/
+# Created proxy configuration at ~/.config/scind/proxy/
 # Domain set to: mydev.local
 ```
 
@@ -259,21 +259,21 @@ contrail proxy init --domain mydev.local
 
 ```bash
 # Force regeneration of proxy config
-contrail proxy init --force
+scind proxy init --force
 
 # Output:
-# Backed up existing configuration to ~/.config/contrail/proxy.backup.20241230/
-# Created proxy configuration at ~/.config/contrail/proxy/
+# Backed up existing configuration to ~/.config/scind/proxy.backup.20241230/
+# Created proxy configuration at ~/.config/scind/proxy/
 ```
 
 ### Checking Proxy Status
 
 ```bash
-contrail proxy status
+scind proxy status
 
 # Output (dashboard enabled):
 # Proxy: running
-# Network: contrail-proxy (created)
+# Network: scind-proxy (created)
 # Dashboard: http://localhost:8080
 # Entrypoints:
 #   - web: :80
@@ -281,7 +281,7 @@ contrail proxy status
 
 # Output (dashboard disabled):
 # Proxy: running
-# Network: contrail-proxy (created)
+# Network: scind-proxy (created)
 # Dashboard: disabled
 # Entrypoints:
 #   - web: :80
@@ -296,33 +296,33 @@ contrail proxy status
 
 ```bash
 # Show all configuration values
-contrail config show
+scind config show
 
 # Output:
 # proxy:
-#   domain: contrail.test
+#   domain: scind.test
 # paths:
-#   global_config: ~/.config/contrail/proxy.yaml
-#   global_state: ~/.config/contrail/state.yaml
+#   global_config: ~/.config/scind/proxy.yaml
+#   global_state: ~/.config/scind/state.yaml
 
 # Get a specific value
-contrail config get proxy.domain
-# contrail.test
+scind config get proxy.domain
+# scind.test
 
 # Show file locations
-contrail config path
-# Global config: ~/.config/contrail/proxy.yaml
-# Global state:  ~/.config/contrail/state.yaml
+scind config path
+# Global config: ~/.config/scind/proxy.yaml
+# Global state:  ~/.config/scind/state.yaml
 ```
 
 ### Modifying Configuration
 
 ```bash
 # Set a configuration value
-contrail config set proxy.domain local.test
+scind config set proxy.domain local.test
 
 # Edit configuration in your default editor
-contrail config edit
+scind config edit
 ```
 
 ---
@@ -332,7 +332,7 @@ contrail config edit
 ### JSON Output
 
 ```bash
-contrail workspace list --json
+scind workspace list --json
 
 # Output:
 # [
@@ -344,7 +344,7 @@ contrail workspace list --json
 ### YAML Output
 
 ```bash
-contrail workspace list --yaml
+scind workspace list --yaml
 
 # Output:
 # - name: dev
@@ -359,16 +359,16 @@ contrail workspace list --yaml
 
 ```bash
 # Just names, one per line
-contrail workspace list --quiet
+scind workspace list --quiet
 
 # Output:
 # dev
 # review
 
 # Useful in scripts
-for ws in $(contrail workspace list -q); do
+for ws in $(scind workspace list -q); do
   echo "Processing workspace: $ws"
-  contrail workspace status -w "$ws"
+  scind workspace status -w "$ws"
 done
 ```
 
@@ -379,29 +379,29 @@ done
 ### Validating Configuration
 
 ```bash
-contrail validate
+scind validate
 
 # Or for a specific workspace/app
-contrail validate -w dev -a frontend
+scind validate -w dev -a frontend
 ```
 
 ### System Health Check
 
 ```bash
-contrail doctor
+scind doctor
 
 # Output:
-# Checking Contrail environment...
+# Checking Scind environment...
 #
 # ✓ Docker: running (version 24.0.7)
 # ✓ Docker Compose: available (version 2.23.0)
 # ✓ Proxy network: created
 # ✓ Traefik: running
-# ✓ Config directory: ~/.config/contrail
-# ✓ Domain resolution: contrail.test -> 127.0.0.1
+# ✓ Config directory: ~/.config/scind
+# ✓ Domain resolution: scind.test -> 127.0.0.1
 # ✓ Workspace domains:
-#   - dev-app-one-web.contrail.test -> 127.0.0.1
-#   - dev-app-two-api.contrail.test -> 127.0.0.1
+#   - dev-app-one-web.scind.test -> 127.0.0.1
+#   - dev-app-two-api.scind.test -> 127.0.0.1
 #
 # All checks passed.
 ```
@@ -414,25 +414,25 @@ contrail doctor
 
 ```bash
 # Open the first web service for current context
-contrail open
+scind open
 
 # Open a specific service
-contrail open --service api
+scind open --service api
 
 # Open for a specific app
-contrail open -a backend --service api
+scind open -a backend --service api
 ```
 
 ### Listing All URLs
 
 ```bash
-contrail urls
+scind urls
 
 # Output:
 # APP        SERVICE  URL
-# app-one    web      https://dev-app-one-web.contrail.test
-# app-two    web      https://dev-app-two-web.contrail.test
-# app-two    api      https://dev-app-two-api.contrail.test
+# app-one    web      https://dev-app-one-web.scind.test
+# app-two    web      https://dev-app-two-web.scind.test
+# app-two    api      https://dev-app-two-api.scind.test
 ```
 
 ---

@@ -1,5 +1,5 @@
 // scaffold-port.go
-// Port commands scaffold for Contrail CLI
+// Port commands scaffold for Scind CLI
 // Create as: internal/cli/port.go
 
 package cli

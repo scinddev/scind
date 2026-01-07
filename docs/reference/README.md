@@ -3,7 +3,7 @@
 
 # Reference Documentation
 
-This directory contains reference documentation for Contrail commands and configuration.
+This directory contains reference documentation for Scind commands and configuration.
 
 ## Contents
 

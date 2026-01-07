@@ -1,5 +1,5 @@
 // scaffold-config.go
-// Config commands scaffold for Contrail CLI
+// Config commands scaffold for Scind CLI
 // Create as: internal/cli/config.go
 
 package cli
@@ -10,8 +10,8 @@ import (
 
 var configCmd = &cobra.Command{
     Use:   "config",
-    Short: "Manage Contrail configuration",
-    Long:  `View and modify Contrail configuration settings.`,
+    Short: "Manage Scind configuration",
+    Long:  `View and modify Scind configuration settings.`,
 }
 
 var configShowCmd = &cobra.Command{

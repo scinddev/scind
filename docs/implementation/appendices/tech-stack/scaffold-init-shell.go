@@ -1,5 +1,5 @@
 // scaffold-init-shell.go
-// init-shell command scaffold for Contrail CLI
+// init-shell command scaffold for Scind CLI
 // Create as: internal/cli/init_shell.go
 
 package cli
@@ -29,13 +29,13 @@ Supported shells: bash, zsh, fish
 
 Add to your shell configuration:
   # Bash
-  contrail init-shell bash >> ~/.bashrc
+  scind init-shell bash >> ~/.bashrc
 
   # Zsh
-  contrail init-shell zsh >> ~/.zshrc
+  scind init-shell zsh >> ~/.zshrc
 
   # Fish
-  contrail init-shell fish >> ~/.config/fish/conf.d/contrail.fish`,
+  scind init-shell fish >> ~/.config/fish/conf.d/scind.fish`,
     Args:      cobra.ExactArgs(1),
     ValidArgs: []string{"bash", "zsh", "fish"},
     RunE: func(cmd *cobra.Command, args []string) error {

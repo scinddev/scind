@@ -1,6 +1,6 @@
 <!-- Migrated from multiple sources:
-     - specs/contrail-technical-spec.md:9-94
-     - specs/contrail-prd.md:150-159
+     - specs/scind-technical-spec.md:9-94
+     - specs/scind-prd.md:150-159
 -->
 <!-- Extraction ID: architecture-overview -->
 
@@ -24,43 +24,43 @@ A **workspace** is a logical grouping of Docker Compose-based applications that 
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                              HOST                                       │
 │                                                                         │
-│  ┌─────────────────────────────────────────────────────────────────┐   │
-│  │                        PROXY LAYER                               │   │
-│  │  ┌──────────┐                                                    │   │
-│  │  │ Traefik  │◄─────── contrail-proxy (external network)           │   │
-│  │  └──────────┘              │                                     │   │
-│  └────────────────────────────┼─────────────────────────────────────┘   │
+│  ┌───────────────────────────────────────────────────────────────────┐  │
+│  │                        PROXY LAYER                                │  │
+│  │  ┌──────────┐                                                     │  │
+│  │  │ Traefik  │◄─────── scind-proxy (external network)              │  │
+│  │  └──────────┘              │                                      │  │
+│  └────────────────────────────┼──────────────────────────────────────┘  │
 │                               │                                         │
-│  ┌────────────────────────────┼─────────────────────────────────────┐   │
-│  │                            │         WORKSPACE: dev              │   │
-│  │                            ▼                                     │   │
-│  │            ┌─── dev-internal (workspace network) ───┐            │   │
-│  │            │                                        │            │   │
-│  │    ┌───────┴───────┐ ┌───────┴───────┐ ┌───────────┴───┐        │   │
-│  │    │   app-one     │ │   app-two     │ │   app-three   │        │   │
-│  │    │ (dev-app-one) │ │ (dev-app-two) │ │(dev-app-three)│        │   │
-│  │    │               │ │               │ │               │        │   │
-│  │    │ ┌───┐ ┌───┐   │ │ ┌───┐ ┌───┐   │ │ ┌───┐ ┌───┐   │        │   │
-│  │    │ │web│ │ db│   │ │ │web│ │api│   │ │ │web│ │wrk│   │        │   │
-│  │    │ └───┘ └───┘   │ │ └───┘ └───┘   │ │ └───┘ └───┘   │        │   │
-│  │    └───────────────┘ └───────────────┘ └───────────────┘        │   │
-│  │                                                                  │   │
-│  │    Aliases on dev-internal:                                      │   │
-│  │      app-one-web, app-two-web, app-two-api, app-three-web, ...   │   │
-│  │                                                                  │   │
-│  │    External hostnames (via Traefik):                             │   │
-│  │      dev-app-one-web.contrail.test, dev-app-two-web.contrail.test│   │
-│  └──────────────────────────────────────────────────────────────────┘   │
+│  ┌────────────────────────────┼──────────────────────────────────────┐  │
+│  │                            │         WORKSPACE: dev               │  │
+│  │                            ▼                                      │  │
+│  │            ┌─── dev-internal (workspace network) ───┐             │  │
+│  │            │                                        │             │  │
+│  │    ┌───────┴───────┐  ┌───────┴───────┐  ┌──────────┴────┐        │  │
+│  │    │   app-one     │  │   app-two     │  │   app-three   │        │  │
+│  │    │ (dev-app-one) │  │ (dev-app-two) │  │(dev-app-three)│        │  │
+│  │    │               │  │               │  │               │        │  │
+│  │    │ ┌───┐ ┌───┐   │  │ ┌───┐ ┌───┐   │  │ ┌───┐ ┌───┐   │        │  │
+│  │    │ │web│ │ db│   │  │ │web│ │api│   │  │ │web│ │wrk│   │        │  │
+│  │    │ └───┘ └───┘   │  │ └───┘ └───┘   │  │ └───┘ └───┘   │        │  │
+│  │    └───────────────┘  └───────────────┘  └───────────────┘        │  │
+│  │                                                                   │  │
+│  │    Aliases on dev-internal:                                       │  │
+│  │      app-one-web, app-two-web, app-two-api, app-three-web, ...    │  │
+│  │                                                                   │  │
+│  │    External hostnames (via Traefik):                              │  │
+│  │      dev-app-one-web.scind.test, dev-app-two-web.scind.test       │  │
+│  └───────────────────────────────────────────────────────────────────┘  │
 │                                                                         │
-│  ┌──────────────────────────────────────────────────────────────────┐   │
-│  │                        WORKSPACE: review                         │   │
-│  │                            ...                                   │   │
-│  └──────────────────────────────────────────────────────────────────┘   │
+│  ┌───────────────────────────────────────────────────────────────────┐  │
+│  │                        WORKSPACE: review                          │  │
+│  │                            ...                                    │  │
+│  └───────────────────────────────────────────────────────────────────┘  │
 │                                                                         │
-│  ┌──────────────────────────────────────────────────────────────────┐   │
-│  │                        WORKSPACE: control                        │   │
-│  │                            ...                                   │   │
-│  └──────────────────────────────────────────────────────────────────┘   │
+│  ┌───────────────────────────────────────────────────────────────────┐  │
+│  │                        WORKSPACE: control                         │  │
+│  │                            ...                                    │  │
+│  └───────────────────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -70,7 +70,7 @@ A **workspace** is a logical grouping of Docker Compose-based applications that 
 
 ### Proxy Network
 
-- **Name**: `contrail-proxy`
+- **Name**: `scind-proxy`
 - **Scope**: Host-level, shared across all workspaces
 - **Purpose**: Connects Traefik to services that need external access
 - **Created by**: Proxy layer setup (once per host)
@@ -93,10 +93,10 @@ A **workspace** is a logical grouping of Docker Compose-based applications that 
 
 ## Proxy Layer Bootstrap
 
-The proxy layer (Traefik) is a prerequisite for proxied services. Contrail manages the proxy lifecycle:
+The proxy layer (Traefik) is a prerequisite for proxied services. Scind manages the proxy lifecycle:
 
-1. **Bootstrap**: `contrail proxy init` creates the proxy configuration at `~/.config/contrail/proxy/`
+1. **Bootstrap**: `scind proxy init` creates the proxy configuration at `~/.config/scind/proxy/`
 2. **Auto-start**: `workspace up` automatically starts the proxy if not running
 3. **Shared instance**: A single proxy instance serves all workspaces on the host
 
-The proxy is implemented as a Docker Compose project managed by Contrail. Users generally don't interact with it directly—workspaces connect to it automatically via Docker labels.
+The proxy is implemented as a Docker Compose project managed by Scind. Users generally don't interact with it directly—workspaces connect to it automatically via Docker labels.

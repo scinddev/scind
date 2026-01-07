@@ -1,5 +1,5 @@
 // scaffold-compose-prefix.go
-// compose-prefix command scaffold for Contrail CLI
+// compose-prefix command scaffold for Scind CLI
 // Create as: internal/cli/compose_prefix.go
 
 package cli
@@ -46,7 +46,7 @@ var composePrefixCmd = &cobra.Command{
 func init() {
     rootCmd.AddCommand(composePrefixCmd)
     // Note: No --flavor flag. Flavor changes require regeneration and can impact
-    // running applications. Users must use `contrail flavor set` instead.
+    // running applications. Users must use `scind flavor set` instead.
 }
 
 func getComposeFilesForApp(workspace, app string) ([]string, error) {

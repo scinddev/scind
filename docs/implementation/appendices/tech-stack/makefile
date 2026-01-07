@@ -1,5 +1,5 @@
 # Makefile
-# Build and development tasks for Contrail
+# Build and development tasks for Scind
 
 .PHONY: all build test lint clean install generate help
 
@@ -8,11 +8,11 @@ all: build
 
 # Build the binary
 build:
-	go build -o bin/contrail ./cmd/contrail
+	go build -o bin/scind ./cmd/scind
 
 # Build with version information
 build-release:
-	go build -ldflags "-s -w -X main.version=$(VERSION)" -o bin/contrail ./cmd/contrail
+	go build -ldflags "-s -w -X main.version=$(VERSION)" -o bin/scind ./cmd/scind
 
 # Run tests
 test:
@@ -38,7 +38,7 @@ generate:
 
 # Install the binary
 install:
-	go install ./cmd/contrail
+	go install ./cmd/scind
 
 # Clean build artifacts
 clean:
@@ -52,15 +52,15 @@ dev-deps:
 
 # Run the application
 run:
-	go run ./cmd/contrail
+	go run ./cmd/scind
 
 # Build for all platforms
 build-all:
-	GOOS=linux GOARCH=amd64 go build -o bin/contrail-linux-amd64 ./cmd/contrail
-	GOOS=linux GOARCH=arm64 go build -o bin/contrail-linux-arm64 ./cmd/contrail
-	GOOS=darwin GOARCH=amd64 go build -o bin/contrail-darwin-amd64 ./cmd/contrail
-	GOOS=darwin GOARCH=arm64 go build -o bin/contrail-darwin-arm64 ./cmd/contrail
-	GOOS=windows GOARCH=amd64 go build -o bin/contrail-windows-amd64.exe ./cmd/contrail
+	GOOS=linux GOARCH=amd64 go build -o bin/scind-linux-amd64 ./cmd/scind
+	GOOS=linux GOARCH=arm64 go build -o bin/scind-linux-arm64 ./cmd/scind
+	GOOS=darwin GOARCH=amd64 go build -o bin/scind-darwin-amd64 ./cmd/scind
+	GOOS=darwin GOARCH=arm64 go build -o bin/scind-darwin-arm64 ./cmd/scind
+	GOOS=windows GOARCH=amd64 go build -o bin/scind-windows-amd64.exe ./cmd/scind
 
 # Run integration tests
 test-integration:

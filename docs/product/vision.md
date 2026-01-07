@@ -1,10 +1,10 @@
-<!-- Migrated from specs/contrail-prd.md:1-108 -->
-<!-- Additional content from specs/contrail-prd.md:562-571 (Non-Goals) -->
-<!-- Additional content from specs/contrail-prd.md:574-578 (Known Limitations) -->
-<!-- Additional content from specs/contrail-prd.md:580-588 (Success Criteria) -->
+<!-- Migrated from specs/scind-prd.md:1-108 -->
+<!-- Additional content from specs/scind-prd.md:562-571 (Non-Goals) -->
+<!-- Additional content from specs/scind-prd.md:574-578 (Known Limitations) -->
+<!-- Additional content from specs/scind-prd.md:580-588 (Success Criteria) -->
 <!-- Extraction ID: vision-main, vision-non-goals, vision-known-limitations, vision-success-criteria -->
 
-# Contrail: Product Requirements Document
+# Scind: Product Requirements Document
 
 **Version**: 0.5.2-draft
 **Date**: December 2024
@@ -14,9 +14,9 @@
 
 ## Executive Summary
 
-Contrail is a workspace orchestration system for Docker Compose that enables developers to run multiple isolated instances of multi-application stacks simultaneously on a single host. It solves the problem of needing complete, independent environments for development, code review, and testing without requiring Kubernetes or cloud infrastructure.
+Scind is a workspace orchestration system for Docker Compose that enables developers to run multiple isolated instances of multi-application stacks simultaneously on a single host. It solves the problem of needing complete, independent environments for development, code review, and testing without requiring Kubernetes or cloud infrastructure.
 
-The name "Contrail" evokes the trails left by aircraft—parallel paths that don't intersect, much like the isolated workspaces the system creates.
+The name "Scind" evokes the trails left by aircraft—parallel paths that don't intersect, much like the isolated workspaces the system creates.
 
 ---
 
@@ -32,7 +32,7 @@ A developer works on a system composed of multiple applications (e.g., `app-one`
 
 Each environment needs:
 1. Internal communication between applications (app-one can reach app-two's API)
-2. External access via unique hostnames (dev-app-one-web.contrail.test, review-app-one-web.contrail.test)
+2. External access via unique hostnames (dev-app-one-web.scind.test, review-app-one-web.scind.test)
 3. Complete isolation (dev's database is separate from review's database)
 
 ### Why Existing Solutions Fall Short
@@ -53,13 +53,13 @@ There is no existing tool that orchestrates **multiple isolated instances of mul
 
 ## Product Vision
 
-Contrail provides a thin coordination layer over Docker Compose that:
+Scind provides a thin coordination layer over Docker Compose that:
 
 1. **Preserves application independence**: Applications don't know they're in a workspace
 2. **Uses pure overlay**: All integration happens via generated Docker Compose override files
 3. **Follows conventions**: Predictable naming for hostnames, aliases, and networks
 4. **Separates structure from state**: Configuration describes what exists; runtime state describes what's active
-5. **Enables direct Docker Compose access**: The `contrail-compose` shell function provides context-aware passthrough to Docker Compose with full tab completion
+5. **Enables direct Docker Compose access**: The `scind-compose` shell function provides context-aware passthrough to Docker Compose with full tab completion
 
 ---
 
@@ -83,12 +83,12 @@ A Docker Compose-based service that can participate in workspaces. Applications 
 
 ### Single-Application Workspace
 
-Contrail supports workspaces where the workspace directory is also the application directory. This allows promoting existing Docker Compose projects without restructuring:
+Scind supports workspaces where the workspace directory is also the application directory. This allows promoting existing Docker Compose projects without restructuring:
 
 ```bash
 cd ~/my-existing-project
-contrail workspace init --workspace=dev
-contrail app init --app=myapp
+scind workspace init --workspace=dev
+scind app init --app=myapp
 ```
 
 ### Port Types and Proxying
@@ -104,7 +104,7 @@ Services not listed in `exported_services` remain **private**—only accessible 
 
 ### Visibility
 
-Each port can have a `visibility` of `public` or `protected` (defaults to `protected` if not specified). This is primarily **documentation** to communicate intent to collaborators—it does not change Contrail's core behavior. Both public and protected proxied services route through Traefik.
+Each port can have a `visibility` of `public` or `protected` (defaults to `protected` if not specified). This is primarily **documentation** to communicate intent to collaborators—it does not change Scind's core behavior. Both public and protected proxied services route through Traefik.
 
 Visibility is exposed via Docker labels (`workspace.visibility`), enabling external tools like Servlo to distinguish between public and protected services for display or filtering purposes.
 
@@ -116,7 +116,7 @@ A named configuration that specifies which Docker Compose files to use when runn
 
 ## Non-Goals
 
-1. **Kubernetes support**: Contrail is specifically for Docker Compose environments
+1. **Kubernetes support**: Scind is specifically for Docker Compose environments
 2. **Production deployment**: Focused on local development and testing
 3. **CI/CD integration**: May come later, but not initial focus
 4. **GUI**: CLI-first; GUI could be added later
@@ -128,8 +128,8 @@ A named configuration that specifies which Docker Compose files to use when runn
 
 ## Known Limitations (v1)
 
-1. **Concurrent operations**: Running multiple Contrail commands simultaneously (e.g., two terminals running `workspace up`) may cause race conditions. Use one terminal per workspace for operations.
-2. **Port garbage collection**: Ports from workspaces deleted via filesystem (not `workspace destroy`) require manual cleanup with `contrail port gc`.
+1. **Concurrent operations**: Running multiple Scind commands simultaneously (e.g., two terminals running `workspace up`) may cause race conditions. Use one terminal per workspace for operations.
+2. **Port garbage collection**: Ports from workspaces deleted via filesystem (not `workspace destroy`) require manual cleanup with `scind port gc`.
 
 ---
 

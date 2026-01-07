@@ -1,4 +1,4 @@
-<!-- Migrated from specs/contrail-technical-spec.md:1030-1050 -->
+<!-- Migrated from specs/scind-technical-spec.md:1030-1050 -->
 <!-- Extraction ID: spec-proxy-infrastructure -->
 
 ## Proxy Layer
@@ -13,9 +13,9 @@ See [Configuration Schemas](./configuration-schemas.md#proxy-infrastructure) for
 
 For local development, configure DNS resolution for the workspace domains. Options include:
 
-1. **dnsmasq**: Route all `*.contrail.test` to `127.0.0.1`
+1. **dnsmasq**: Route all `*.scind.test` to `127.0.0.1`
    ```
-   address=/contrail.test/127.0.0.1
+   address=/scind.test/127.0.0.1
    ```
 2. **/etc/hosts**: Manual entries for each hostname
 3. **Local DNS server**: More complex but flexible

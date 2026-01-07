@@ -1,4 +1,4 @@
-<!-- Migrated from specs/contrail-prd.md:266-271 -->
+<!-- Migrated from specs/scind-prd.md:266-271 -->
 <!-- Extraction ID: adr-0008-traefik-reverse-proxy -->
 
 # Traefik for Reverse Proxy

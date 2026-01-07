@@ -1,4 +1,4 @@
-<!-- Migrated from specs/contrail-prd.md:235-264 -->
+<!-- Migrated from specs/scind-prd.md:235-264 -->
 <!-- Extraction ID: adr-0007-port-type-system -->
 
 # Port Type System for Exported Services

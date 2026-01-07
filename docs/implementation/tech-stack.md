@@ -1,17 +1,17 @@
-<!-- Migrated from specs/contrail-go-stack.md:1-180 -->
+<!-- Migrated from specs/scind-go-stack.md:1-180 -->
 <!-- Extraction ID: impl-go-stack -->
 
 # Go Technology Stack
 
 ## Stack Overview
 
-Contrail's Go stack is intentionally aligned with the Weftlo project where patterns overlap, enabling knowledge transfer and consistent tooling across projects.
+Scind's Go stack is intentionally aligned with the Weftlo project where patterns overlap, enabling knowledge transfer and consistent tooling across projects.
 
 ### Core Dependencies
 
 ```go
 // go.mod
-module github.com/yourorg/contrail
+module github.com/yourorg/scind
 
 go 1.23
 
@@ -49,9 +49,9 @@ github.com/compose-spec/compose-go/v2 v2.4.0
 
 ## Dependency Rationale
 
-### Carried from Weftlo (Validated for Contrail)
+### Carried from Weftlo (Validated for Scind)
 
-| Package | Purpose in Contrail |
+| Package | Purpose in Scind |
 |---------|---------------------|
 | **Cobra** | CLI framework—resource-first command structure, subcommands, persistent flags, shell completion generation |
 | **Viper** | Configuration loading—`proxy.yaml`, `workspace.yaml`, `application.yaml`, environment variable overrides, config merging |
@@ -61,7 +61,7 @@ github.com/compose-spec/compose-go/v2 v2.4.0
 | **testify** | Testing assertions and mocks |
 | **yaml.v3** | YAML parsing with support for comments and anchors |
 
-### Contrail-Specific
+### Scind-Specific
 
 | Package | Purpose |
 |---------|---------|
@@ -72,9 +72,9 @@ github.com/compose-spec/compose-go/v2 v2.4.0
 
 | Package | Reason |
 |---------|--------|
-| **compose-go** | Not needed initially—Contrail shells out to `docker compose` rather than parsing compose files programmatically. Add later if direct parsing becomes necessary. |
+| **compose-go** | Not needed initially—Scind shells out to `docker compose` rather than parsing compose files programmatically. Add later if direct parsing becomes necessary. |
 | **Alternative CLI frameworks** (urfave/cli, Kong) | Cobra has superior ecosystem (completion, doc generation) and precedent (docker, kubectl, gh, terraform). |
-| **Alternative plugin systems** | go-plugin is the clear choice for Contrail's requirements. Alternatives solve different problems. |
+| **Alternative plugin systems** | go-plugin is the clear choice for Scind's requirements. Alternatives solve different problems. |
 
 ## Architecture Patterns
 
@@ -98,13 +98,13 @@ var rootCmd = &cobra.Command{
 
 ### Configuration Layering
 
-Viper's merge capabilities support Contrail's configuration hierarchy:
+Viper's merge capabilities support Scind's configuration hierarchy:
 
-1. Global config (`~/.config/contrail/proxy.yaml`)
+1. Global config (`~/.config/scind/proxy.yaml`)
 2. Workspace config (`workspace.yaml`)
 3. Application config (`application.yaml`)
 4. Manual overrides (`overrides/{app}.yaml`)
-5. Environment variables (`CONTRAIL_*`)
+5. Environment variables (`SCIND_*`)
 6. Command-line flags
 
 ### Shell Completion

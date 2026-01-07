@@ -1,5 +1,5 @@
 // Scaffold: internal/cli/root.go
-// Migrated from specs/contrail-go-stack.md
+// Migrated from specs/scind-go-stack.md
 
 package cli
 
@@ -22,9 +22,9 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "contrail",
+	Use:   "scind",
 	Short: "Workspace orchestration for Docker Compose",
-	Long: `Contrail is a workspace orchestration system for Docker Compose that enables
+	Long: `Scind is a workspace orchestration system for Docker Compose that enables
 developers to run multiple isolated instances of multi-application stacks
 simultaneously on a single host.`,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
@@ -47,7 +47,7 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	// Global flags
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.config/contrail/proxy.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.config/scind/proxy.yaml)")
 	rootCmd.PersistentFlags().StringVarP(&workspace, "workspace", "w", "", "specify workspace (overrides context detection)")
 	rootCmd.PersistentFlags().StringSliceVarP(&apps, "app", "a", nil, "specify application(s) (repeatable, overrides context detection)")
 	rootCmd.PersistentFlags().BoolVarP(&quiet, "quiet", "q", false, "minimal output, suppress context indicators and progress")
@@ -68,12 +68,12 @@ func initConfig() {
 		home, err := os.UserHomeDir()
 		cobra.CheckErr(err)
 
-		viper.AddConfigPath(home + "/.config/contrail")
+		viper.AddConfigPath(home + "/.config/scind")
 		viper.SetConfigType("yaml")
 		viper.SetConfigName("proxy")
 	}
 
-	viper.SetEnvPrefix("CONTRAIL")
+	viper.SetEnvPrefix("SCIND")
 	viper.AutomaticEnv()
 
 	viper.ReadInConfig()

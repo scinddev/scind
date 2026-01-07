@@ -3,7 +3,7 @@
 
 # Product Documentation
 
-This directory contains product-level documentation for Contrail.
+This directory contains product-level documentation for Scind.
 
 ## Contents
 

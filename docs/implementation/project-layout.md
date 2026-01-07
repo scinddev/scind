@@ -1,12 +1,12 @@
-<!-- Migrated from specs/contrail-go-stack.md:183-267 -->
+<!-- Migrated from specs/scind-go-stack.md:183-267 -->
 <!-- Extraction ID: impl-project-layout -->
 
 # Project Structure
 
 ```
-contrail/
+scind/
 ├── cmd/
-│   └── contrail/
+│   └── scind/
 │       └── main.go                 # Entry point
 │
 ├── internal/

@@ -11,14 +11,14 @@ metadata:
   description: "Implementation layer extraction manifest - Tech stack and scaffolding"
 
 sources:
-  "specs/contrail-go-stack.md":
+  "specs/scind-go-stack.md":
     hash: "gostack-placeholder-hash-e5f6g7h8i9j0"
     hash_algorithm: "sha256"
 
 entries:
   - id: "implementation-tech-stack"
     source:
-      file: "specs/contrail-go-stack.md"
+      file: "specs/scind-go-stack.md"
       start_line: 1
       end_line: 268
     target: "implementation/tech-stack.md"
@@ -28,7 +28,7 @@ entries:
 
   - id: "implementation-scaffolding"
     source:
-      file: "specs/contrail-go-stack.md"
+      file: "specs/scind-go-stack.md"
       start_line: 270
       end_line: 1529
     target: "implementation/appendices/tech-stack/"
@@ -39,7 +39,7 @@ entries:
 
   - id: "implementation-testing"
     source:
-      file: "specs/contrail-go-stack.md"
+      file: "specs/scind-go-stack.md"
       start_line: 1531
       end_line: 1563
     target: "implementation/tech-stack.md"
@@ -50,7 +50,7 @@ entries:
 
   - id: "implementation-priority"
     source:
-      file: "specs/contrail-go-stack.md"
+      file: "specs/scind-go-stack.md"
       start_line: 1565
       end_line: 1594
     target: "implementation/tech-stack.md"
@@ -67,7 +67,7 @@ entries:
     inline_content: |
       # Implementation Guides
 
-      Implementation guidance for building Contrail.
+      Implementation guidance for building Scind.
 
       ## Contents
 

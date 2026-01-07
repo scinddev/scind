@@ -1,4 +1,4 @@
-<!-- Migrated from specs/contrail-go-stack.md:269-1525 -->
+<!-- Migrated from specs/scind-go-stack.md:269-1525 -->
 <!-- Extraction ID: impl-cobra-structure -->
 
 # CLI Scaffolding
@@ -10,8 +10,8 @@ This document provides scaffolding instructions for the Cobra-based CLI structur
 ### Step 1: Initialize Module
 
 ```bash
-mkdir contrail && cd contrail
-go mod init github.com/yourorg/contrail
+mkdir scind && cd scind
+go mod init github.com/yourorg/scind
 ```
 
 ### Step 2: Install Dependencies
@@ -30,7 +30,7 @@ go get gopkg.in/yaml.v3@v3.0.1
 ### Step 3: Create Directory Structure
 
 ```bash
-mkdir -p cmd/contrail
+mkdir -p cmd/scind
 mkdir -p internal/{cli,config,context,generator,docker,workspace,output,scripts}
 mkdir -p pkg/plugin
 mkdir -p testdata/{workspaces,applications}
@@ -38,12 +38,12 @@ mkdir -p testdata/{workspaces,applications}
 
 ### Step 4: Create Entry Point
 
-Create `cmd/contrail/main.go`:
+Create `cmd/scind/main.go`:
 
 ```go
 package main
 
-import "github.com/yourorg/contrail/internal/cli"
+import "github.com/yourorg/scind/internal/cli"
 
 func main() {
     cli.Execute()
@@ -53,64 +53,64 @@ func main() {
 ### Step 5: Build and Verify
 
 ```bash
-go build -o contrail ./cmd/contrail
-./contrail --help
-./contrail workspace --help
+go build -o scind ./cmd/scind
+./scind --help
+./scind workspace --help
 ```
 
 ## CLI to Cobra Command Mapping
 
 | CLI Command | Cobra Location | Notes |
 |-------------|----------------|-------|
-| `contrail workspace list` | `workspaceCmd` → `workspaceListCmd` | |
-| `contrail workspace show` | `workspaceCmd` → `workspaceShowCmd` | |
-| `contrail workspace init` | `workspaceCmd` → `workspaceInitCmd` | |
-| `contrail workspace clone` | `workspaceCmd` → `workspaceCloneCmd` | |
-| `contrail workspace generate` | `workspaceCmd` → `workspaceGenerateCmd` | |
-| `contrail workspace prune` | `workspaceCmd` → `workspacePruneCmd` | |
-| `contrail workspace up` | `workspaceCmd` → `workspaceUpCmd` | |
-| `contrail workspace down` | `workspaceCmd` → `workspaceDownCmd` | |
-| `contrail workspace restart` | `workspaceCmd` → `workspaceRestartCmd` | |
-| `contrail workspace status` | `workspaceCmd` → `workspaceStatusCmd` | |
-| `contrail app list` | `appCmd` → `appListCmd` | |
-| `contrail app show` | `appCmd` → `appShowCmd` | |
-| `contrail app init` | `appCmd` → `appInitCmd` | |
-| `contrail app add` | `appCmd` → `appAddCmd` | |
-| `contrail app remove` | `appCmd` → `appRemoveCmd` | |
-| `contrail app up` | `appCmd` → `appUpCmd` | |
-| `contrail app down` | `appCmd` → `appDownCmd` | |
-| `contrail app restart` | `appCmd` → `appRestartCmd` | |
-| `contrail app status` | `appCmd` → `appStatusCmd` | |
-| `contrail flavor list` | `flavorCmd` → `flavorListCmd` | |
-| `contrail flavor show` | `flavorCmd` → `flavorShowCmd` | |
-| `contrail flavor set` | `flavorCmd` → `flavorSetCmd` | |
-| `contrail port list` | `portCmd` → `portListCmd` | Global (no context) |
-| `contrail port show` | `portCmd` → `portShowCmd` | Global (no context) |
-| `contrail port release` | `portCmd` → `portReleaseCmd` | Global (no context) |
-| `contrail port assign` | `portCmd` → `portAssignCmd` | Global (no context) |
-| `contrail port gc` | `portCmd` → `portGcCmd` | Global (no context) |
-| `contrail port scan` | `portCmd` → `portScanCmd` | Global (no context) |
-| `contrail proxy init` | `proxyCmd` → `proxyInitCmd` | Global (no context) |
-| `contrail proxy status` | `proxyCmd` → `proxyStatusCmd` | Global (no context) |
-| `contrail proxy up` | `proxyCmd` → `proxyUpCmd` | Global (no context) |
-| `contrail proxy down` | `proxyCmd` → `proxyDownCmd` | Global (no context) |
-| `contrail proxy restart` | `proxyCmd` → `proxyRestartCmd` | Global (no context) |
-| `contrail config show` | `configCmd` → `configShowCmd` | Global (no context) |
-| `contrail config get` | `configCmd` → `configGetCmd` | Global (no context) |
-| `contrail config set` | `configCmd` → `configSetCmd` | Global (no context) |
-| `contrail config path` | `configCmd` → `configPathCmd` | Global (no context) |
-| `contrail config edit` | `configCmd` → `configEditCmd` | Global (no context) |
-| `contrail up` | `upCmd` | Alias for `workspace up` |
-| `contrail down` | `downCmd` | Alias for `workspace down` |
-| `contrail ps` | `psCmd` | Alias for `workspace status` |
-| `contrail generate` | `generateCmd` | Alias for `workspace generate` |
-| `contrail compose-prefix` | `composePrefixCmd` | Hidden, for shell integration |
-| `contrail init-shell` | `initShellCmd` | Outputs shell scripts |
-| `contrail completion` | `completionCmd` | Cobra built-in pattern |
-| `contrail validate` | `validateCmd` | |
-| `contrail doctor` | `doctorCmd` | |
-| `contrail open` | `openCmd` | |
-| `contrail urls` | `urlsCmd` | |
+| `scind workspace list` | `workspaceCmd` → `workspaceListCmd` | |
+| `scind workspace show` | `workspaceCmd` → `workspaceShowCmd` | |
+| `scind workspace init` | `workspaceCmd` → `workspaceInitCmd` | |
+| `scind workspace clone` | `workspaceCmd` → `workspaceCloneCmd` | |
+| `scind workspace generate` | `workspaceCmd` → `workspaceGenerateCmd` | |
+| `scind workspace prune` | `workspaceCmd` → `workspacePruneCmd` | |
+| `scind workspace up` | `workspaceCmd` → `workspaceUpCmd` | |
+| `scind workspace down` | `workspaceCmd` → `workspaceDownCmd` | |
+| `scind workspace restart` | `workspaceCmd` → `workspaceRestartCmd` | |
+| `scind workspace status` | `workspaceCmd` → `workspaceStatusCmd` | |
+| `scind app list` | `appCmd` → `appListCmd` | |
+| `scind app show` | `appCmd` → `appShowCmd` | |
+| `scind app init` | `appCmd` → `appInitCmd` | |
+| `scind app add` | `appCmd` → `appAddCmd` | |
+| `scind app remove` | `appCmd` → `appRemoveCmd` | |
+| `scind app up` | `appCmd` → `appUpCmd` | |
+| `scind app down` | `appCmd` → `appDownCmd` | |
+| `scind app restart` | `appCmd` → `appRestartCmd` | |
+| `scind app status` | `appCmd` → `appStatusCmd` | |
+| `scind flavor list` | `flavorCmd` → `flavorListCmd` | |
+| `scind flavor show` | `flavorCmd` → `flavorShowCmd` | |
+| `scind flavor set` | `flavorCmd` → `flavorSetCmd` | |
+| `scind port list` | `portCmd` → `portListCmd` | Global (no context) |
+| `scind port show` | `portCmd` → `portShowCmd` | Global (no context) |
+| `scind port release` | `portCmd` → `portReleaseCmd` | Global (no context) |
+| `scind port assign` | `portCmd` → `portAssignCmd` | Global (no context) |
+| `scind port gc` | `portCmd` → `portGcCmd` | Global (no context) |
+| `scind port scan` | `portCmd` → `portScanCmd` | Global (no context) |
+| `scind proxy init` | `proxyCmd` → `proxyInitCmd` | Global (no context) |
+| `scind proxy status` | `proxyCmd` → `proxyStatusCmd` | Global (no context) |
+| `scind proxy up` | `proxyCmd` → `proxyUpCmd` | Global (no context) |
+| `scind proxy down` | `proxyCmd` → `proxyDownCmd` | Global (no context) |
+| `scind proxy restart` | `proxyCmd` → `proxyRestartCmd` | Global (no context) |
+| `scind config show` | `configCmd` → `configShowCmd` | Global (no context) |
+| `scind config get` | `configCmd` → `configGetCmd` | Global (no context) |
+| `scind config set` | `configCmd` → `configSetCmd` | Global (no context) |
+| `scind config path` | `configCmd` → `configPathCmd` | Global (no context) |
+| `scind config edit` | `configCmd` → `configEditCmd` | Global (no context) |
+| `scind up` | `upCmd` | Alias for `workspace up` |
+| `scind down` | `downCmd` | Alias for `workspace down` |
+| `scind ps` | `psCmd` | Alias for `workspace status` |
+| `scind generate` | `generateCmd` | Alias for `workspace generate` |
+| `scind compose-prefix` | `composePrefixCmd` | Hidden, for shell integration |
+| `scind init-shell` | `initShellCmd` | Outputs shell scripts |
+| `scind completion` | `completionCmd` | Cobra built-in pattern |
+| `scind validate` | `validateCmd` | |
+| `scind doctor` | `doctorCmd` | |
+| `scind open` | `openCmd` | |
+| `scind urls` | `urlsCmd` | |
 
 ## Implementation Priority
 

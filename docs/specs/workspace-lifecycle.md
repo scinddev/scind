@@ -1,4 +1,4 @@
-<!-- Migrated from specs/contrail-technical-spec.md:1125-1245 -->
+<!-- Migrated from specs/scind-technical-spec.md:1125-1245 -->
 <!-- Extraction ID: spec-operations -->
 
 ## Operations
@@ -18,7 +18,7 @@
 
 ### Staleness Detection
 
-Contrail uses **mtime comparison** to determine if generated override files need to be regenerated. Override files are considered stale if any of the following source files have a newer modification time than the generated override:
+Scind uses **mtime comparison** to determine if generated override files need to be regenerated. Override files are considered stale if any of the following source files have a newer modification time than the generated override:
 
 - `workspace.yaml`
 - `{app}/application.yaml`
@@ -73,7 +73,7 @@ Completely removes a workspace and optionally its application directories:
 3. Prompt before removing application directories (unless `--force` or `--keep-apps`)
 4. Remove `workspace.yaml`
 5. Release any assigned ports from global state
-6. Remove workspace from registry (`~/.config/contrail/workspaces.yaml`)
+6. Remove workspace from registry (`~/.config/scind/workspaces.yaml`)
 
 **Flags**:
 - `--force`: Skip confirmation prompts and remove application directories
@@ -81,16 +81,16 @@ Completely removes a workspace and optionally its application directories:
 
 ### Viewing Logs
 
-Using `contrail-compose` (recommended):
+Using `scind-compose` (recommended):
 ```bash
 # All logs for an application (context-aware)
-contrail-compose logs -f
+scind-compose logs -f
 
 # Specific service
-contrail-compose logs -f web
+scind-compose logs -f web
 
 # Different app from workspace root
-contrail-compose -a app-two logs -f
+scind-compose -a app-two logs -f
 ```
 
 Using raw Docker Compose:
@@ -102,22 +102,22 @@ docker compose -p dev-app-two logs -f
 docker compose -p dev-app-two logs -f web
 
 # All containers in a workspace (using labels)
-docker logs $(docker ps -q --filter "label=contrail.workspace.name=dev")
+docker logs $(docker ps -q --filter "label=scind.workspace.name=dev")
 ```
 
 ### Listing Workspace Status
 
-Using `contrail-compose`:
+Using `scind-compose`:
 ```bash
-contrail-compose ps
-contrail-compose -a app-two ps
+scind-compose ps
+scind-compose -a app-two ps
 ```
 
 Using raw Docker Compose:
 ```bash
 # All containers in a workspace
-docker ps --filter "label=contrail.workspace.name=dev"
+docker ps --filter "label=scind.workspace.name=dev"
 
 # All containers for an application
-docker ps --filter "label=contrail.app.name=app-two"
+docker ps --filter "label=scind.app.name=app-two"
 ```

@@ -4,7 +4,7 @@
 
 ## Context
 
-As the Contrail project grew, documentation accumulated organically without a consistent organizational structure. Different types of content—decisions, specifications, reference material, and implementation guides—were intermixed or duplicated across files. This created several problems:
+As the Scind project grew, documentation accumulated organically without a consistent organizational structure. Different types of content—decisions, specifications, reference material, and implementation guides—were intermixed or duplicated across files. This created several problems:
 
 - **Discoverability**: Finding authoritative information required searching multiple files
 - **Maintenance burden**: Updates needed to be made in multiple places

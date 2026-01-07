@@ -1,4 +1,4 @@
-# Contrail Documentation Guide
+# Scind Documentation Guide
 
 **For AI Agents and Contributors**: This guide explains how the documentation in this directory is organized and how to maintain it.
 

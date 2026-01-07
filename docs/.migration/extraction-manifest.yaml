@@ -8,7 +8,7 @@ metadata:
   created_by: "analyze.md"
   docs_dir: "docs"
   legacy_docs_dir: "specs"
-  description: "Main extraction manifest for Contrail documentation migration"
+  description: "Main extraction manifest for Scind documentation migration"
 
   # Review metadata
   status: "approved"
@@ -17,25 +17,25 @@ metadata:
 
   # Documented exclusions
   exclusions:
-    - source: "specs/contrail-prd.md"
+    - source: "specs/scind-prd.md"
       lines: "316-514"
       reason: "Overview sections (CLI Interface, Configuration Schema, Service Discovery, Directory Structure) that summarize and link to detailed documents already being extracted separately"
-    - source: "specs/contrail-prd.md"
+    - source: "specs/scind-prd.md"
       lines: "589-599"
       reason: "Related Documentation section - link list to other documents"
-    - source: "specs/contrail-prd.md"
+    - source: "specs/scind-prd.md"
       lines: "617-631"
       reason: "Template Customization appendix - references Technical Specification for actual implementation"
-    - source: "specs/contrail-prd.md"
+    - source: "specs/scind-prd.md"
       lines: "644-657"
       reason: "Revision History section - document versioning metadata"
-    - source: "specs/contrail-technical-spec.md"
+    - source: "specs/scind-technical-spec.md"
       lines: "1316-1397"
       reason: "Future Enhancements (duplicates PRD roadmap), Related Documentation, Revision History"
-    - source: "specs/contrail-shell-integration.md"
+    - source: "specs/scind-shell-integration.md"
       lines: "129-149, 345-349, 556-560"
       reason: "Section headers and transitions between shell script blocks"
-    - source: "specs/contrail-go-stack.md"
+    - source: "specs/scind-go-stack.md"
       lines: "1595-1615"
       reason: "Related Documentation and Revision History sections"
 
@@ -67,27 +67,27 @@ metadata:
       reason: "All entries reviewed; coverage verified; exclusions documented"
 
 sources:
-  "specs/contrail-prd.md":
+  "specs/scind-prd.md":
     hash: "prd-placeholder-hash-a1b2c3d4e5f6"
     hash_algorithm: "sha256"
     size_bytes: 28500
     last_modified: "2024-12-01T00:00:00Z"
-  "specs/contrail-technical-spec.md":
+  "specs/scind-technical-spec.md":
     hash: "tech-placeholder-hash-b2c3d4e5f6g7"
     hash_algorithm: "sha256"
     size_bytes: 62000
     last_modified: "2024-12-01T00:00:00Z"
-  "specs/contrail-cli-reference.md":
+  "specs/scind-cli-reference.md":
     hash: "cli-placeholder-hash-c3d4e5f6g7h8"
     hash_algorithm: "sha256"
     size_bytes: 58000
     last_modified: "2024-12-01T00:00:00Z"
-  "specs/contrail-shell-integration.md":
+  "specs/scind-shell-integration.md":
     hash: "shell-placeholder-hash-d4e5f6g7h8i9"
     hash_algorithm: "sha256"
     size_bytes: 31000
     last_modified: "2024-12-01T00:00:00Z"
-  "specs/contrail-go-stack.md":
+  "specs/scind-go-stack.md":
     hash: "gostack-placeholder-hash-e5f6g7h8i9j0"
     hash_algorithm: "sha256"
     size_bytes: 58000
@@ -102,7 +102,7 @@ entries:
 
   - id: "adr-0001-docker-compose-project-name"
     source:
-      file: "specs/contrail-prd.md"
+      file: "specs/scind-prd.md"
       start_line: 162
       end_line: 169
     target: "decisions/0001-docker-compose-project-name-isolation.md"
@@ -113,13 +113,13 @@ entries:
     field_mappings:
       title: "Docker Compose Project Name Isolation"
       status: "Accepted"
-      context: "source:specs/contrail-prd.md:163-164"
-      decision: "source:specs/contrail-prd.md:165-166"
-      consequences: "source:specs/contrail-prd.md:167-169"
+      context: "source:specs/scind-prd.md:163-164"
+      decision: "source:specs/scind-prd.md:165-166"
+      consequences: "source:specs/scind-prd.md:167-169"
 
   - id: "adr-0002-two-layer-networking"
     source:
-      file: "specs/contrail-prd.md"
+      file: "specs/scind-prd.md"
       start_line: 171
       end_line: 179
     target: "decisions/0002-two-layer-networking.md"
@@ -130,13 +130,13 @@ entries:
     field_mappings:
       title: "Two-Layer Networking"
       status: "Accepted"
-      context: "source:specs/contrail-prd.md:172-173"
-      decision: "source:specs/contrail-prd.md:174-176"
-      consequences: "source:specs/contrail-prd.md:177-179"
+      context: "source:specs/scind-prd.md:172-173"
+      decision: "source:specs/scind-prd.md:174-176"
+      consequences: "source:specs/scind-prd.md:177-179"
 
   - id: "adr-0003-pure-overlay-design"
     source:
-      file: "specs/contrail-prd.md"
+      file: "specs/scind-prd.md"
       start_line: 181
       end_line: 192
     target: "decisions/0003-pure-overlay-design.md"
@@ -147,13 +147,13 @@ entries:
     field_mappings:
       title: "Pure Overlay Design (Applications Remain Workspace-Agnostic)"
       status: "Accepted"
-      context: "source:specs/contrail-prd.md:182-183"
-      decision: "source:specs/contrail-prd.md:184-185"
-      consequences: "source:specs/contrail-prd.md:186-192"
+      context: "source:specs/scind-prd.md:182-183"
+      decision: "source:specs/scind-prd.md:184-185"
+      consequences: "source:specs/scind-prd.md:186-192"
 
   - id: "adr-0004-convention-based-naming"
     source:
-      file: "specs/contrail-prd.md"
+      file: "specs/scind-prd.md"
       start_line: 194
       end_line: 202
     target: "decisions/0004-convention-based-naming.md"
@@ -167,7 +167,7 @@ entries:
 
   - id: "adr-0005-structure-vs-state-separation"
     source:
-      file: "specs/contrail-prd.md"
+      file: "specs/scind-prd.md"
       start_line: 204
       end_line: 222
     target: "decisions/0005-structure-vs-state-separation.md"
@@ -181,7 +181,7 @@ entries:
 
   - id: "adr-0006-three-configuration-schemas"
     source:
-      file: "specs/contrail-prd.md"
+      file: "specs/scind-prd.md"
       start_line: 224
       end_line: 233
     target: "decisions/0006-three-configuration-schemas.md"
@@ -195,7 +195,7 @@ entries:
 
   - id: "adr-0007-port-type-system"
     source:
-      file: "specs/contrail-prd.md"
+      file: "specs/scind-prd.md"
       start_line: 235
       end_line: 264
     target: "decisions/0007-port-type-system.md"
@@ -209,7 +209,7 @@ entries:
 
   - id: "adr-0008-traefik-reverse-proxy"
     source:
-      file: "specs/contrail-prd.md"
+      file: "specs/scind-prd.md"
       start_line: 266
       end_line: 271
     target: "decisions/0008-traefik-reverse-proxy.md"
@@ -223,7 +223,7 @@ entries:
 
   - id: "adr-0009-flexible-tls-configuration"
     source:
-      file: "specs/contrail-prd.md"
+      file: "specs/scind-prd.md"
       start_line: 273
       end_line: 289
     target: "decisions/0009-flexible-tls-configuration.md"
@@ -237,7 +237,7 @@ entries:
 
   - id: "adr-0010-up-down-command-semantics"
     source:
-      file: "specs/contrail-prd.md"
+      file: "specs/scind-prd.md"
       start_line: 291
       end_line: 303
     target: "decisions/0010-up-down-command-semantics.md"
@@ -251,7 +251,7 @@ entries:
 
   - id: "adr-0011-options-based-targeting"
     source:
-      file: "specs/contrail-prd.md"
+      file: "specs/scind-prd.md"
       start_line: 305
       end_line: 315
     target: "decisions/0011-options-based-targeting.md"
@@ -271,7 +271,7 @@ entries:
     inline_content: |
       # Architecture Decision Records
 
-      This directory contains Architecture Decision Records (ADRs) documenting significant design choices for Contrail.
+      This directory contains Architecture Decision Records (ADRs) documenting significant design choices for Scind.
 
       ## Index
 
@@ -304,7 +304,7 @@ entries:
 
   - id: "vision-main"
     source:
-      file: "specs/contrail-prd.md"
+      file: "specs/scind-prd.md"
       start_line: 1
       end_line: 108
     target: "product/vision.md"
@@ -313,14 +313,14 @@ entries:
     classification_reason: "Contains Executive Summary, Problem Statement, Product Vision, and Core Concepts. Classic PRD content with 'The problem we're solving' pattern."
     template: "prd-lean.md"
     field_mappings:
-      title: "Contrail Product Vision"
-      problem: "source:specs/contrail-prd.md:17-44"
-      vision: "source:specs/contrail-prd.md:48-58"
-      concepts: "source:specs/contrail-prd.md:60-108"
+      title: "Scind Product Vision"
+      problem: "source:specs/scind-prd.md:17-44"
+      vision: "source:specs/scind-prd.md:48-58"
+      concepts: "source:specs/scind-prd.md:60-108"
 
   - id: "vision-non-goals"
     source:
-      file: "specs/contrail-prd.md"
+      file: "specs/scind-prd.md"
       start_line: 562
       end_line: 571
     target: "product/vision.md"
@@ -331,7 +331,7 @@ entries:
 
   - id: "vision-success-criteria"
     source:
-      file: "specs/contrail-prd.md"
+      file: "specs/scind-prd.md"
       start_line: 580
       end_line: 588
     target: "product/vision.md"
@@ -342,7 +342,7 @@ entries:
 
   - id: "vision-known-limitations"
     source:
-      file: "specs/contrail-prd.md"
+      file: "specs/scind-prd.md"
       start_line: 574
       end_line: 578
     target: "product/vision.md"
@@ -353,7 +353,7 @@ entries:
 
   - id: "vision-roadmap"
     source:
-      file: "specs/contrail-prd.md"
+      file: "specs/scind-prd.md"
       start_line: 515
       end_line: 559
     target: "product/roadmap.md"
@@ -363,7 +363,7 @@ entries:
 
   - id: "vision-comparison"
     source:
-      file: "specs/contrail-prd.md"
+      file: "specs/scind-prd.md"
       start_line: 632
       end_line: 643
     target: "product/comparison.md"
@@ -373,7 +373,7 @@ entries:
 
   - id: "vision-glossary"
     source:
-      file: "specs/contrail-prd.md"
+      file: "specs/scind-prd.md"
       start_line: 600
       end_line: 616
     target: "product/glossary.md"
@@ -389,7 +389,7 @@ entries:
     inline_content: |
       # Product Documentation
 
-      This directory contains product-level documentation for Contrail.
+      This directory contains product-level documentation for Scind.
 
       ## Contents
 
@@ -405,10 +405,10 @@ entries:
   - id: "architecture-overview"
     source:
       files:
-        - file: "specs/contrail-technical-spec.md"
+        - file: "specs/scind-technical-spec.md"
           start_line: 9
           end_line: 94
-        - file: "specs/contrail-prd.md"
+        - file: "specs/scind-prd.md"
           start_line: 150
           end_line: 159
       separator: "\n\n---\n\n"
@@ -429,7 +429,7 @@ entries:
     inline_content: |
       # Architecture Documentation
 
-      This directory contains architecture-level documentation for Contrail.
+      This directory contains architecture-level documentation for Scind.
 
       ## Contents
 
@@ -441,7 +441,7 @@ entries:
 
   - id: "spec-port-types"
     source:
-      file: "specs/contrail-technical-spec.md"
+      file: "specs/scind-technical-spec.md"
       start_line: 96
       end_line: 135
     target: "specs/port-types.md"
@@ -451,7 +451,7 @@ entries:
 
   - id: "spec-directory-structure"
     source:
-      file: "specs/contrail-technical-spec.md"
+      file: "specs/scind-technical-spec.md"
       start_line: 137
       end_line: 214
     target: "specs/directory-structure.md"
@@ -461,7 +461,7 @@ entries:
 
   - id: "spec-configuration-schemas"
     source:
-      file: "specs/contrail-technical-spec.md"
+      file: "specs/scind-technical-spec.md"
       start_line: 216
       end_line: 683
     target: "specs/configuration-schemas.md"
@@ -472,7 +472,7 @@ entries:
 
   - id: "spec-state-management"
     source:
-      file: "specs/contrail-technical-spec.md"
+      file: "specs/scind-technical-spec.md"
       start_line: 686
       end_line: 706
     target: "specs/state-management.md"
@@ -482,7 +482,7 @@ entries:
 
   - id: "spec-generated-manifest"
     source:
-      file: "specs/contrail-technical-spec.md"
+      file: "specs/scind-technical-spec.md"
       start_line: 708
       end_line: 765
     target: "specs/generated-manifest.md"
@@ -492,7 +492,7 @@ entries:
 
   - id: "spec-generated-override"
     source:
-      file: "specs/contrail-technical-spec.md"
+      file: "specs/scind-technical-spec.md"
       start_line: 767
       end_line: 872
     target: "specs/generated-override-files.md"
@@ -502,7 +502,7 @@ entries:
 
   - id: "spec-docker-labels"
     source:
-      file: "specs/contrail-technical-spec.md"
+      file: "specs/scind-technical-spec.md"
       start_line: 874
       end_line: 954
     target: "specs/docker-labels.md"
@@ -512,7 +512,7 @@ entries:
 
   - id: "spec-environment-variables"
     source:
-      file: "specs/contrail-technical-spec.md"
+      file: "specs/scind-technical-spec.md"
       start_line: 956
       end_line: 1027
     target: "specs/environment-variables.md"
@@ -522,7 +522,7 @@ entries:
 
   - id: "spec-proxy-infrastructure"
     source:
-      file: "specs/contrail-technical-spec.md"
+      file: "specs/scind-technical-spec.md"
       start_line: 1030
       end_line: 1050
     target: "specs/proxy-infrastructure.md"
@@ -532,7 +532,7 @@ entries:
 
   - id: "spec-context-detection"
     source:
-      file: "specs/contrail-technical-spec.md"
+      file: "specs/scind-technical-spec.md"
       start_line: 1059
       end_line: 1122
     target: "specs/context-detection.md"
@@ -542,7 +542,7 @@ entries:
 
   - id: "spec-operations"
     source:
-      file: "specs/contrail-technical-spec.md"
+      file: "specs/scind-technical-spec.md"
       start_line: 1125
       end_line: 1245
     target: "specs/workspace-lifecycle.md"
@@ -552,7 +552,7 @@ entries:
 
   - id: "spec-naming-conventions"
     source:
-      file: "specs/contrail-technical-spec.md"
+      file: "specs/scind-technical-spec.md"
       start_line: 1247
       end_line: 1315
     target: "specs/naming-conventions.md"
@@ -562,7 +562,7 @@ entries:
 
   - id: "spec-shell-integration"
     source:
-      file: "specs/contrail-shell-integration.md"
+      file: "specs/scind-shell-integration.md"
       start_line: 1
       end_line: 128
     target: "specs/shell-integration.md"
@@ -572,7 +572,7 @@ entries:
 
   - id: "spec-shell-scripts-bash"
     source:
-      file: "specs/contrail-shell-integration.md"
+      file: "specs/scind-shell-integration.md"
       start_line: 150
       end_line: 344
     target: "specs/appendices/shell-integration/bash-setup.sh"
@@ -582,7 +582,7 @@ entries:
 
   - id: "spec-shell-scripts-zsh"
     source:
-      file: "specs/contrail-shell-integration.md"
+      file: "specs/scind-shell-integration.md"
       start_line: 350
       end_line: 555
     target: "specs/appendices/shell-integration/zsh-setup.zsh"
@@ -592,7 +592,7 @@ entries:
 
   - id: "spec-shell-scripts-fish"
     source:
-      file: "specs/contrail-shell-integration.md"
+      file: "specs/scind-shell-integration.md"
       start_line: 561
       end_line: 707
     target: "specs/appendices/shell-integration/fish-setup.fish"
@@ -602,7 +602,7 @@ entries:
 
   - id: "spec-shell-additional"
     source:
-      file: "specs/contrail-shell-integration.md"
+      file: "specs/scind-shell-integration.md"
       start_line: 708
       end_line: 843
     target: "specs/shell-integration.md"
@@ -622,7 +622,7 @@ entries:
     inline_content: |
       # Specifications
 
-      This directory contains detailed technical specifications for Contrail features and behaviors.
+      This directory contains detailed technical specifications for Scind features and behaviors.
 
       ## Contents
 
@@ -638,7 +638,7 @@ entries:
       - [Context Detection](./context-detection.md) - Workspace/app detection algorithm
       - [Workspace Lifecycle](./workspace-lifecycle.md) - Operations and sequences
       - [Naming Conventions](./naming-conventions.md) - Best practices and conventions
-      - [Shell Integration](./shell-integration.md) - contrail-compose function spec
+      - [Shell Integration](./shell-integration.md) - scind-compose function spec
 
       ## Appendices
 
@@ -650,7 +650,7 @@ entries:
 
   - id: "reference-cli"
     source:
-      file: "specs/contrail-cli-reference.md"
+      file: "specs/scind-cli-reference.md"
       start_line: 1
       end_line: 1599
     target: "reference/cli.md"
@@ -667,7 +667,7 @@ entries:
     inline_content: |
       # Reference Documentation
 
-      This directory contains reference documentation for Contrail commands and configuration.
+      This directory contains reference documentation for Scind commands and configuration.
 
       ## Contents
 
@@ -686,7 +686,7 @@ entries:
 
   - id: "implementation-tech-stack"
     source:
-      file: "specs/contrail-go-stack.md"
+      file: "specs/scind-go-stack.md"
       start_line: 1
       end_line: 268
     target: "implementation/tech-stack.md"
@@ -696,7 +696,7 @@ entries:
 
   - id: "implementation-scaffolding"
     source:
-      file: "specs/contrail-go-stack.md"
+      file: "specs/scind-go-stack.md"
       start_line: 270
       end_line: 1529
     target: "implementation/appendices/tech-stack/"
@@ -707,7 +707,7 @@ entries:
 
   - id: "implementation-testing"
     source:
-      file: "specs/contrail-go-stack.md"
+      file: "specs/scind-go-stack.md"
       start_line: 1531
       end_line: 1563
     target: "implementation/tech-stack.md"
@@ -718,7 +718,7 @@ entries:
 
   - id: "implementation-priority"
     source:
-      file: "specs/contrail-go-stack.md"
+      file: "specs/scind-go-stack.md"
       start_line: 1565
       end_line: 1594
     target: "implementation/tech-stack.md"
@@ -735,7 +735,7 @@ entries:
     inline_content: |
       # Implementation Guides
 
-      This directory contains implementation guidance for building Contrail.
+      This directory contains implementation guidance for building Scind.
 
       ## Contents
 

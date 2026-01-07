@@ -1,8 +1,8 @@
 # Configuration Complete Examples
 
-Full working configuration examples for Contrail.
+Full working configuration examples for Scind.
 
-<!-- Source: specs/contrail-technical-spec.md -->
+<!-- Source: specs/scind-technical-spec.md -->
 
 ---
 
@@ -168,11 +168,11 @@ exported_services:
 
 ## Proxy Configuration
 
-**Location**: `~/.config/contrail/proxy.yaml`
+**Location**: `~/.config/scind/proxy.yaml`
 
 ```yaml
 proxy:
-  domain: contrail.test
+  domain: scind.test
   traefik_image: traefik:v3.2.3
   dashboard:
     enabled: true
@@ -180,8 +180,8 @@ proxy:
   tls:
     mode: auto                        # auto | custom | disabled
     # For mode: custom
-    # cert_file: ~/.config/contrail/certs/wildcard.crt
-    # key_file: ~/.config/contrail/certs/wildcard.key
+    # cert_file: ~/.config/scind/certs/wildcard.crt
+    # key_file: ~/.config/scind/certs/wildcard.key
 ```
 
 ### Custom TLS Configuration
@@ -196,8 +196,8 @@ proxy:
     port: 8080
   tls:
     mode: custom
-    cert_file: ~/.config/contrail/certs/wildcard.crt
-    key_file: ~/.config/contrail/certs/wildcard.key
+    cert_file: ~/.config/scind/certs/wildcard.crt
+    key_file: ~/.config/scind/certs/wildcard.key
 ```
 
 ---
@@ -253,10 +253,10 @@ services:
 
 ## Global State
 
-**Location**: `~/.config/contrail/state.yaml`
+**Location**: `~/.config/scind/state.yaml`
 
 ```yaml
-# AUTO-GENERATED - Managed by Contrail
+# AUTO-GENERATED - Managed by Scind
 # Records assigned ports and port availability inventory
 
 assigned_ports:
@@ -293,10 +293,10 @@ port_inventory:
 
 ## Workspace Registry
 
-**Location**: `~/.config/contrail/workspaces.yaml`
+**Location**: `~/.config/scind/workspaces.yaml`
 
 ```yaml
-# AUTO-GENERATED - Managed by Contrail
+# AUTO-GENERATED - Managed by Scind
 # Records known workspaces and their locations
 
 workspaces:
@@ -344,7 +344,7 @@ workspace:
   network: dev-internal
 
 proxy:
-  domain: contrail.test
+  domain: scind.test
 
 applications:
   app-one:
@@ -359,12 +359,12 @@ applications:
             protocol: https
             container_port: 443
             visibility: public
-            hostname: dev-app-one-web.contrail.test
+            hostname: dev-app-one-web.scind.test
         environment:
-          CONTRAIL_APP_ONE_WEB_HOST: dev-app-one-web.contrail.test
-          CONTRAIL_APP_ONE_WEB_PORT: 443
-          CONTRAIL_APP_ONE_WEB_SCHEME: https
-          CONTRAIL_APP_ONE_WEB_URL: https://dev-app-one-web.contrail.test
+          SCIND_APP_ONE_WEB_HOST: dev-app-one-web.scind.test
+          SCIND_APP_ONE_WEB_PORT: 443
+          SCIND_APP_ONE_WEB_SCHEME: https
+          SCIND_APP_ONE_WEB_URL: https://dev-app-one-web.scind.test
 ```
 
 ---
@@ -372,7 +372,7 @@ applications:
 ## Complete Directory Structure Example
 
 ```
-~/.config/contrail/
+~/.config/scind/
 ├── proxy.yaml                        # Global proxy configuration
 ├── state.yaml                        # Global port assignments
 └── workspaces.yaml                   # Workspace registry

@@ -1,4 +1,4 @@
-<!-- Migrated from specs/contrail-prd.md:181-192 -->
+<!-- Migrated from specs/scind-prd.md:181-192 -->
 <!-- Extraction ID: adr-0003-pure-overlay-design -->
 
 # Pure Overlay Design (Applications Remain Workspace-Agnostic)
@@ -15,7 +15,7 @@ Applications' own `docker-compose.yaml` files have no knowledge of workspaces. A
 
 ## Consequences
 
-- Applications can run standalone without Contrail
+- Applications can run standalone without Scind
 - No vendor lock-in or special conventions in application code
 - Workspace concerns are cleanly separated from application concerns
 - Same application can participate in multiple workspace systems

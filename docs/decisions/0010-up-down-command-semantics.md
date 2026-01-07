@@ -1,4 +1,4 @@
-<!-- Migrated from specs/contrail-prd.md:291-303 -->
+<!-- Migrated from specs/scind-prd.md:291-303 -->
 <!-- Extraction ID: adr-0010-up-down-command-semantics -->
 
 # up/down Command Semantics
@@ -20,4 +20,4 @@ Use `up` and `down` as primary commands, matching Docker Compose semantics:
 - Semantic alignment with Docker Compose, which users already know
 - `up` conveys "bring the environment into existence" (more than just starting)
 - `down` conveys "tear down" rather than just pausing
-- Matches the underlying `docker compose up/down` commands Contrail invokes
+- Matches the underlying `docker compose up/down` commands Scind invokes

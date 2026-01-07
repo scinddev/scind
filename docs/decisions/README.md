@@ -3,7 +3,7 @@
 
 # Architecture Decision Records
 
-This directory contains Architecture Decision Records (ADRs) documenting significant design choices for Contrail.
+This directory contains Architecture Decision Records (ADRs) documenting significant design choices for Scind.
 
 ## Index
 

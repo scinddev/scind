@@ -1,4 +1,4 @@
-<!-- Migrated from specs/contrail-prd.md:204-222 -->
+<!-- Migrated from specs/scind-prd.md:204-222 -->
 <!-- Extraction ID: adr-0005-structure-vs-state-separation -->
 
 # Structure vs State Separation

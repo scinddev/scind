@@ -1,4 +1,4 @@
-<!-- Migrated from specs/contrail-prd.md:305-315 -->
+<!-- Migrated from specs/scind-prd.md:305-315 -->
 <!-- Extraction ID: adr-0011-options-based-targeting -->
 
 # Options-Based Targeting with Context Detection

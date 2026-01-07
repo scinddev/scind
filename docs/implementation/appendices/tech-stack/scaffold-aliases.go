@@ -1,5 +1,5 @@
 // scaffold-aliases.go
-// Top-level aliases scaffold for Contrail CLI
+// Top-level aliases scaffold for Scind CLI
 // Create as: internal/cli/aliases.go
 
 package cli

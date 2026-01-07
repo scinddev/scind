@@ -1,5 +1,5 @@
 // scaffold-validate.go
-// Validate command scaffold for Contrail CLI
+// Validate command scaffold for Scind CLI
 // Create as: internal/cli/validate.go
 
 package cli

@@ -1,4 +1,4 @@
-<!-- Migrated from specs/contrail-technical-spec.md:216-683 -->
+<!-- Migrated from specs/scind-technical-spec.md:216-683 -->
 <!-- Extraction ID: spec-configuration-schemas -->
 
 ## Configuration Schemas
@@ -8,7 +8,7 @@ The system uses three schema types, separating structure (configuration) from st
 | Aspect | Structure (config) | State (runtime) |
 |--------|-------------------|-----------------|
 | Proxy settings | `proxy.yaml` | - |
-| Port assignments | - | `~/.config/contrail/state.yaml` |
+| Port assignments | - | `~/.config/scind/state.yaml` |
 | What apps exist | `workspace.yaml` | - |
 | Available flavors | `application.yaml` | - |
 | Active flavor | - | `.generated/state.yaml` or CLI |
@@ -17,11 +17,11 @@ The system uses three schema types, separating structure (configuration) from st
 
 ### Proxy Configuration
 
-**Location**: `~/.config/contrail/proxy.yaml` (global/per-user)
+**Location**: `~/.config/scind/proxy.yaml` (global/per-user)
 
 ```yaml
 proxy:
-  domain: contrail.test                  # TLD for generated hostnames
+  domain: scind.test                  # TLD for generated hostnames
   traefik_image: traefik:v3.2.3          # Traefik Docker image (defaults to pinned version)
   dashboard:
     enabled: true                        # Enable/disable Traefik dashboard (default: true)
@@ -30,8 +30,8 @@ proxy:
   tls:
     mode: auto                           # auto | custom | disabled
     # For mode: custom (e.g., enterprise CA certificates)
-    cert_file: ~/.config/contrail/certs/wildcard.crt
-    key_file: ~/.config/contrail/certs/wildcard.key
+    cert_file: ~/.config/scind/certs/wildcard.crt
+    key_file: ~/.config/scind/certs/wildcard.key
 ```
 
 **TLS Modes**:
@@ -44,20 +44,20 @@ proxy:
 
 **Certificate Setup by Mode**:
 
-- **auto with mkcert**: Run `mkcert -install` once per machine to add the local CA to your trust store, then `mkcert "*.contrail.test"` to generate a wildcard certificate. Contrail will detect and use these automatically.
-- **custom (enterprise CA)**: Obtain a wildcard certificate signed by your enterprise CA for `*.contrail.test` (or your configured domain). Place the cert and key files at the configured paths.
+- **auto with mkcert**: Run `mkcert -install` once per machine to add the local CA to your trust store, then `mkcert "*.scind.test"` to generate a wildcard certificate. Scind will detect and use these automatically.
+- **custom (enterprise CA)**: Obtain a wildcard certificate signed by your enterprise CA for `*.scind.test` (or your configured domain). Place the cert and key files at the configured paths.
 - **auto without mkcert**: Traefik serves its default self-signed certificate. Browsers will show security warnings.
 
 ### Proxy Infrastructure
 
-**Location**: `~/.config/contrail/proxy/` (global/per-user)
+**Location**: `~/.config/scind/proxy/` (global/per-user)
 
-The proxy is implemented as a Docker Compose project managed by Contrail. It runs a Traefik instance that handles reverse proxying for all workspaces on the host.
+The proxy is implemented as a Docker Compose project managed by Scind. It runs a Traefik instance that handles reverse proxying for all workspaces on the host.
 
-**Directory structure** (created by `contrail proxy init`):
+**Directory structure** (created by `scind proxy init`):
 ```
-~/.config/contrail/proxy/
-├── docker-compose.yaml    # Traefik service definition
+~/.config/scind/proxy/
+├── docker-compose.yaml   # Traefik service definition
 ├── traefik.yaml          # Traefik static configuration
 ├── dynamic/              # Dynamic configuration (auto-discovered)
 │   └── tls.yaml          # TLS certificate configuration (generated)
@@ -66,7 +66,7 @@ The proxy is implemented as a Docker Compose project managed by Contrail. It run
 
 **docker-compose.yaml** (generated):
 ```yaml
-name: contrail-proxy
+name: scind-proxy
 
 services:
   traefik:
@@ -84,14 +84,14 @@ services:
       - ./dynamic:/etc/traefik/dynamic:ro
       - ./certs:/etc/traefik/certs:ro
     networks:
-      - contrail-proxy
+      - scind-proxy
     restart: unless-stopped
     labels:
-      - "contrail.managed=true"
-      - "contrail.component=proxy"
+      - "scind.managed=true"
+      - "scind.component=proxy"
 
 networks:
-  contrail-proxy:
+  scind-proxy:
     external: true
 ```
 
@@ -109,7 +109,7 @@ entryPoints:
 providers:
   docker:
     exposedByDefault: false
-    network: contrail-proxy
+    network: scind-proxy
   file:
     directory: /etc/traefik/dynamic
     watch: true
@@ -117,7 +117,7 @@ providers:
 
 **Lifecycle**:
 - `proxy init`: Creates the directory structure and configuration files
-- `proxy up`: Starts the Traefik container (creates `contrail-proxy` network if needed)
+- `proxy up`: Starts the Traefik container (creates `scind-proxy` network if needed)
 - `proxy down`: Stops the Traefik container
 - `workspace up`: Automatically runs `proxy up` if proxy is not running
 
@@ -125,12 +125,12 @@ providers:
 
 ### Workspace Registry
 
-**Location**: `~/.config/contrail/workspaces.yaml` (global/per-user)
+**Location**: `~/.config/scind/workspaces.yaml` (global/per-user)
 
 This file tracks all known workspaces across the system, enabling `workspace list` and preventing workspace name collisions.
 
 ```yaml
-# AUTO-GENERATED - Managed by Contrail
+# AUTO-GENERATED - Managed by Scind
 # Records known workspaces and their locations
 
 workspaces:
@@ -153,16 +153,16 @@ workspaces:
 - `workspace list` reads the registry and optionally validates entries still exist
 - `workspace prune` removes stale entries (paths that no longer contain `workspace.yaml`)
 
-**Docker label fallback**: If the registry file is missing or corrupted, Contrail can reconstruct it by querying Docker for containers with `workspace.name` and `workspace.path` labels. This provides resilience against accidental deletion of `~/.config/contrail/workspaces.yaml`.
+**Docker label fallback**: If the registry file is missing or corrupted, Scind can reconstruct it by querying Docker for containers with `workspace.name` and `workspace.path` labels. This provides resilience against accidental deletion of `~/.config/scind/workspaces.yaml`.
 
 ### Global State
 
-**Location**: `~/.config/contrail/state.yaml` (global/per-user)
+**Location**: `~/.config/scind/state.yaml` (global/per-user)
 
 This file tracks port assignments for `assigned` type ports across all workspaces, plus an inventory of port availability for garbage collection and debugging.
 
 ```yaml
-# AUTO-GENERATED - Managed by Contrail
+# AUTO-GENERATED - Managed by Scind
 # Records assigned ports and port availability inventory
 
 assigned_ports:
@@ -207,7 +207,7 @@ port_inventory:
 4. Subsequent runs use the recorded port (sticky assignment)
 5. The `--force` flag on `workspace generate` regenerates override files but preserves existing port assignments
 
-**Port conflict at startup**: If a previously assigned port has become unavailable (e.g., taken by an external process) when `workspace up` runs, Contrail fails with a clear error:
+**Port conflict at startup**: If a previously assigned port has become unavailable (e.g., taken by an external process) when `workspace up` runs, Scind fails with a clear error:
 ```
 Error: Port conflict detected for app-one
 
@@ -215,17 +215,17 @@ Port 5432 is assigned to app-one/postgres but is no longer available.
 Another process may be using this port.
 
 To resolve:
-  contrail port scan       # Check which ports are conflicting
-  contrail port release 5432   # Release the conflicting assignment
-  contrail generate --force    # Regenerate with new port assignment
+  scind port scan       # Check which ports are conflicting
+  scind port release 5432   # Release the conflicting assignment
+  scind generate --force    # Regenerate with new port assignment
 ```
 
 **Port status transitions**:
-- `unavailable` → `assigned`: Port became free, Contrail claimed it
+- `unavailable` → `assigned`: Port became free, Scind claimed it
 - `assigned` → `released`: Workspace/app removed, port freed
-- `unavailable` → `released`: External process stopped, `contrail port gc` cleaned it up
+- `unavailable` → `released`: External process stopped, `scind port gc` cleaned it up
 
-**Port availability checking**: `contrail port scan` and `contrail port gc` check port availability by attempting to bind to each tracked port using `net.Listen("tcp", ":PORT")`. Ports that can be bound are marked as available; ports that fail with "address already in use" remain in their current state. This method is reliable across platforms and doesn't require parsing system-specific files like `/proc/net`.
+**Port availability checking**: `scind port scan` and `scind port gc` check port availability by attempting to bind to each tracked port using `net.Listen("tcp", ":PORT")`. Ports that can be bound are marked as available; ports that fail with "address already in use" remain in their current state. This method is reliable across platforms and doesn't require parsing system-specific files like `/proc/net`.
 
 ### Workspace Configuration
 
@@ -263,7 +263,7 @@ workspace:
 
 ### Template Variables
 
-Contrail uses template variables to generate hostnames, aliases, and other computed values. Templates can be customized at the workspace level.
+Scind uses template variables to generate hostnames, aliases, and other computed values. Templates can be customized at the workspace level.
 
 **Default templates** (built-in):
 
@@ -285,7 +285,7 @@ workspace:
 
 | Variable | Scope | Description | Example |
 |----------|-------|-------------|---------|
-| `%PROXY_DOMAIN%` | Proxy | Domain from `proxy.yaml` | `contrail.test` |
+| `%PROXY_DOMAIN%` | Proxy | Domain from `proxy.yaml` | `scind.test` |
 | `%WORKSPACE_NAME%` | Workspace | Workspace name | `dev` |
 | `%WORKSPACE_NETWORK%` | Workspace | Internal network name | `dev-internal` |
 | `%APPLICATION_NAME%` | Application | Application identifier | `app-one` |
@@ -295,13 +295,13 @@ workspace:
 | `%SERVICE_PORT%` | Export | Container port number (see note) | `8080` |
 | `%SERVICE_PROTOCOL%` | Export | Protocol (for proxied) | `https` |
 
-**Note on `%SERVICE_PORT%`**: This variable provides the container's internal port number. While not used in the default templates, it's available for advanced customization such as adding debugging labels or custom routing rules that need to reference the original container port (e.g., `contrail.debug.port=%SERVICE_PORT%`).
+**Note on `%SERVICE_PORT%`**: This variable provides the container's internal port number. While not used in the default templates, it's available for advanced customization such as adding debugging labels or custom routing rules that need to reference the original container port (e.g., `scind.debug.port=%SERVICE_PORT%`).
 
 ### Template Resolution Timing
 
 Template variables are resolved at **generation time** (when `workspace generate` or `workspace up` runs). The resolved values are written into the generated override files.
 
-**Flavor changes**: When `contrail flavor set FLAVOR` is executed, it:
+**Flavor changes**: When `scind flavor set FLAVOR` is executed, it:
 1. Updates `.generated/state.yaml` with the new flavor
 2. Immediately regenerates the affected application's override file
 3. If the application is currently running, displays a warning:
@@ -311,7 +311,7 @@ Template variables are resolved at **generation time** (when `workspace generate
    containers still use the previous flavor.
 
    To apply the flavor change:
-     contrail app restart -a app-name
+     scind app restart -a app-name
    ```
 
 This ensures override files always reflect the current flavor without requiring a separate `generate` step.
@@ -320,18 +320,18 @@ This ensures override files always reflect the current flavor without requiring 
 
 | Scenario | Effect | Resolution |
 |----------|--------|------------|
-| Flavor adds services | New services defined in override but not running | Run `contrail up` to start new services |
-| Flavor removes services | Services still running but not in override | Run `contrail up` to stop orphaned services |
-| Flavor changes environment | Running containers have old values | Run `contrail app restart` to pick up changes |
+| Flavor adds services | New services defined in override but not running | Run `scind up` to start new services |
+| Flavor removes services | Services still running but not in override | Run `scind up` to stop orphaned services |
+| Flavor changes environment | Running containers have old values | Run `scind app restart` to pick up changes |
 
-**Orphaned service handling**: When `contrail up` is run after a flavor change that removes services, Contrail passes `--remove-orphans` to Docker Compose to stop and remove containers for services no longer defined in the active configuration.
+**Orphaned service handling**: When `scind up` is run after a flavor change that removes services, Scind passes `--remove-orphans` to Docker Compose to stop and remove containers for services no longer defined in the active configuration.
 
 **Example scenario**:
-1. User runs `contrail generate` with flavor "lite"
+1. User runs `scind generate` with flavor "lite"
 2. Override files are generated with "lite" values (e.g., `%APPLICATION_FLAVOR%` = "lite")
-3. User runs `contrail flavor set full`
-4. Contrail regenerates the override with "full" values immediately
-5. User runs `contrail up` — override is already up-to-date
+3. User runs `scind flavor set full`
+4. Scind regenerates the override with "full" values immediately
+5. User runs `scind up` — override is already up-to-date
 
 ### Application Configuration (Service Contract)
 

@@ -1,4 +1,4 @@
-<!-- Migrated from specs/contrail-prd.md:171-179 -->
+<!-- Migrated from specs/scind-prd.md:171-179 -->
 <!-- Extraction ID: adr-0002-two-layer-networking -->
 
 # Two-Layer Networking
@@ -11,7 +11,7 @@ Services need both external access (via reverse proxy) and internal access (betw
 
 ## Decision
 
-- `contrail-proxy` network: Host-wide, connects Traefik to public services
+- `scind-proxy` network: Host-wide, connects Traefik to public services
 - `{workspace}-internal` network: Per-workspace, connects all applications for internal communication
 
 ## Consequences

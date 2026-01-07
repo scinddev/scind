@@ -1,4 +1,4 @@
-<!-- Migrated from specs/contrail-prd.md:273-289 -->
+<!-- Migrated from specs/scind-prd.md:273-289 -->
 <!-- Extraction ID: adr-0009-flexible-tls-configuration -->
 
 # Flexible TLS Configuration

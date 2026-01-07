@@ -1,4 +1,4 @@
-<!-- Migrated from specs/contrail-technical-spec.md:96-135 -->
+<!-- Migrated from specs/scind-technical-spec.md:96-135 -->
 <!-- Extraction ID: spec-port-types -->
 
 ## Port Types and Proxying
@@ -15,7 +15,7 @@ Exported services declare ports with a `type` that determines how the port is ro
 ### Port Type Descriptions
 
 - **proxied**: Traffic is routed through Traefik. The exported service gets a hostname (`{workspace}-{app}-{export}.{domain}`) and Traefik labels are generated. Environment variables contain the **proxy values** (hostname and proxy port 80/443), not the container port.
-- **assigned**: The port is bound directly to the host. If the specified port is unavailable (used by another workspace or external process), Contrail increments until an available port is found and records the assignment in global state. Environment variables point to the internal alias and assigned host port.
+- **assigned**: The port is bound directly to the host. If the specified port is unavailable (used by another workspace or external process), Scind increments until an available port is found and records the assignment in global state. Environment variables point to the internal alias and assigned host port.
 
 ### Port Type Constraints
 
@@ -41,7 +41,7 @@ Each port can have a `visibility` of `public` or `protected` (defaults to `prote
 - **public**: This port is intended for external/production use
 - **protected** (default): This port exists for development/debugging but should not be depended on in production
 
-Visibility does not change Contrail's core behavior—all exported services receive internal network aliases and environment variables regardless of visibility. Both public and protected proxied services route through Traefik.
+Visibility does not change Scind's core behavior—all exported services receive internal network aliases and environment variables regardless of visibility. Both public and protected proxied services route through Traefik.
 
 **Docker label exposure**: Visibility is included in the generated Docker labels (`workspace.visibility=public` or `workspace.visibility=protected`), enabling external tools (such as Servlo) to distinguish between public and protected services for display or filtering purposes.
 

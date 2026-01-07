@@ -1,4 +1,4 @@
-<!-- Migrated from specs/contrail-prd.md:224-233 -->
+<!-- Migrated from specs/scind-prd.md:224-233 -->
 <!-- Extraction ID: adr-0006-three-configuration-schemas -->
 
 # Three Configuration Schemas

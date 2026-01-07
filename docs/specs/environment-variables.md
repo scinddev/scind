@@ -1,4 +1,4 @@
-<!-- Migrated from specs/contrail-technical-spec.md:956-1027 -->
+<!-- Migrated from specs/scind-technical-spec.md:956-1027 -->
 <!-- Extraction ID: spec-environment-variables -->
 
 ## Environment Variable Injection
@@ -7,29 +7,29 @@ All exported services receive environment variables for service discovery. This 
 
 ### Naming Convention
 
-Environment variables use a `CONTRAIL_` prefix to avoid conflicts with application-defined variables.
+Environment variables use a `SCIND_` prefix to avoid conflicts with application-defined variables.
 
 **Name transformation**: Hyphens in application and exported service names are converted to underscores, and names are uppercased (e.g., `app-one` becomes `APP_ONE`, `web-debug` becomes `WEB_DEBUG`).
 
 **Base variables** (always generated for each exported service):
 ```
-CONTRAIL_{APPLICATION}_{EXPORTED_SERVICE}_HOST={hostname_or_alias}
-CONTRAIL_{APPLICATION}_{EXPORTED_SERVICE}_PORT={port}
-CONTRAIL_{APPLICATION}_{EXPORTED_SERVICE}_SCHEME={scheme}    # Only for proxied types
-CONTRAIL_{APPLICATION}_{EXPORTED_SERVICE}_URL={url}          # Only for proxied types
+SCIND_{APPLICATION}_{EXPORTED_SERVICE}_HOST={hostname_or_alias}
+SCIND_{APPLICATION}_{EXPORTED_SERVICE}_PORT={port}
+SCIND_{APPLICATION}_{EXPORTED_SERVICE}_SCHEME={scheme}    # Only for proxied types
+SCIND_{APPLICATION}_{EXPORTED_SERVICE}_URL={url}          # Only for proxied types
 ```
 
 **Protocol-specific variables** (generated for each proxied protocol):
 ```
-CONTRAIL_{APPLICATION}_{EXPORTED_SERVICE}_{PROTOCOL}_HOST={hostname}
-CONTRAIL_{APPLICATION}_{EXPORTED_SERVICE}_{PROTOCOL}_PORT={port}
-CONTRAIL_{APPLICATION}_{EXPORTED_SERVICE}_{PROTOCOL}_URL={url}
+SCIND_{APPLICATION}_{EXPORTED_SERVICE}_{PROTOCOL}_HOST={hostname}
+SCIND_{APPLICATION}_{EXPORTED_SERVICE}_{PROTOCOL}_PORT={port}
+SCIND_{APPLICATION}_{EXPORTED_SERVICE}_{PROTOCOL}_URL={url}
 ```
 
 ### Variable Generation Rules
 
 **For `proxied` type ports**:
-- `*_HOST` contains the fully qualified proxied hostname (e.g., `dev-app-one-web.contrail.test`)
+- `*_HOST` contains the fully qualified proxied hostname (e.g., `dev-app-one-web.scind.test`)
 - `*_PORT` contains the proxy port (443 for HTTPS, 80 for HTTP)—**not** the container port
 - `*_SCHEME` and `*_URL` are generated
 - Protocol-specific variables (`*_HTTPS_*`, `*_HTTP_*`) are also generated
@@ -53,21 +53,21 @@ CONTRAIL_{APPLICATION}_{EXPORTED_SERVICE}_{PROTOCOL}_URL={url}
 
 ```php
 // PHP example - using URL directly for proxied services
-$apiUrl = getenv('CONTRAIL_APP_TWO_API_URL') ?: 'https://app-two-api.contrail.test';
+$apiUrl = getenv('SCIND_APP_TWO_API_URL') ?: 'https://app-two-api.scind.test';
 $response = $httpClient->get("{$apiUrl}/endpoint");
 
 // PHP example - building connection for assigned port services
-$dbHost = getenv('CONTRAIL_APP_ONE_DB_HOST') ?: 'app-one-db';
-$dbPort = getenv('CONTRAIL_APP_ONE_DB_PORT') ?: '5432';
+$dbHost = getenv('SCIND_APP_ONE_DB_HOST') ?: 'app-one-db';
+$dbPort = getenv('SCIND_APP_ONE_DB_PORT') ?: '5432';
 $dsn = "pgsql:host={$dbHost};port={$dbPort};dbname=app";
 ```
 
 ```javascript
 // Node.js example - using URL directly
-const apiUrl = process.env.CONTRAIL_APP_TWO_API_URL || 'https://app-two-api.contrail.test';
+const apiUrl = process.env.SCIND_APP_TWO_API_URL || 'https://app-two-api.scind.test';
 const response = await fetch(`${apiUrl}/endpoint`);
 
 // Node.js example - building connection manually
-const dbHost = process.env.CONTRAIL_APP_ONE_DB_HOST || 'app-one-db';
-const dbPort = process.env.CONTRAIL_APP_ONE_DB_PORT || '5432';
+const dbHost = process.env.SCIND_APP_ONE_DB_HOST || 'app-one-db';
+const dbPort = process.env.SCIND_APP_ONE_DB_PORT || '5432';
 ```

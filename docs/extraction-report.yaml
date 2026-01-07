@@ -8,19 +8,19 @@ extraction:
   manifest_version: "1.0.0"
 
 source_files:
-  - path: specs/contrail-prd.md
+  - path: specs/scind-prd.md
     status: processed
     hash_status: placeholder_hash_accepted
-  - path: specs/contrail-technical-spec.md
+  - path: specs/scind-technical-spec.md
     status: processed
     hash_status: placeholder_hash_accepted
-  - path: specs/contrail-cli-reference.md
+  - path: specs/scind-cli-reference.md
     status: processed
     hash_status: placeholder_hash_accepted
-  - path: specs/contrail-shell-integration.md
+  - path: specs/scind-shell-integration.md
     status: processed
     hash_status: placeholder_hash_accepted
-  - path: specs/contrail-go-stack.md
+  - path: specs/scind-go-stack.md
     status: processed
     hash_status: placeholder_hash_accepted
 

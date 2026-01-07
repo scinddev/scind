@@ -1,5 +1,5 @@
 // Scaffold: internal/config/workspace.go and internal/config/application.go
-// Migrated from specs/contrail-go-stack.md
+// Migrated from specs/scind-go-stack.md
 
 package config
 

@@ -3,7 +3,7 @@
 
 # Implementation Guide
 
-This directory contains implementation documentation for building Contrail.
+This directory contains implementation documentation for building Scind.
 
 ## Contents
 

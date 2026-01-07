@@ -1,4 +1,4 @@
-<!-- Migrated from specs/contrail-technical-spec.md:1247-1315 -->
+<!-- Migrated from specs/scind-technical-spec.md:1247-1315 -->
 <!-- Extraction ID: spec-naming-conventions -->
 
 ## Conventions and Best Practices
@@ -8,7 +8,7 @@
 For an application to work well within a workspace, it should:
 
 1. **Include an `application.yaml`**: This file defines the service contract - which services the application exports to the workspace. This is owned and maintained by the application developers.
-2. **Use environment variables for external service URLs**: Don't hardcode hostnames for dependencies. Use the injected `CONTRAIL_{APP}_{EXPORTED_SERVICE}_*` variables.
+2. **Use environment variables for external service URLs**: Don't hardcode hostnames for dependencies. Use the injected `SCIND_{APP}_{EXPORTED_SERVICE}_*` variables.
 3. **Expose ports without host bindings**: Use `ports: ["8080"]` not `ports: ["8080:8080"]` to avoid conflicts.
 4. **Use relative volume paths**: Ensure builds and mounts work regardless of absolute path.
 
@@ -35,9 +35,9 @@ Application developers should update `application.yaml` when:
 - **Workspace names**: Lowercase alphanumeric with hyphens (e.g., `dev`, `feature-x`, `pr-123`)
 - **Application names**: Lowercase alphanumeric with hyphens, inferred from directory name
 - **Exported service names**: The key in `exported_services`, may differ from the underlying Compose service name
-- **Proxied hostnames** (proxied type): `{workspace}-{application}-{exported_service}.{domain}` (e.g., `dev-app-one-web.contrail.test`)
+- **Proxied hostnames** (proxied type): `{workspace}-{application}-{exported_service}.{domain}` (e.g., `dev-app-one-web.scind.test`)
 - **Internal aliases** (all types): `{application}-{exported_service}` (e.g., `app-one-web`, `app-one-db`)
-- **Environment variables**: `CONTRAIL_{APPLICATION}_{EXPORTED_SERVICE}_{SUFFIX}` in SCREAMING_SNAKE_CASE
+- **Environment variables**: `SCIND_{APPLICATION}_{EXPORTED_SERVICE}_{SUFFIX}` in SCREAMING_SNAKE_CASE
 - **Traefik router names**: `{workspace}-{application}-{exported_service}-{protocol}` (e.g., `dev-app-one-web-https`)
 
 **Collision warning**: Docker Compose project names, Traefik router names, volume names, and network names are derived from the naming patterns above. Creative naming that produces identical project names could cause conflicts:

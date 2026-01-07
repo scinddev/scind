@@ -1,6 +1,6 @@
-# Contrail Documentation
+# Scind Documentation
 
-Welcome to the Contrail documentation. Contrail is a workspace orchestration system for Docker Compose.
+Welcome to the Scind documentation. Scind is a workspace orchestration system for Docker Compose.
 
 ## Quick Navigation
 
@@ -15,7 +15,7 @@ Welcome to the Contrail documentation. Contrail is a workspace orchestration sys
 
 ## Getting Started
 
-1. Read the [Product Vision](./product/vision.md) to understand what Contrail does
+1. Read the [Product Vision](./product/vision.md) to understand what Scind does
 2. Review the [Architecture Overview](./architecture/overview.md) for system design
 3. See the [CLI Reference](./reference/cli.md) for command usage
 

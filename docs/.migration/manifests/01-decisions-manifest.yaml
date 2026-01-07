@@ -11,14 +11,14 @@ metadata:
   description: "Decisions layer extraction manifest - Architecture Decision Records"
 
 sources:
-  "specs/contrail-prd.md":
+  "specs/scind-prd.md":
     hash: "prd-placeholder-hash-a1b2c3d4e5f6"
     hash_algorithm: "sha256"
 
 entries:
   - id: "adr-0001-docker-compose-project-name"
     source:
-      file: "specs/contrail-prd.md"
+      file: "specs/scind-prd.md"
       start_line: 162
       end_line: 169
     target: "decisions/0001-docker-compose-project-name-isolation.md"
@@ -29,7 +29,7 @@ entries:
 
   - id: "adr-0002-two-layer-networking"
     source:
-      file: "specs/contrail-prd.md"
+      file: "specs/scind-prd.md"
       start_line: 171
       end_line: 179
     target: "decisions/0002-two-layer-networking.md"
@@ -40,7 +40,7 @@ entries:
 
   - id: "adr-0003-pure-overlay-design"
     source:
-      file: "specs/contrail-prd.md"
+      file: "specs/scind-prd.md"
       start_line: 181
       end_line: 192
     target: "decisions/0003-pure-overlay-design.md"
@@ -51,7 +51,7 @@ entries:
 
   - id: "adr-0004-convention-based-naming"
     source:
-      file: "specs/contrail-prd.md"
+      file: "specs/scind-prd.md"
       start_line: 194
       end_line: 202
     target: "decisions/0004-convention-based-naming.md"
@@ -62,7 +62,7 @@ entries:
 
   - id: "adr-0005-structure-vs-state-separation"
     source:
-      file: "specs/contrail-prd.md"
+      file: "specs/scind-prd.md"
       start_line: 204
       end_line: 222
     target: "decisions/0005-structure-vs-state-separation.md"
@@ -73,7 +73,7 @@ entries:
 
   - id: "adr-0006-three-configuration-schemas"
     source:
-      file: "specs/contrail-prd.md"
+      file: "specs/scind-prd.md"
       start_line: 224
       end_line: 233
     target: "decisions/0006-three-configuration-schemas.md"
@@ -84,7 +84,7 @@ entries:
 
   - id: "adr-0007-port-type-system"
     source:
-      file: "specs/contrail-prd.md"
+      file: "specs/scind-prd.md"
       start_line: 235
       end_line: 264
     target: "decisions/0007-port-type-system.md"
@@ -95,7 +95,7 @@ entries:
 
   - id: "adr-0008-traefik-reverse-proxy"
     source:
-      file: "specs/contrail-prd.md"
+      file: "specs/scind-prd.md"
       start_line: 266
       end_line: 271
     target: "decisions/0008-traefik-reverse-proxy.md"
@@ -106,7 +106,7 @@ entries:
 
   - id: "adr-0009-flexible-tls-configuration"
     source:
-      file: "specs/contrail-prd.md"
+      file: "specs/scind-prd.md"
       start_line: 273
       end_line: 289
     target: "decisions/0009-flexible-tls-configuration.md"
@@ -117,7 +117,7 @@ entries:
 
   - id: "adr-0010-up-down-command-semantics"
     source:
-      file: "specs/contrail-prd.md"
+      file: "specs/scind-prd.md"
       start_line: 291
       end_line: 303
     target: "decisions/0010-up-down-command-semantics.md"
@@ -128,7 +128,7 @@ entries:
 
   - id: "adr-0011-options-based-targeting"
     source:
-      file: "specs/contrail-prd.md"
+      file: "specs/scind-prd.md"
       start_line: 305
       end_line: 315
     target: "decisions/0011-options-based-targeting.md"
@@ -145,7 +145,7 @@ entries:
     inline_content: |
       # Architecture Decision Records
 
-      This directory contains Architecture Decision Records (ADRs) documenting significant design choices for Contrail.
+      This directory contains Architecture Decision Records (ADRs) documenting significant design choices for Scind.
 
       ## Index
 

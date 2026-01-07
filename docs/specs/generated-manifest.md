@@ -1,4 +1,4 @@
-<!-- Migrated from specs/contrail-technical-spec.md:708-765 -->
+<!-- Migrated from specs/scind-technical-spec.md:708-765 -->
 <!-- Extraction ID: spec-generated-manifest -->
 
 ## Generated Manifest
@@ -10,7 +10,7 @@ The manifest is a computed, read-only view of the workspace's current state. It 
 - **Discoverability**: Humans and tools can inspect one file to understand the workspace topology
 - **Tool integration**: Dashboards, DNS updaters, or service discovery tools can consume this structured data
 - **Debugging**: Inspect computed hostnames and environment variables without reconstructing from templates
-- **Caching**: Contrail can compare the manifest against configuration to determine if regeneration is needed
+- **Caching**: Scind can compare the manifest against configuration to determine if regeneration is needed
 
 ```yaml
 # AUTO-GENERATED - Computed from configuration and state
@@ -21,7 +21,7 @@ workspace:
   network: dev-internal
 
 proxy:
-  domain: contrail.test
+  domain: scind.test
 
 applications:
   app-one:
@@ -36,15 +36,15 @@ applications:
             protocol: https
             container_port: 443
             visibility: public
-            hostname: dev-app-one-web.contrail.test
+            hostname: dev-app-one-web.scind.test
         environment:
-          CONTRAIL_APP_ONE_WEB_HOST: dev-app-one-web.contrail.test
-          CONTRAIL_APP_ONE_WEB_PORT: 443
-          CONTRAIL_APP_ONE_WEB_SCHEME: https
-          CONTRAIL_APP_ONE_WEB_URL: https://dev-app-one-web.contrail.test
-          CONTRAIL_APP_ONE_WEB_HTTPS_HOST: dev-app-one-web.contrail.test
-          CONTRAIL_APP_ONE_WEB_HTTPS_PORT: 443
-          CONTRAIL_APP_ONE_WEB_HTTPS_URL: https://dev-app-one-web.contrail.test
+          SCIND_APP_ONE_WEB_HOST: dev-app-one-web.scind.test
+          SCIND_APP_ONE_WEB_PORT: 443
+          SCIND_APP_ONE_WEB_SCHEME: https
+          SCIND_APP_ONE_WEB_URL: https://dev-app-one-web.scind.test
+          SCIND_APP_ONE_WEB_HTTPS_HOST: dev-app-one-web.scind.test
+          SCIND_APP_ONE_WEB_HTTPS_PORT: 443
+          SCIND_APP_ONE_WEB_HTTPS_URL: https://dev-app-one-web.scind.test
 
       db:
         service: postgres
@@ -55,6 +55,6 @@ applications:
             host_port: 5432
             visibility: protected
         environment:
-          CONTRAIL_APP_ONE_DB_HOST: app-one-db
-          CONTRAIL_APP_ONE_DB_PORT: 5432
+          SCIND_APP_ONE_DB_HOST: app-one-db
+          SCIND_APP_ONE_DB_PORT: 5432
 ```

@@ -1,39 +1,39 @@
-<!-- Migrated from specs/contrail-cli-reference.md:1-1599 -->
+<!-- Migrated from specs/scind-cli-reference.md:1-1599 -->
 <!-- Extraction ID: reference-cli -->
 
-# Contrail CLI Reference
+# Scind CLI Reference
 
 **Version**: 0.2.3-draft
 **Date**: December 2024
 **Status**: Design Phase
 
-This document is the authoritative reference for Contrail's command-line interface. It defines command structure, arguments, flags, and behaviors.
+This document is the authoritative reference for Scind's command-line interface. It defines command structure, arguments, flags, and behaviors.
 
 ---
 
 ## Command Structure
 
-Contrail follows a **resource-first** pattern inspired by Docker and Mutagen:
+Scind follows a **resource-first** pattern inspired by Docker and Mutagen:
 
 ```
-contrail [resource] [action] [options...]
+scind [resource] [action] [options...]
 ```
 
 All targeting uses **options** rather than positional arguments:
 
 ```bash
 # Good: Options-based
-contrail app status --workspace=dev --app=app-one
+scind app status --workspace=dev --app=app-one
 
 # With context detection (from current directory)
-contrail app status
+scind app status
 ```
 
 ---
 
 ## Context Detection
 
-Contrail automatically detects workspace and application context from the current directory, reducing the need for explicit `--workspace` and `--app` flags.
+Scind automatically detects workspace and application context from the current directory, reducing the need for explicit `--workspace` and `--app` flags.
 
 ### Detection Rules
 
@@ -60,7 +60,7 @@ Context detection uses a **workspace boundary** approach to prevent accidental d
 4. **Explicit flags override detection**: `--workspace` and `--app` always take precedence over context detection
    - When any `--app` flag is specified, context-detected application is **completely ignored**
    - This applies even when multiple `-a` flags are used
-   - To start multiple specific apps: `contrail up -a app-one -a app-two`
+   - To start multiple specific apps: `scind up -a app-one -a app-two`
 
 5. **Global commands ignore context**: `port`, `proxy`, and `config` commands don't use directory context
 
@@ -73,12 +73,12 @@ When explicit flags are provided, they **replace** (not add to) context detectio
 $ cd ~/workspaces/dev/app-one
 
 # This starts ONLY app-two, not both app-one and app-two
-$ contrail up -a app-two
+$ scind up -a app-two
 # Starting: app-two
 # (app-one from context is ignored)
 
 # To start multiple apps, list them all explicitly
-$ contrail up -a app-one -a app-two
+$ scind up -a app-one -a app-two
 # Starting: app-one, app-two
 ```
 
@@ -96,7 +96,7 @@ When context is detected, commands indicate what was found:
 
 ```bash
 $ cd ~/workspaces/dev/app-one
-$ contrail app status
+$ scind app status
 # Using workspace: dev (from ../workspace.yaml)
 # Using app: app-one (from ./application.yaml)
 
@@ -114,36 +114,36 @@ When context is required but not detected, error messages provide debugging hint
 **No workspace found, but application.yaml exists** (helps identify misplaced apps):
 ```bash
 $ cd ~/random-project
-$ contrail app status
+$ scind app status
 Error: No workspace found (workspace.yaml) in current directory or any parent directories,
 but found an application (application.yaml) at: /home/user/random-project/application.yaml
 
-Create a workspace with: contrail workspace init --workspace=NAME
+Create a workspace with: scind workspace init --workspace=NAME
 ```
 
 **Neither workspace nor application found**:
 ```bash
 $ cd ~
-$ contrail app status
+$ scind app status
 Error: No workspace found (workspace.yaml) in current directory or any parent directories,
 and no application (application.yaml) found either.
 
 Either:
   1. Run from within a workspace directory
-  2. Specify explicitly: contrail app status --workspace=NAME --app=NAME
+  2. Specify explicitly: scind app status --workspace=NAME --app=NAME
 
-Available workspaces: contrail workspace list
+Available workspaces: scind workspace list
 ```
 
 **Workspace found but no application context** (for app-specific commands):
 ```bash
 $ cd ~/workspaces/dev
-$ contrail app status
+$ scind app status
 Error: No application context detected.
 
 Either:
   1. Run from within an application directory
-  2. Specify explicitly: contrail app status --app=NAME
+  2. Specify explicitly: scind app status --app=NAME
 
 Available apps in 'dev': app-one, app-two, app-three
 ```
@@ -152,7 +152,7 @@ Available apps in 'dev': app-one, app-two, app-three
 
 ## Resources
 
-Contrail manages these resource types:
+Scind manages these resource types:
 
 | Resource | Description | Context-Aware |
 |----------|-------------|---------------|
@@ -179,7 +179,7 @@ These flags are available on all commands:
 | `--yaml` | | Output in YAML format |
 | `--color` | | Color output: `auto` (default), `always`, or `never` |
 | `--help` | `-h` | Show help for command |
-| `--version` | | Show Contrail version |
+| `--version` | | Show Scind version |
 
 ### Output Behavior
 
@@ -199,18 +199,18 @@ Starting app-three... done
 
 ```bash
 # Normal output
-$ contrail workspace list
+$ scind workspace list
 NAME    PATH                      APPS   STATUS
 dev     ~/workspaces/dev          3      running
 staging ~/workspaces/staging      2      stopped
 
 # Quiet output (machine-readable)
-$ contrail workspace list -q
+$ scind workspace list -q
 dev
 staging
 
 # Status with quiet
-$ contrail app status -q
+$ scind app status -q
 running
 ```
 
@@ -220,12 +220,12 @@ running
 
 Manage workspace lifecycle and orchestration.
 
-### `contrail workspace list`
+### `scind workspace list`
 
 List all registered workspaces.
 
 ```bash
-contrail workspace list [flags]
+scind workspace list [flags]
 ```
 
 **Flags**:
@@ -242,16 +242,16 @@ review   3     stopped  ~/workspaces/review
 control  2     running  ~/workspaces/control
 ```
 
-**Discovery mechanism**: Reads from the workspace registry (`~/.config/contrail/workspaces.yaml`). If the registry is missing, automatically attempts to rebuild from Docker container labels.
+**Discovery mechanism**: Reads from the workspace registry (`~/.config/scind/workspaces.yaml`). If the registry is missing, automatically attempts to rebuild from Docker container labels.
 
 ---
 
-### `contrail workspace prune`
+### `scind workspace prune`
 
 Remove stale entries from the workspace registry.
 
 ```bash
-contrail workspace prune [flags]
+scind workspace prune [flags]
 ```
 
 **Flags**:
@@ -266,19 +266,19 @@ contrail workspace prune [flags]
 
 **Example**:
 ```bash
-contrail workspace prune
+scind workspace prune
 # Removed: old-project (path /home/user/old-project no longer exists)
 # Registry: 3 workspaces remaining
 ```
 
 ---
 
-### `contrail workspace show`
+### `scind workspace show`
 
 Show detailed information about a workspace, including the computed manifest.
 
 ```bash
-contrail workspace show [flags]
+scind workspace show [flags]
 ```
 
 **Flags**:
@@ -290,12 +290,12 @@ contrail workspace show [flags]
 
 ---
 
-### `contrail workspace init`
+### `scind workspace init`
 
 Initialize a new workspace.
 
 ```bash
-contrail workspace init [flags]
+scind workspace init [flags]
 ```
 
 **Flags**:
@@ -308,12 +308,12 @@ contrail workspace init [flags]
 - If run in an empty directory without `--workspace`, prompts for name
 - If run with `--workspace=NAME`, creates `./NAME/workspace.yaml` or `./workspace.yaml` if `--path=.`
 - Creates initial directory structure
-- **Registers the workspace** in `~/.config/contrail/workspaces.yaml`
+- **Registers the workspace** in `~/.config/scind/workspaces.yaml`
 - **Fails if name is already registered** to a different path (enforces workspace name uniqueness)
 
 **Example** (new workspace):
 ```bash
-contrail workspace init --workspace=dev
+scind workspace init --workspace=dev
 # Creates ./dev/workspace.yaml
 # Registers "dev" -> ./dev in workspace registry
 ```
@@ -321,26 +321,26 @@ contrail workspace init --workspace=dev
 **Example** (current directory):
 ```bash
 cd ~/my-project
-contrail workspace init --workspace=dev
+scind workspace init --workspace=dev
 # Creates ./workspace.yaml with name: dev
 # Registers "dev" -> ~/my-project in workspace registry
 ```
 
 **Example** (name collision):
 ```bash
-contrail workspace init --workspace=dev
+scind workspace init --workspace=dev
 # Error: Workspace "dev" already registered at ~/workspaces/dev
-# Use a different name, or run `contrail workspace prune` if that path no longer exists
+# Use a different name, or run `scind workspace prune` if that path no longer exists
 ```
 
 ---
 
-### `contrail workspace clone`
+### `scind workspace clone`
 
 Clone all application repositories defined in the workspace.
 
 ```bash
-contrail workspace clone [flags]
+scind workspace clone [flags]
 ```
 
 **Flags**:
@@ -362,19 +362,19 @@ contrail workspace clone [flags]
 
 **Single-app workspace handling**:
 ```bash
-contrail workspace clone
+scind workspace clone
 # Skipping myapp: application is workspace root (path: .)
 # Cloned: app-two -> ./app-two
 ```
 
 ---
 
-### `contrail workspace generate`
+### `scind workspace generate`
 
 Generate or regenerate Docker Compose override files.
 
 ```bash
-contrail workspace generate [flags]
+scind workspace generate [flags]
 ```
 
 **Flags**:
@@ -394,12 +394,12 @@ contrail workspace generate [flags]
 
 ---
 
-### `contrail workspace up`
+### `scind workspace up`
 
 Bring up a workspace (generate overrides if needed, create networks, start containers).
 
 ```bash
-contrail workspace up [flags]
+scind workspace up [flags]
 ```
 
 **Flags**:
@@ -415,7 +415,7 @@ contrail workspace up [flags]
 1. Detect or require workspace context
 2. Check if override files are stale; regenerate if needed
 3. Ensure workspace network (`{workspace}-internal`) exists
-4. Ensure `contrail-proxy` network exists and proxy is running
+4. Ensure `scind-proxy` network exists and proxy is running
 5. For each application (or specified apps):
    - Resolve active flavor
    - Execute `docker compose up -d` with appropriate files
@@ -423,19 +423,19 @@ contrail workspace up [flags]
 
 **Example**:
 ```bash
-contrail workspace up --workspace=dev
-contrail workspace up -a app-one -a app-two  # With context
-contrail up  # Alias, with context
+scind workspace up --workspace=dev
+scind workspace up -a app-one -a app-two  # With context
+scind up  # Alias, with context
 ```
 
 ---
 
-### `contrail workspace down`
+### `scind workspace down`
 
 Tear down a workspace (stop containers, remove networks).
 
 ```bash
-contrail workspace down [flags]
+scind workspace down [flags]
 ```
 
 **Flags**:
@@ -455,12 +455,12 @@ contrail workspace down [flags]
 
 ---
 
-### `contrail workspace restart`
+### `scind workspace restart`
 
 Restart a workspace or specific applications.
 
 ```bash
-contrail workspace restart [flags]
+scind workspace restart [flags]
 ```
 
 **Flags**:
@@ -473,12 +473,12 @@ contrail workspace restart [flags]
 
 ---
 
-### `contrail workspace status`
+### `scind workspace status`
 
 Show the running status of a workspace.
 
 ```bash
-contrail workspace status [flags]
+scind workspace status [flags]
 ```
 
 **Flags**:
@@ -493,19 +493,19 @@ Network: dev-internal (created)
 Proxy: running
 
 APPLICATON  FLAVOR   STATUS   SERVICES         URL
-app-one     default  running  3/3 running      https://dev-app-one-web.contrail.test
-app-two     full     running  5/5 running      https://dev-app-two-web.contrail.test
+app-one     default  running  3/3 running      https://dev-app-one-web.scind.test
+app-two     full     running  5/5 running      https://dev-app-two-web.scind.test
 app-three   lite     stopped  0/2 running      —
 ```
 
 ---
 
-### `contrail workspace destroy`
+### `scind workspace destroy`
 
 Completely remove a workspace.
 
 ```bash
-contrail workspace destroy [flags]
+scind workspace destroy [flags]
 ```
 
 **Flags**:
@@ -521,7 +521,7 @@ contrail workspace destroy [flags]
 3. Prompt before removing application directories (unless `--force` or `--keep-apps`)
 4. Remove `workspace.yaml`
 5. Release any assigned ports
-6. Remove workspace from registry (`~/.config/contrail/workspaces.yaml`)
+6. Remove workspace from registry (`~/.config/scind/workspaces.yaml`)
 
 **Warning**: This is destructive. Without `--force` or `--keep-apps`, prompts for confirmation showing what will be removed.
 
@@ -531,12 +531,12 @@ contrail workspace destroy [flags]
 
 Manage applications within workspaces.
 
-### `contrail app list`
+### `scind app list`
 
 List applications in a workspace.
 
 ```bash
-contrail app list [flags]
+scind app list [flags]
 ```
 
 **Flags**:
@@ -554,12 +554,12 @@ app-three  lite     stopped  0/2       ./app-three
 
 ---
 
-### `contrail app show`
+### `scind app show`
 
 Show detailed information about an application.
 
 ```bash
-contrail app show [flags]
+scind app show [flags]
 ```
 
 **Flags**:
@@ -572,12 +572,12 @@ contrail app show [flags]
 
 ---
 
-### `contrail app init`
+### `scind app init`
 
 Initialize an application configuration in the current directory.
 
 ```bash
-contrail app init [flags]
+scind app init [flags]
 ```
 
 **Flags**:
@@ -590,22 +590,22 @@ contrail app init [flags]
 - Scans for existing `docker-compose.yaml` to suggest exported services
 - Sets up default flavor pointing to existing compose file(s)
 
-**Use case**: Promoting an existing Docker Compose project to a Contrail application.
+**Use case**: Promoting an existing Docker Compose project to a Scind application.
 
 ```bash
 cd ~/my-project
-contrail app init --app=myapp
+scind app init --app=myapp
 # Creates ./application.yaml
 ```
 
 ---
 
-### `contrail app add`
+### `scind app add`
 
 Add an application to a workspace.
 
 ```bash
-contrail app add [flags]
+scind app add [flags]
 ```
 
 **Flags**:
@@ -625,18 +625,18 @@ contrail app add [flags]
 
 **Example**:
 ```bash
-contrail app add --app=api --repo=git@github.com:org/api.git
-contrail app add --app=main --path=.  # Use current directory
+scind app add --app=api --repo=git@github.com:org/api.git
+scind app add --app=main --path=.  # Use current directory
 ```
 
 ---
 
-### `contrail app remove`
+### `scind app remove`
 
 Remove an application from a workspace.
 
 ```bash
-contrail app remove [flags]
+scind app remove [flags]
 ```
 
 **Flags**:
@@ -654,12 +654,12 @@ contrail app remove [flags]
 
 ---
 
-### `contrail app up`
+### `scind app up`
 
 Bring up a single application.
 
 ```bash
-contrail app up [flags]
+scind app up [flags]
 ```
 
 **Flags**:
@@ -668,16 +668,16 @@ contrail app up [flags]
 | `-w, --workspace` | Target workspace (or use context) |
 | `-a, --app` | Target application (or use context) |
 
-Equivalent to `contrail workspace up --app=NAME`.
+Equivalent to `scind workspace up --app=NAME`.
 
 ---
 
-### `contrail app down`
+### `scind app down`
 
 Tear down a single application.
 
 ```bash
-contrail app down [flags]
+scind app down [flags]
 ```
 
 **Flags**:
@@ -687,16 +687,16 @@ contrail app down [flags]
 | `-a, --app` | Target application (or use context) |
 | `--volumes` | Also remove volumes |
 
-Equivalent to `contrail workspace down --app=NAME`.
+Equivalent to `scind workspace down --app=NAME`.
 
 ---
 
-### `contrail app restart`
+### `scind app restart`
 
 Restart a single application.
 
 ```bash
-contrail app restart [flags]
+scind app restart [flags]
 ```
 
 **Flags**:
@@ -709,12 +709,12 @@ contrail app restart [flags]
 
 ---
 
-### `contrail app status`
+### `scind app status`
 
 Show status of a single application.
 
 ```bash
-contrail app status [flags]
+scind app status [flags]
 ```
 
 **Flags**:
@@ -729,12 +729,12 @@ contrail app status [flags]
 
 Manage application flavors (named configurations).
 
-### `contrail flavor list`
+### `scind flavor list`
 
 List available flavors for an application.
 
 ```bash
-contrail flavor list [flags]
+scind flavor list [flags]
 ```
 
 **Flags**:
@@ -753,12 +753,12 @@ debug    docker-compose.yaml, docker-compose.debug.yaml
 
 ---
 
-### `contrail flavor show`
+### `scind flavor show`
 
 Show the current active flavor for an application.
 
 ```bash
-contrail flavor show [flags]
+scind flavor show [flags]
 ```
 
 **Flags**:
@@ -769,12 +769,12 @@ contrail flavor show [flags]
 
 ---
 
-### `contrail flavor set`
+### `scind flavor set`
 
 Set the active flavor for an application.
 
 ```bash
-contrail flavor set <flavor> [flags]
+scind flavor set <flavor> [flags]
 ```
 
 **Arguments**:
@@ -799,16 +799,16 @@ contrail flavor set <flavor> [flags]
 **After changing flavors**:
 | Scenario | Command |
 |----------|---------|
-| Flavor adds/removes services | `contrail up` (starts new services, stops orphaned services) |
-| Flavor changes environment or config | `contrail app restart -a APP` |
+| Flavor adds/removes services | `scind up` (starts new services, stops orphaned services) |
+| Flavor changes environment or config | `scind app restart -a APP` |
 
 **Example**:
 ```bash
 # Change flavor (regenerates config, warns if running)
-contrail flavor set full --app=app-two
+scind flavor set full --app=app-two
 
 # Apply to running application
-contrail app restart --app=app-two
+scind app restart --app=app-two
 ```
 
 ---
@@ -817,12 +817,12 @@ contrail app restart --app=app-two
 
 Manage host port assignments for `assigned`-type services.
 
-### `contrail port list`
+### `scind port list`
 
 List all assigned ports.
 
 ```bash
-contrail port list [flags]
+scind port list [flags]
 ```
 
 **Flags**:
@@ -851,12 +851,12 @@ PORT   WORKSPACE  APP      SERVICE  STATUS    BOUND
 
 ---
 
-### `contrail port show`
+### `scind port show`
 
 Show details about a specific port assignment.
 
 ```bash
-contrail port show <port>
+scind port show <port>
 ```
 
 **Arguments**:
@@ -866,12 +866,12 @@ contrail port show <port>
 
 ---
 
-### `contrail port release`
+### `scind port release`
 
 Manually release a port assignment.
 
 ```bash
-contrail port release <port> [flags]
+scind port release <port> [flags]
 ```
 
 **Arguments**:
@@ -886,12 +886,12 @@ contrail port release <port> [flags]
 
 ---
 
-### `contrail port assign`
+### `scind port assign`
 
 Manually assign a port (advanced usage).
 
 ```bash
-contrail port assign <port> <workspace>/<app>/<service>
+scind port assign <port> <workspace>/<app>/<service>
 ```
 
 **Arguments**:
@@ -902,12 +902,12 @@ contrail port assign <port> <workspace>/<app>/<service>
 
 ---
 
-### `contrail port gc`
+### `scind port gc`
 
 Garbage collect released and unbound ports.
 
 ```bash
-contrail port gc [flags]
+scind port gc [flags]
 ```
 
 **Flags**:
@@ -922,12 +922,12 @@ contrail port gc [flags]
 
 ---
 
-### `contrail port scan`
+### `scind port scan`
 
 Re-scan and update port availability inventory.
 
 ```bash
-contrail port scan
+scind port scan
 ```
 
 **Behavior**:
@@ -941,64 +941,64 @@ contrail port scan
 
 Manage the Traefik reverse proxy. The proxy is a shared instance that serves all workspaces on the host.
 
-### `contrail proxy init`
+### `scind proxy init`
 
-Bootstrap the proxy configuration. This creates the Traefik Docker Compose project at `~/.config/contrail/proxy/`.
+Bootstrap the proxy configuration. This creates the Traefik Docker Compose project at `~/.config/scind/proxy/`.
 
 ```bash
-contrail proxy init [flags]
+scind proxy init [flags]
 ```
 
 **Flags**:
 | Flag | Description |
 |------|-------------|
 | `--force` | Overwrite existing configuration (useful for recovery) |
-| `--domain` | Set proxy domain (default: `contrail.test`) |
-| `--path` | Directory to create proxy in (default: `~/.config/contrail/proxy/`) |
+| `--domain` | Set proxy domain (default: `scind.test`) |
+| `--path` | Directory to create proxy in (default: `~/.config/scind/proxy/`) |
 
 **Behavior**:
 1. Check if proxy configuration already exists
    - If exists and no `--force`: error with message
    - If exists and `--force`: backup existing config and overwrite
 2. Create proxy directory structure (`docker-compose.yaml`, `traefik.yaml`, `dynamic/`, `certs/`)
-3. Create `contrail-proxy` Docker network if it doesn't exist
+3. Create `scind-proxy` Docker network if it doesn't exist
 4. Output next steps (DNS setup, starting proxy)
 
 **Example**:
 ```bash
-$ contrail proxy init
-Created proxy configuration at ~/.config/contrail/proxy/
+$ scind proxy init
+Created proxy configuration at ~/.config/scind/proxy/
 
 Next steps:
-  1. Configure DNS for *.contrail.test → 127.0.0.1
-     (See: contrail doctor for DNS verification)
+  1. Configure DNS for *.scind.test → 127.0.0.1
+     (See: scind doctor for DNS verification)
   2. Start the proxy:
-     contrail proxy up
+     scind proxy up
 
-$ contrail proxy init
-Error: Proxy configuration already exists at ~/.config/contrail/proxy/
+$ scind proxy init
+Error: Proxy configuration already exists at ~/.config/scind/proxy/
 Use --force to overwrite, or --path to create elsewhere.
 
-$ contrail proxy init --force
-Backed up existing configuration to ~/.config/contrail/proxy.backup.20241230/
-Created proxy configuration at ~/.config/contrail/proxy/
+$ scind proxy init --force
+Backed up existing configuration to ~/.config/scind/proxy.backup.20241230/
+Created proxy configuration at ~/.config/scind/proxy/
 ```
 
 **Custom domain example**:
 ```bash
-$ contrail proxy init --domain mydev.local
-Created proxy configuration at ~/.config/contrail/proxy/
+$ scind proxy init --domain mydev.local
+Created proxy configuration at ~/.config/scind/proxy/
 Domain set to: mydev.local
 ```
 
 ---
 
-### `contrail proxy up`
+### `scind proxy up`
 
 Start the Traefik proxy.
 
 ```bash
-contrail proxy up [flags]
+scind proxy up [flags]
 ```
 
 **Flags**:
@@ -1007,57 +1007,57 @@ contrail proxy up [flags]
 | `--recreate` | Recreate the proxy network even if it exists |
 
 **Behavior**:
-- Creates `contrail-proxy` network if it doesn't exist
+- Creates `scind-proxy` network if it doesn't exist
 - Validates existing network configuration matches expected settings
 - Starts Traefik container from proxy configuration
 - If proxy configuration doesn't exist, runs `proxy init` first
 
 **Network conflict handling**:
-If the `contrail-proxy` network exists but was created by a different tool or has incompatible settings, `proxy up` will warn:
+If the `scind-proxy` network exists but was created by a different tool or has incompatible settings, `proxy up` will warn:
 ```
-Warning: Network 'contrail-proxy' exists but may not have been created by Contrail.
+Warning: Network 'scind-proxy' exists but may not have been created by Scind.
   Driver: bridge (expected: bridge) ✓
-  Labels: contrail.managed not found ⚠
+  Labels: scind.managed not found ⚠
 
-Use 'contrail proxy up --recreate' to recreate the network.
+Use 'scind proxy up --recreate' to recreate the network.
 ```
 
 **Note**: Users rarely need to call this directly. `workspace up` automatically starts the proxy if it's not running.
 
 ---
 
-### `contrail proxy down`
+### `scind proxy down`
 
 Stop the Traefik proxy.
 
 ```bash
-contrail proxy down
+scind proxy down
 ```
 
 ---
 
-### `contrail proxy restart`
+### `scind proxy restart`
 
 Restart the Traefik proxy.
 
 ```bash
-contrail proxy restart
+scind proxy restart
 ```
 
 ---
 
-### `contrail proxy status`
+### `scind proxy status`
 
 Show proxy status.
 
 ```bash
-contrail proxy status
+scind proxy status
 ```
 
 **Output** (dashboard enabled):
 ```
 Proxy: running
-Network: contrail-proxy (created)
+Network: scind-proxy (created)
 Dashboard: http://localhost:8080
 Entrypoints:
   - web: :80
@@ -1067,7 +1067,7 @@ Entrypoints:
 **Output** (dashboard disabled):
 ```
 Proxy: running
-Network: contrail-proxy (created)
+Network: scind-proxy (created)
 Dashboard: disabled
 Entrypoints:
   - web: :80
@@ -1080,100 +1080,100 @@ Entrypoints:
 
 ## Config Commands
 
-Manage Contrail configuration.
+Manage Scind configuration.
 
-### `contrail config show`
+### `scind config show`
 
 Show all configuration values.
 
 ```bash
-contrail config show
+scind config show
 ```
 
 **Output**:
 ```yaml
 proxy:
-  domain: contrail.test
+  domain: scind.test
 paths:
-  global_config: ~/.config/contrail/proxy.yaml
-  global_state: ~/.config/contrail/state.yaml
+  global_config: ~/.config/scind/proxy.yaml
+  global_state: ~/.config/scind/state.yaml
 ```
 
 ---
 
-### `contrail config get`
+### `scind config get`
 
 Get a specific configuration value.
 
 ```bash
-contrail config get <key>
+scind config get <key>
 ```
 
 **Example**:
 ```bash
-contrail config get proxy.domain
-# contrail.test
+scind config get proxy.domain
+# scind.test
 ```
 
 ---
 
-### `contrail config set`
+### `scind config set`
 
 Set a configuration value.
 
 ```bash
-contrail config set <key> <value>
+scind config set <key> <value>
 ```
 
 **Example**:
 ```bash
-contrail config set proxy.domain local.test
+scind config set proxy.domain local.test
 ```
 
 ---
 
-### `contrail config path`
+### `scind config path`
 
 Show configuration file locations.
 
 ```bash
-contrail config path
+scind config path
 ```
 
 **Output**:
 ```
-Global config: ~/.config/contrail/proxy.yaml
-Global state:  ~/.config/contrail/state.yaml
+Global config: ~/.config/scind/proxy.yaml
+Global state:  ~/.config/scind/state.yaml
 ```
 
 ---
 
-### `contrail config edit`
+### `scind config edit`
 
 Open the global configuration file in your default editor.
 
 ```bash
-contrail config edit
+scind config edit
 ```
 
 **Behavior**:
-- Opens `~/.config/contrail/proxy.yaml` in `$EDITOR` (or `$VISUAL`, or falls back to `vi`)
+- Opens `~/.config/scind/proxy.yaml` in `$EDITOR` (or `$VISUAL`, or falls back to `vi`)
 - Creates the config file with defaults if it doesn't exist
 
 ---
 
 ## Docker Compose Integration
 
-Contrail provides a `contrail-compose` shell function for direct Docker Compose interaction with automatic context awareness. This function is installed via `contrail init-shell` and delegates to Docker Compose with the correct project name and compose files.
+Scind provides a `scind-compose` shell function for direct Docker Compose interaction with automatic context awareness. This function is installed via `scind init-shell` and delegates to Docker Compose with the correct project name and compose files.
 
-For full documentation on `contrail-compose` and shell integration, see the [Shell Integration Specification](../specs/shell-integration.md).
+For full documentation on `scind-compose` and shell integration, see the [Shell Integration Specification](../specs/shell-integration.md).
 
-### `contrail compose-prefix`
+### `scind compose-prefix`
 
-Output the Docker Compose command prefix for the current context. This is primarily used by the `contrail-compose` shell function.
+Output the Docker Compose command prefix for the current context. This is primarily used by the `scind-compose` shell function.
 
 ```bash
-contrail compose-prefix [flags]
+scind compose-prefix [flags]
 ```
 
 **Flags**:
@@ -1182,12 +1182,12 @@ contrail compose-prefix [flags]
 | `-w, --workspace` | Target workspace (or use context) |
 | `-a, --app` | Target application (or use context) |
 
-> **Note**: There is no `--flavor` flag for `compose-prefix`. Flavor changes require regeneration and can impact running applications. Use `contrail flavor set` to change the active flavor before running `contrail-compose`.
+> **Note**: There is no `--flavor` flag for `compose-prefix`. Flavor changes require regeneration and can impact running applications. Use `scind flavor set` to change the active flavor before running `scind-compose`.
 
 **Output**:
 ```bash
 $ cd ~/workspaces/dev/app-one
-$ contrail compose-prefix
+$ scind compose-prefix
 docker compose -p dev-app-one -f '/home/user/workspaces/dev/app-one/docker-compose.yaml' -f '/home/user/workspaces/dev/.generated/app-one.override.yaml'
 ```
 
@@ -1196,56 +1196,56 @@ docker compose -p dev-app-one -f '/home/user/workspaces/dev/app-one/docker-compo
 If context cannot be resolved, exits with code 5:
 ```bash
 $ cd ~
-$ contrail compose-prefix
+$ scind compose-prefix
 Error: No application context detected.
 
 Either:
   1. Run from within an application directory
   2. Specify explicitly with -w and -a flags
 
-Available workspaces: contrail workspace list
+Available workspaces: scind workspace list
 ```
 
 ---
 
-### `contrail init-shell`
+### `scind init-shell`
 
-Output shell integration script for the specified shell. This script provides the `contrail-compose` function and its completion.
+Output shell integration script for the specified shell. This script provides the `scind-compose` function and its completion.
 
 ```bash
-contrail init-shell {bash|zsh|fish}
+scind init-shell {bash|zsh|fish}
 ```
 
 **Installation**:
 ```bash
 # Bash
-contrail init-shell bash >> ~/.bashrc
+scind init-shell bash >> ~/.bashrc
 
 # Zsh
-contrail init-shell zsh >> ~/.zshrc
+scind init-shell zsh >> ~/.zshrc
 
 # Fish
-contrail init-shell fish >> ~/.config/fish/conf.d/contrail.fish
+scind init-shell fish >> ~/.config/fish/conf.d/scind.fish
 ```
 
 **Provides**:
-- `contrail-compose` function with context-aware Docker Compose passthrough
-- Tab completion for `contrail-compose` that delegates to Docker's completion
+- `scind-compose` function with context-aware Docker Compose passthrough
+- Tab completion for `scind-compose` that delegates to Docker's completion
 - Automatic resolution of workspace, app, and compose files
 
 **Example Usage** (after installation):
 ```bash
 # From within an application directory
 $ cd ~/workspaces/dev/app-one
-$ contrail-compose exec php bash
-$ contrail-compose logs -f
+$ scind-compose exec php bash
+$ scind-compose logs -f
 
 # From workspace root with explicit app
 $ cd ~/workspaces/dev
-$ contrail-compose -a app-two ps
+$ scind-compose -a app-two ps
 
 # From anywhere with explicit workspace and app
-$ contrail-compose -w dev -a app-one up -d
+$ scind-compose -w dev -a app-one up -d
 ```
 
 ---
@@ -1256,10 +1256,10 @@ For common operations, these aliases are provided:
 
 | Alias | Equivalent |
 |-------|------------|
-| `contrail up` | `contrail workspace up` |
-| `contrail down` | `contrail workspace down` |
-| `contrail ps` | `contrail workspace status` |
-| `contrail generate` | `contrail workspace generate` |
+| `scind up` | `scind workspace up` |
+| `scind down` | `scind workspace down` |
+| `scind ps` | `scind workspace status` |
+| `scind generate` | `scind workspace generate` |
 
 All aliases accept the same flags as their full forms and support context detection.
 
@@ -1267,12 +1267,12 @@ All aliases accept the same flags as their full forms and support context detect
 
 ## Utility Commands
 
-### `contrail validate`
+### `scind validate`
 
 Validate configuration files.
 
 ```bash
-contrail validate [flags]
+scind validate [flags]
 ```
 
 **Flags**:
@@ -1289,27 +1289,27 @@ contrail validate [flags]
 
 ---
 
-### `contrail doctor`
+### `scind doctor`
 
 Check system health and requirements.
 
 ```bash
-contrail doctor
+scind doctor
 ```
 
 **Output**:
 ```
-Checking Contrail environment...
+Checking Scind environment...
 
 ✓ Docker: running (version 24.0.7)
 ✓ Docker Compose: available (version 2.23.0)
 ✓ Proxy network: created
 ✓ Traefik: running
-✓ Config directory: ~/.config/contrail
-✓ Domain resolution: contrail.test → 127.0.0.1
+✓ Config directory: ~/.config/scind
+✓ Domain resolution: scind.test → 127.0.0.1
 ✓ Workspace domains:
-  - dev-app-one-web.contrail.test → 127.0.0.1
-  - dev-app-two-api.contrail.test → 127.0.0.1
+  - dev-app-one-web.scind.test → 127.0.0.1
+  - dev-app-two-api.scind.test → 127.0.0.1
 
 All checks passed.
 ```
@@ -1317,26 +1317,26 @@ All checks passed.
 **DNS checking behavior**:
 - Uses the **system DNS resolver** (respects `/etc/hosts` and `/etc/resolv.conf`)
 - Timeout: **5 seconds** per query
-- Checks base domain (`contrail.test`) resolution
+- Checks base domain (`scind.test`) resolution
 - If workspaces exist, checks all public proxied hostnames from workspace manifests
-- If no workspaces exist, checks a test subdomain (`check-{timestamp}.contrail.test`) to verify wildcard configuration
+- If no workspaces exist, checks a test subdomain (`check-{timestamp}.scind.test`) to verify wildcard configuration
 
 **Offline/air-gapped environments**: DNS checks may fail in environments without network access. Use `/etc/hosts` entries or a local dnsmasq configuration for offline development.
 
 **Wildcard DNS warning** (when base resolves but subdomains don't):
 ```
 ⚠ Wildcard DNS not configured. Individual hostnames may not resolve.
-  Configure dnsmasq: address=/contrail.test/127.0.0.1
+  Configure dnsmasq: address=/scind.test/127.0.0.1
 ```
 
 ---
 
-### `contrail open`
+### `scind open`
 
 Open a service URL in the default browser.
 
 ```bash
-contrail open [flags]
+scind open [flags]
 ```
 
 **Flags**:
@@ -1348,12 +1348,12 @@ contrail open [flags]
 
 ---
 
-### `contrail urls`
+### `scind urls`
 
 List all accessible URLs for a workspace.
 
 ```bash
-contrail urls [flags]
+scind urls [flags]
 ```
 
 **Flags**:
@@ -1364,9 +1364,9 @@ contrail urls [flags]
 **Output**:
 ```
 APP        SERVICE  URL
-app-one    web      https://dev-app-one-web.contrail.test
-app-two    web      https://dev-app-two-web.contrail.test
-app-two    api      https://dev-app-two-api.contrail.test
+app-one    web      https://dev-app-one-web.scind.test
+app-two    web      https://dev-app-two-web.scind.test
+app-two    api      https://dev-app-two-api.scind.test
 ```
 
 ---
@@ -1384,13 +1384,13 @@ All list and show commands support multiple output formats:
 
 **Example**:
 ```bash
-$ contrail workspace list --json
+$ scind workspace list --json
 [
   {"name": "dev", "apps": 3, "status": "running"},
   {"name": "review", "apps": 3, "status": "stopped"}
 ]
 
-$ contrail workspace list --quiet
+$ scind workspace list --quiet
 dev
 review
 ```
@@ -1399,55 +1399,55 @@ review
 
 ## Shell Completion
 
-Contrail provides two types of shell integration:
+Scind provides two types of shell integration:
 
-1. **Standard CLI completion**: Completions for the `contrail` command itself
-2. **Docker Compose passthrough**: The `contrail-compose` function with delegated completion
+1. **Standard CLI completion**: Completions for the `scind` command itself
+2. **Docker Compose passthrough**: The `scind-compose` function with delegated completion
 
-For complete documentation on shell integration, including the `contrail-compose` function and its completion delegation, see the [Shell Integration Specification](../specs/shell-integration.md).
+For complete documentation on shell integration, including the `scind-compose` function and its completion delegation, see the [Shell Integration Specification](../specs/shell-integration.md).
 
 ### Standard CLI Completion
 
-Install completion scripts for the `contrail` command:
+Install completion scripts for the `scind` command:
 
 ```bash
 # Bash
-contrail completion bash > /etc/bash_completion.d/contrail
+scind completion bash > /etc/bash_completion.d/scind
 
 # Zsh
-contrail completion zsh > "${fpath[1]}/_contrail"
+scind completion zsh > "${fpath[1]}/_scind"
 
 # Fish
-contrail completion fish > ~/.config/fish/completions/contrail.fish
+scind completion fish > ~/.config/fish/completions/scind.fish
 ```
 
 **Completion Features**:
 - Command and subcommand completion
 - Flag completion with descriptions
-- Dynamic completion for `--workspace` (from `contrail workspace list -q`)
-- Dynamic completion for `--app` (from `contrail app list -q`)
+- Dynamic completion for `--workspace` (from `scind workspace list -q`)
+- Dynamic completion for `--app` (from `scind app list -q`)
 - Flavor name completion
 - Port number completion
 
 ### Full Shell Integration
 
-For both CLI completion and `contrail-compose` support:
+For both CLI completion and `scind-compose` support:
 
 ```bash
-# Bash - includes contrail completion + contrail-compose function
-contrail init-shell bash >> ~/.bashrc
+# Bash - includes scind completion + scind-compose function
+scind init-shell bash >> ~/.bashrc
 
 # Zsh
-contrail init-shell zsh >> ~/.zshrc
+scind init-shell zsh >> ~/.zshrc
 
 # Fish
-contrail init-shell fish >> ~/.config/fish/conf.d/contrail.fish
+scind init-shell fish >> ~/.config/fish/conf.d/scind.fish
 ```
 
 This provides:
-- All standard `contrail` CLI completions
-- The `contrail-compose` shell function
-- Tab completion for `contrail-compose` that delegates to Docker's completion
+- All standard `scind` CLI completions
+- The `scind-compose` shell function
+- Tab completion for `scind-compose` that delegates to Docker's completion
 
 ---
 
@@ -1455,10 +1455,10 @@ This provides:
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `CONTRAIL_CONFIG` | Path to global config file | `~/.config/contrail/proxy.yaml` |
-| `CONTRAIL_WORKSPACE` | Default workspace (overrides context detection) | — |
+| `SCIND_CONFIG` | Path to global config file | `~/.config/scind/proxy.yaml` |
+| `SCIND_WORKSPACE` | Default workspace (overrides context detection) | — |
 | `NO_COLOR` | Disable colored output | — |
-| `CONTRAIL_DEBUG` | Enable debug logging | — |
+| `SCIND_DEBUG` | Enable debug logging | — |
 
 ---
 
@@ -1483,7 +1483,7 @@ Commands that require Docker check for availability upfront. If Docker is not in
 
 ```
 Error: Docker is not installed or not running.
-Run 'contrail doctor' for setup guidance.
+Run 'scind doctor' for setup guidance.
 ```
 
 Exit code: 4
@@ -1496,22 +1496,22 @@ Exit code: 4
 
 ```bash
 mkdir ~/workspaces && cd ~/workspaces
-contrail workspace init --workspace=dev
+scind workspace init --workspace=dev
 cd dev
-contrail app add --app=frontend --repo=git@github.com:org/frontend.git
-contrail app add --app=backend --repo=git@github.com:org/backend.git
-contrail up
-contrail urls
+scind app add --app=frontend --repo=git@github.com:org/frontend.git
+scind app add --app=backend --repo=git@github.com:org/backend.git
+scind up
+scind urls
 ```
 
 ### Promote existing project to workspace
 
 ```bash
 cd ~/my-docker-project
-contrail workspace init --workspace=dev
-contrail app init --app=myapp
+scind workspace init --workspace=dev
+scind app init --app=myapp
 # Edit application.yaml to define exported_services
-contrail up
+scind up
 ```
 
 ### Daily development workflow
@@ -1520,33 +1520,33 @@ contrail up
 cd ~/workspaces/dev/frontend
 
 # Start your day
-contrail up                    # Brings up entire dev workspace
+scind up                    # Brings up entire dev workspace
 
 # Work on frontend
-contrail-compose logs -f       # Tail frontend logs (context detected)
-contrail app restart           # Restart after changes
+scind-compose logs -f       # Tail frontend logs (context detected)
+scind app restart           # Restart after changes
 
-# Direct Docker Compose interaction (uses contrail-compose)
-contrail-compose exec php bash          # Shell into container
-contrail-compose exec php php artisan   # Run artisan command
+# Direct Docker Compose interaction (uses scind-compose)
+scind-compose exec php bash          # Shell into container
+scind-compose exec php php artisan   # Run artisan command
 
 # Check on another app
-contrail app status -a backend
-contrail-compose -a backend logs --tail=50
-contrail-compose -a backend exec node npm test
+scind app status -a backend
+scind-compose -a backend logs --tail=50
+scind-compose -a backend exec node npm test
 
 # End of day
-contrail down
+scind down
 ```
 
 ### Direct Docker Compose operations
 
 ```bash
-# contrail-compose provides context-aware docker compose access
+# scind-compose provides context-aware docker compose access
 cd ~/workspaces/dev/app-one
 
 # These are equivalent:
-contrail-compose exec php bash
+scind-compose exec php bash
 # ...to running:
 docker compose -p dev-app-one \
   -f ~/workspaces/dev/app-one/docker-compose.yaml \
@@ -1555,25 +1555,25 @@ docker compose -p dev-app-one \
 
 # Target different app from workspace root
 cd ~/workspaces/dev
-contrail-compose -a app-two logs -f php
+scind-compose -a app-two logs -f php
 
 # Full docker compose functionality with tab completion
-contrail-compose build --no-cache php
-contrail-compose run --rm php composer install
+scind-compose build --no-cache php
+scind-compose run --rm php composer install
 ```
 
 ### Switch application flavor
 
 ```bash
-contrail flavor list -a backend
-contrail flavor set full -a backend
-contrail app restart -a backend
+scind flavor list -a backend
+scind flavor set full -a backend
+scind app restart -a backend
 ```
 
 ### Manage ports
 
 ```bash
-contrail port list
-contrail port list --verbose   # Check bind status
-contrail port gc               # Clean up stale assignments
+scind port list
+scind port list --verbose   # Check bind status
+scind port gc               # Clean up stale assignments
 ```

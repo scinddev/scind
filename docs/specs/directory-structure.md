@@ -1,4 +1,4 @@
-<!-- Migrated from specs/contrail-technical-spec.md:137-214 -->
+<!-- Migrated from specs/scind-technical-spec.md:137-214 -->
 <!-- Extraction ID: spec-directory-structure -->
 
 ## Directory Structure
@@ -6,7 +6,7 @@
 ### Standard Multi-Application Workspace
 
 ```
-~/.config/contrail/
+~/.config/scind/
 ├── proxy.yaml                        # Global proxy configuration
 └── state.yaml                        # Global port assignments and inventory
 

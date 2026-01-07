@@ -1,5 +1,5 @@
 // Scaffold: internal/cli/app.go
-// Migrated from specs/contrail-go-stack.md
+// Migrated from specs/scind-go-stack.md
 
 package cli
 

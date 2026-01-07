@@ -1,4 +1,4 @@
-<!-- Migrated from specs/contrail-prd.md:600-616 -->
+<!-- Migrated from specs/scind-prd.md:600-616 -->
 <!-- Extraction ID: vision-glossary -->
 
 ## Terminology

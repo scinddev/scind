@@ -67,15 +67,15 @@ All 11 ADRs have status "Accepted" and appear internally consistent:
 
 | Specification | Claim | Conflicts With | Resolution |
 |---------------|-------|----------------|------------|
-| `docker-labels.md` line 54 | Assigned port export shows hostname `dev-app-one-debug.contrail.test` | `port-types.md`: Assigned ports should use internal alias | **FIXED**: Updated example to use `app-one-debug` |
+| `docker-labels.md` line 54 | Assigned port export shows hostname `dev-app-one-debug.scind.test` | `port-types.md`: Assigned ports should use internal alias | **FIXED**: Updated example to use `app-one-debug` |
 | `environment-variables.md` line 32 | "For proxied type ports: *_HOST contains the fully qualified proxied hostname" | `docker-labels.md`: Was showing proxied-style hostname for assigned port | **FIXED**: docker-labels.md now shows correct internal alias |
 | `naming-conventions.md` line 39 | "Internal aliases (all types): `{application}-{exported_service}`" | `docker-labels.md`: Was showing proxied hostname format | **FIXED**: docker-labels.md now consistent |
 | `configuration-schemas.md` line 405 | "Each exported service may have at most **one `http`** and **one `https`** proxied port" | `port-types.md`: Didn't mention this constraint | **FIXED**: Added constraint section to port-types.md |
-| `port-types.md` line 35 | "Visibility does not change Contrail's core behavior" | `docker-labels.md`: Unclear if behavior differs | **Acknowledged**: Visibility affects label content but not core routing behavior |
+| `port-types.md` line 35 | "Visibility does not change Scind's core behavior" | `docker-labels.md`: Unclear if behavior differs | **Acknowledged**: Visibility affects label content but not core routing behavior |
 
 ### Fixes Applied
 
-1. **docker-labels.md**: Updated assigned port example from `dev-app-one-debug.contrail.test` to `app-one-debug` (internal alias format)
+1. **docker-labels.md**: Updated assigned port example from `dev-app-one-debug.scind.test` to `app-one-debug` (internal alias format)
 2. **port-types.md**: Added new "Port Type Constraints" section documenting the one HTTP/one HTTPS per service limit
 
 ---

@@ -1,4 +1,4 @@
-<!-- Migrated from specs/contrail-technical-spec.md:767-872 -->
+<!-- Migrated from specs/scind-technical-spec.md:767-872 -->
 <!-- Extraction ID: spec-generated-override -->
 
 ## Generated Override File
@@ -21,29 +21,29 @@ services:
       dev-internal:
         aliases:
           - app-one-web
-      contrail-proxy: {}                   # Connected to proxy for Traefik routing
+      scind-proxy: {}                   # Connected to proxy for Traefik routing
     labels:
       # Traefik HTTPS router
       - "traefik.enable=true"
-      - "traefik.http.routers.dev-app-one-web-https.rule=Host(`dev-app-one-web.contrail.test`)"
+      - "traefik.http.routers.dev-app-one-web-https.rule=Host(`dev-app-one-web.scind.test`)"
       - "traefik.http.routers.dev-app-one-web-https.entrypoints=websecure"
       - "traefik.http.routers.dev-app-one-web-https.tls=true"
       - "traefik.http.services.dev-app-one-web-https.loadbalancer.server.port=443"
-      # Contrail context labels
-      - "contrail.workspace.name=dev"
-      - "contrail.workspace.path=/home/user/workspaces/dev"
-      - "contrail.app.name=app-one"
-      - "contrail.app.path=/home/user/workspaces/dev/app-one"
-      # Contrail export labels
-      - "contrail.export.web.host=dev-app-one-web.contrail.test"
-      - "contrail.export.web.proxy.https.visibility=public"
-      - "contrail.export.web.proxy.https.url=https://dev-app-one-web.contrail.test"
+      # Scind context labels
+      - "scind.workspace.name=dev"
+      - "scind.workspace.path=/home/user/workspaces/dev"
+      - "scind.app.name=app-one"
+      - "scind.app.path=/home/user/workspaces/dev/app-one"
+      # Scind export labels
+      - "scind.export.web.host=dev-app-one-web.scind.test"
+      - "scind.export.web.proxy.https.visibility=public"
+      - "scind.export.web.proxy.https.url=https://dev-app-one-web.scind.test"
     environment:
-      - CONTRAIL_WORKSPACE_NAME=dev
-      - CONTRAIL_APP_ONE_WEB_HOST=dev-app-one-web.contrail.test
-      - CONTRAIL_APP_ONE_WEB_PORT=443
-      - CONTRAIL_APP_ONE_WEB_SCHEME=https
-      - CONTRAIL_APP_ONE_WEB_URL=https://dev-app-one-web.contrail.test
+      - SCIND_WORKSPACE_NAME=dev
+      - SCIND_APP_ONE_WEB_HOST=dev-app-one-web.scind.test
+      - SCIND_APP_ONE_WEB_PORT=443
+      - SCIND_APP_ONE_WEB_SCHEME=https
+      - SCIND_APP_ONE_WEB_URL=https://dev-app-one-web.scind.test
       # ... additional environment variables ...
 
   postgres:
@@ -54,25 +54,25 @@ services:
         aliases:
           - app-one-db
     labels:
-      # Contrail context labels
-      - "contrail.workspace.name=dev"
-      - "contrail.workspace.path=/home/user/workspaces/dev"
-      - "contrail.app.name=app-one"
-      - "contrail.app.path=/home/user/workspaces/dev/app-one"
-      # Contrail export labels
-      - "contrail.export.db.host=dev-app-one-db.contrail.test"
-      - "contrail.export.db.port.5432.visibility=protected"
-      - "contrail.export.db.port.5432.assigned=5432"
+      # Scind context labels
+      - "scind.workspace.name=dev"
+      - "scind.workspace.path=/home/user/workspaces/dev"
+      - "scind.app.name=app-one"
+      - "scind.app.path=/home/user/workspaces/dev/app-one"
+      # Scind export labels
+      - "scind.export.db.host=dev-app-one-db.scind.test"
+      - "scind.export.db.port.5432.visibility=protected"
+      - "scind.export.db.port.5432.assigned=5432"
     environment:
-      - CONTRAIL_WORKSPACE_NAME=dev
-      - CONTRAIL_APP_ONE_DB_HOST=app-one-db
-      - CONTRAIL_APP_ONE_DB_PORT=5432
+      - SCIND_WORKSPACE_NAME=dev
+      - SCIND_APP_ONE_DB_HOST=app-one-db
+      - SCIND_APP_ONE_DB_PORT=5432
       # ... additional environment variables ...
 
 networks:
   dev-internal:
     external: true
-  contrail-proxy:
+  scind-proxy:
     external: true
 ```
 
@@ -82,7 +82,7 @@ networks:
 
 Optional. If present, merged after the generated override file. Useful for workspace-specific customizations that can't be expressed in the application config.
 
-**Preservation guarantee**: Files in `{workspace}/overrides/` are **never modified by Contrail**. They persist across all regeneration operations, including `workspace generate --force`. Only the `.generated/` directory contents are affected by regeneration.
+**Preservation guarantee**: Files in `{workspace}/overrides/` are **never modified by Scind**. They persist across all regeneration operations, including `workspace generate --force`. Only the `.generated/` directory contents are affected by regeneration.
 
 **Merge order**: Docker Compose files are merged in this order:
 ```
