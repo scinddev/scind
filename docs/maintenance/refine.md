@@ -140,7 +140,7 @@ For each document, check:
 >
 > | Document | Issue | Should Be |
 > |----------|-------|-----------|
-> | `specs/ports.md` | 80-line code example | Move to `appendices/ports/` |
+> | `specs/port-types.md` | 80-line code example | Move to `appendices/port-types/` |
 > | `reference/cli.md` | Full error catalog inline | Move to `appendices/cli/errors.md` |
 
 #### 3c: Resolve Structure Issues
@@ -151,11 +151,11 @@ For each violation:
 3. Add brief summary in main document
 4. Add link from main document to appendix:
    ```markdown
-   For detailed examples, see [Complete Examples](./appendices/ports/examples.md).
+   For detailed examples, see [Complete Examples](./appendices/port-types/examples.md).
    ```
 5. Add back-link in appendix:
    ```markdown
-   > **Parent**: [Main Document](../../ports.md)
+   > **Parent**: [Port Types](../../port-types.md)
    ```
 
 ---
@@ -185,7 +185,7 @@ Search for similar content across documents:
 >
 > | Content | Appears In | Canonical Source |
 > |---------|------------|------------------|
-> | Port assignment algorithm | `specs/ports.md`, `architecture/overview.md` | `specs/ports.md` |
+> | Port assignment algorithm | `specs/port-types.md`, `architecture/overview.md` | `specs/port-types.md` |
 > | Workspace definition | `product/vision.md`, `specs/workspace-lifecycle.md` | `product/vision.md` |
 
 #### 4c: Resolve Duplicates
@@ -195,7 +195,7 @@ For each duplicate:
 2. Keep full content in canonical source (with large content in appendices)
 3. Replace duplicate with link:
    ```markdown
-   For the port assignment algorithm, see [Port Assignment](../specs/ports.md#algorithm).
+   For the port assignment algorithm, see [Port Types](../specs/port-types.md#port-type-constraints).
    ```
 4. Optionally keep a brief summary with the link
 
@@ -231,9 +231,9 @@ For each document, check:
 >
 > | Document | Missing Link | Should Link To |
 > |----------|--------------|----------------|
-> | `specs/proxy.md` | No ADR reference | Should link to ADR-0008 (Traefik) |
+> | `specs/proxy-infrastructure.md` | No ADR reference | Should link to ADR-0008 (Traefik) |
 > | `features/workspace.feature` | No spec reference | Should reference `specs/workspace-lifecycle.md` |
-> | `specs/ports.md` | No appendix link | Should link to `appendices/ports/examples.md` |
+> | `specs/port-types.md` | No appendix link | Should link to `appendices/port-types/examples.md` |
 
 #### 5c: Add Missing Links
 
@@ -246,8 +246,8 @@ Add links using standard format:
 
 ## Appendices
 
-- [Detailed Examples](./appendices/ports/examples.md) — Complete workflow scenarios
-- [Error Catalog](./appendices/ports/errors.md) — Full error message reference
+- [Detailed Examples](./appendices/port-types/examples.md) — Complete workflow scenarios
+- [Error Catalog](./appendices/port-types/errors.md) — Full error message reference
 ```
 
 ---
@@ -389,7 +389,7 @@ Look for:
 >
 > | Document | Issue | Location |
 > |----------|-------|----------|
-> | `specs/ports.md` | "appropriate port" — what's appropriate? | Line 45 |
+> | `specs/port-types.md` | "appropriate port" — what's appropriate? | Line 45 |
 > | `architecture/overview.md` | 500-word paragraph, needs structure | Lines 120-180 |
 
 #### 9c: Improve Clarity
@@ -446,8 +446,8 @@ For each change:
 >
 > | Document | Changes |
 > |----------|---------|
-> | `specs/ports.md` | Moved decision to ADR, added link, improved clarity |
-> | `specs/appendices/ports/examples.md` | Created for large code examples |
+> | `specs/port-types.md` | Moved decision to ADR, added link, improved clarity |
+> | `specs/appendices/port-types/examples.md` | Created for large code examples |
 > | `architecture/overview.md` | Removed duplicate content, restructured |
 >
 > ## Documents Created
@@ -457,7 +457,7 @@ For each change:
 >
 > ## Appendices Created
 >
-> - `specs/appendices/ports/examples.md` — Moved 80-line examples
+> - `specs/appendices/port-types/examples.md` — Moved 80-line examples
 > - `reference/appendices/cli/errors.md` — Moved error catalog
 >
 > ## Remaining Items

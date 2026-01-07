@@ -6,7 +6,7 @@
 
 ## Migration Note
 
-This documentation was migrated from `specs/` on 2026-01-05 using the Layered Documentation System (LDS).
+This documentation was migrated from `specs/` on 2026-01-06 using the Layered Documentation System (LDS).
 
 Migration step files are in `.migration/` — execute them in separate sessions to complete the migration.
 
@@ -14,39 +14,82 @@ Migration step files are in `.migration/` — execute them in separate sessions 
 
 ## Glossary
 
+This section defines key terms and concepts used throughout the documentation.
+
 ### Directory Terminology
 
 | Term | Definition |
 |------|------------|
-| `DOCS_DIR` | The documentation root directory (`docs/`) |
-| `LEGACY_DOCS_DIR` | Source documentation being migrated (`specs/`) |
-| `LDS_DIST_DIR` | The Layered Documentation System distribution directory |
+| `DOCS_DIR` | The documentation root directory (`docs/`) — where all project documentation lives |
+| `LEGACY_DOCS_DIR` | Source documentation being migrated (`specs/`) — the original documentation location |
+| `LDS_DIST_DIR` | The Layered Documentation System distribution directory containing installation workflows and templates |
 
 ### Core System Terms
 
 | Term | Definition |
 |------|------------|
-| **Layer** | A category of documentation organized by purpose (Decisions, Vision, Specifications, etc.) |
-| **Canonical Source** | The authoritative location for a piece of information |
-| **SSOT** | Single Source of Truth — each fact is mastered in exactly one place |
-| **Cross-Link** | A reference from one document to another that provides related context |
+| **Layered Documentation System (LDS)** | A documentation framework that organizes software design documentation into seven distinct layers, each with specific purposes, ownership, and lifecycles |
+| **Layer** | A distinct category of documentation with a specific purpose, stability level, audience, and lifecycle |
+| **Operational Workflow** | A guided process that AI agents can execute to perform documentation tasks (e.g., `update.md`, `sync.md`) |
+| **Fresh Install** | An installation mode that creates an empty documentation structure with templates but no migrated content |
+| **Migration Install** | An installation mode that analyzes existing documentation and reorganizes it into the layered structure |
+
+### Content Classification Terms
+
+| Term | Definition |
+|------|------------|
+| **Confidence Level** | A rating (High, Medium, or Low) indicating how certain the classification heuristics are about where content belongs |
+| **Classification Heuristics** | Pattern-matching rules used to determine which layer content belongs to |
+| **Content Thresholds** | Configurable numeric limits that determine when content should be moved to an appendix |
 
 ### Document Structure Terms
 
 | Term | Definition |
 |------|------------|
-| **Main Document** | The primary `{topic}.md` file in a layer directory |
-| **Appendix** | Supporting content in `appendices/{topic}/` that contains detailed examples, code, etc. |
-| **Appendix Directory** | The `appendices/` subdirectory within a layer, organized by topic |
+| **Main Document** | The primary `{topic}.md` file in a layer directory containing overview and key information |
+| **Appendix** | A supplementary file containing large content (code examples, detailed references) that exceeds thresholds, stored in `appendices/{topic}/` |
+| **Appendix Directory** | The `appendices/` subdirectory within a layer, organized by topic matching main document names |
+| **migration/ Directory** | A temporary directory for content classified with medium confidence that needs human review |
+| **blackhole/ Directory** | A catch-all directory for content that could not be classified, indicating gaps in heuristics |
+
+### Authority Terms
+
+| Term | Definition |
+|------|------------|
+| **Document Hierarchy** | The order of authority when documents conflict — higher-authority documents win |
+| **Canonical Source** | The single authoritative location where a piece of information is mastered |
+| **Single Source of Truth (SSOT)** | The principle that each piece of information should live in exactly one place |
+| **Supersede** | To replace an existing ADR with a new one; the old ADR's status becomes "Superseded by NNNN" |
+
+### Canonical Layer Names
+
+| Layer | Canonical Name | Aliases | Directory |
+|-------|---------------|---------|-----------|
+| 1 | **Decisions** | ADRs, Architectural Decision Records | `decisions/` |
+| 2 | **Vision** | Product, PRD, PRD-Lite | `product/` |
+| 3 | **Architecture** | (none) | `architecture/` |
+| 4 | **Specifications** | Specs | `specs/` |
+| 5 | **Reference** | (none) | `reference/` |
+| 6 | **Behaviors** | Gherkin, Feature Files | `features/` |
+| 7 | **Implementation** | Implementation Guides, Scaffolding | `implementation/` |
 
 ### Layer-Specific Terms
 
 | Term | Definition |
 |------|------------|
-| **ADR** | Architecture Decision Record — documents why a significant decision was made |
-| **MADR** | Markdown Architecture Decision Record — a template format for ADRs |
-| **PRD** | Product Requirements Document — documents product vision and goals |
-| **Gherkin** | A language for writing executable specifications (Given/When/Then format) |
+| **ADR** | Architecture Decision Record — an immutable document capturing a significant technical or product decision |
+| **MADR** | Markdown Any Decision Records — a template format for ADRs (available as "minimal" or "full" variants) |
+| **Y-Statement** | A lightweight single-sentence ADR format for quick decision capture |
+| **PRD / PRD-Lite** | Product Requirements Document — the Vision layer document defining product purpose, goals, and constraints |
+| **Gherkin** | A domain-specific language for writing executable specifications using Given/When/Then syntax |
+| **Feature File** | A `.feature` file containing Gherkin scenarios that serve as executable behavior specifications |
+
+### Workflow Terms
+
+| Term | Definition |
+|------|------------|
+| **Drift** | When documentation and implementation become out of sync |
+| **Cross-Layer Link** | A relative Markdown link connecting documents in different layers |
 
 ---
 
@@ -63,21 +106,36 @@ These thresholds control how content is classified. Edit to customize for this p
 | `ERROR_CATALOG_ALWAYS_APPENDIX` | true | Error catalogs -> appendix |
 | `SHELL_SCRIPT_ALWAYS_APPENDIX` | true | Shell scripts -> appendix |
 
+**Rationale**: These values balance scannability with inline utility. Code blocks under 50 lines are typically readable in context; longer blocks benefit from dedicated appendix files. Complete files, error catalogs, and shell scripts are always appendices because they are reference material by nature.
+
+---
+
+## Core Principles
+
+1. **Single Source of Truth**: Each piece of information lives in exactly one place
+2. **Separation of Concerns**: Different document types serve different purposes
+3. **Appropriate Stability**: Some documents are immutable; others evolve constantly
+4. **Clear Ownership**: Each layer has defined maintainers and update triggers
+5. **Linkage Over Duplication**: Reference other documents rather than copying content
+6. **Preserve Full Content**: Migration means moving ALL technical details—not summarizing
+7. **Appendix for Scale**: Large content lives in appendices, keeping main docs scannable
+8. **Confidence-Based Fallback**: Content that can't be classified goes to `migration/` or `blackhole/`
+
 ---
 
 ## Layer Overview
 
 This documentation system uses 7 layers, organized by purpose:
 
-| Layer | Directory | Purpose | Template |
-|-------|-----------|---------|----------|
-| 1. Decisions | `decisions/` | Capture WHY significant choices were made | MADR Minimal |
-| 2. Vision | `product/` | Define WHAT we're building and WHY it matters | Lean PRD |
-| 3. Architecture | `architecture/` | Show HOW components relate | C4-Lite |
-| 4. Specifications | `specs/` | Detail HOW features work | Feature Spec |
-| 5. Reference | `reference/` | Provide lookup tables | CLI + Config |
-| 6. Behaviors | `behaviors/features/` | Define verifiable scenarios | Gherkin |
-| 7. Implementation | `implementation/` | Guide HOW to build | Tech Stack |
+| Layer | Directory | Purpose | Stability | Audience |
+|-------|-----------|---------|-----------|----------|
+| 1. Decisions | `decisions/` | Capture WHY choices were made | Immutable | Future maintainers |
+| 2. Vision | `product/` | Define WHAT we're building | Stable | All stakeholders |
+| 3. Architecture | `architecture/` | Show HOW components relate | Evolving | Engineers, architects |
+| 4. Specifications | `specs/` | Detail HOW features work | Living | Engineers |
+| 5. Reference | `reference/` | Provide lookup tables | Generated/maintained | Engineers |
+| 6. Behaviors | `features/` | Verify expected behaviors | Executable | QA, engineers |
+| 7. Implementation | `implementation/` | Guide HOW to build | Short-lived | Implementing engineers |
 
 ---
 
@@ -125,6 +183,7 @@ Is this implementation scaffolding (code templates, dependencies)?
 - "We chose X over Y because..."
 - "We decided to..." / "Decision:"
 - "This pattern will be used throughout..."
+- "We considered alternatives including..."
 - Trade-off discussions with rationale
 - Explicit "Decision" blocks or sections
 
@@ -146,13 +205,27 @@ Is this implementation scaffolding (code templates, dependencies)?
 - `comparison.md` — How this compares to alternatives
 - `roadmap.md` — Future considerations
 
+**Comparison Document Signals**:
+- Comparison tables with other tools/products
+- "vs" language ("X vs Y", "compared to")
+- Feature matrices comparing multiple products
+- "Why choose X over Y" discussions
+
+**Roadmap Document Signals**:
+- "Future Considerations" sections
+- "Roadmap" or "Future Work" headings
+- "Planned features" or "upcoming" language
+- "Phase 2", "v2.0" planning content
+
 ### Layer 3: Architecture
 
 **Signals to look for**:
 - System diagrams (ASCII art, Mermaid)
 - Network topology descriptions
 - Component relationship descriptions
-- Cross-cutting concerns
+- Cross-cutting concerns (security, logging patterns)
+- "The system is composed of..."
+- "Component A communicates with B via..."
 
 ### Layer 4: Specifications
 
@@ -162,6 +235,8 @@ Is this implementation scaffolding (code templates, dependencies)?
 - Data schemas with field-level detail
 - Edge case documentation
 - Configuration file format specifications
+- "When X happens, the system does Y..."
+- "The valid states are..."
 
 ### Layer 5: Reference
 
@@ -171,6 +246,8 @@ Is this implementation scaffolding (code templates, dependencies)?
 - Environment variable lists
 - Configuration option tables with defaults
 - Error code tables
+- "The available options are..."
+- "Syntax: command [options]..."
 
 ### Layer 6: Behaviors
 
@@ -178,6 +255,7 @@ Is this implementation scaffolding (code templates, dependencies)?
 - "Given/When/Then" scenarios
 - Explicit test case descriptions
 - User journey examples with expected outcomes
+- "This behavior must not regress..."
 
 ### Layer 7: Implementation
 
@@ -186,6 +264,8 @@ Is this implementation scaffolding (code templates, dependencies)?
 - Dependency lists with rationale
 - Project scaffolding instructions
 - Code templates
+- "Install these dependencies..."
+- "The project structure is..."
 
 ---
 
@@ -202,6 +282,7 @@ Documents should link to related content in other layers:
 | Reference | Specifications | Provide conceptual context |
 | Implementation | ADRs | Explain technology choices |
 | Implementation | Specifications | Reference what's being implemented |
+| Behaviors | Specifications | Reference the spec being verified |
 
 ### Link Format
 
@@ -216,19 +297,46 @@ Documents should link to related content in other layers:
 - [Traefik Configuration](./appendices/proxy-infrastructure/traefik-config.yaml) — Complete config
 ```
 
+### Inter-Appendix Linking
+
+| From | To | Path Pattern |
+|------|----|--------------|
+| Same topic appendix | Same topic appendix | `./other-appendix.md` |
+| One topic's appendix | Different topic's appendix | `../other-topic/appendix.md` |
+| Appendix | Its main document | `../../main-doc.md` |
+
 ---
 
 ## Document Hierarchy (Authority Order)
 
 When content appears in multiple places, this hierarchy determines the canonical source:
 
-1. **ADRs** (highest authority) — Decisions are final
-2. **Vision** — Product direction
-3. **Architecture** — System design
-4. **Specifications** — Feature behavior
-5. **Reference** — Lookup data
-6. **Behaviors** — Test scenarios
-7. **Implementation** (lowest authority) — Build guidance
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      MOST AUTHORITATIVE                      │
+├─────────────────────────────────────────────────────────────┤
+│  ADRs (Architectural Decision Records)                      │
+│  - Decisions are immutable once accepted                    │
+│  - If anything conflicts with ADR, ADR wins                 │
+├─────────────────────────────────────────────────────────────┤
+│  Gherkin Feature Files                                       │
+│  - Executable specifications                                 │
+│  - If test passes, documentation is accurate                 │
+├─────────────────────────────────────────────────────────────┤
+│  Vision (PRD)                                                │
+│  - High-level "what" and "why"                              │
+├─────────────────────────────────────────────────────────────┤
+│  Technical Specification                                     │
+│  - Architecture and schemas                                  │
+├─────────────────────────────────────────────────────────────┤
+│  Reference Documentation (CLI, Config)                       │
+│  - Factual, complete, lookup-oriented                        │
+├─────────────────────────────────────────────────────────────┤
+│  Implementation Guides (Tech Stack)                          │
+│  - How to build, patterns to follow                          │
+│                     LEAST AUTHORITATIVE                      │
+└─────────────────────────────────────────────────────────────┘
+```
 
 For conflicts, defer to the higher-authority document.
 
@@ -264,7 +372,7 @@ docs/
 ├── README.md                    # Documentation index
 ├── DOCUMENTATION-GUIDE.md       # This file
 │
-├── decisions/                   # Layer 1: ADRs
+├── decisions/                   # Layer 1: ADRs (simple files)
 │   ├── README.md               # ADR index
 │   ├── 0000-template.md        # Template
 │   └── 0001-*.md ... 0011-*.md # ADR files
@@ -272,6 +380,7 @@ docs/
 ├── product/                     # Layer 2: Vision
 │   ├── README.md
 │   ├── vision.md
+│   ├── glossary.md
 │   ├── comparison.md
 │   └── roadmap.md
 │
@@ -281,7 +390,6 @@ docs/
 │
 ├── specs/                       # Layer 4: Specifications
 │   ├── README.md
-│   ├── _template.md
 │   ├── {feature}.md            # Main spec files
 │   └── appendices/
 │       └── {feature}/          # Per-spec appendices
@@ -289,14 +397,8 @@ docs/
 ├── reference/                   # Layer 5: Reference
 │   ├── README.md
 │   ├── cli.md
-│   ├── configuration.md
 │   └── appendices/
-│       ├── cli/
-│       └── configuration/
-│
-├── behaviors/                   # Layer 6: Behaviors
-│   └── features/
-│       └── *.feature
+│       └── cli/
 │
 ├── implementation/              # Layer 7: Implementation
 │   ├── README.md
@@ -330,6 +432,8 @@ Move content to appendices when it exceeds thresholds:
 - Error catalogs (always)
 - Shell scripts (always)
 
+**Exception**: ADRs never use appendices — all content including code stays inline.
+
 ### Appendix Directory Structure
 
 ```
@@ -358,6 +462,32 @@ From appendix (back-link):
 
 ---
 
+## Confidence-Based Classification
+
+During migration or content creation, the system classifies content based on confidence level:
+
+| Confidence | Destination | Meaning |
+|------------|-------------|---------|
+| **High** | Layer directly | Heuristics confident about both category AND placement |
+| **Medium** | `migration/{category}/` | Category recognized but exact placement uncertain |
+| **Low/None** | `blackhole/` | Heuristics cannot classify the content meaningfully |
+
+### The `migration/` Directory
+
+Content here has been categorized but needs human review for final placement. Review each file and:
+1. Move to the appropriate layer if placement is now clear
+2. Move to `appendices/` of the relevant document
+3. Keep here if still uncertain (will be reviewed in next audit)
+
+### The `blackhole/` Directory
+
+Content here could not be classified at all. This represents gaps in the heuristics:
+1. Review each file manually
+2. Determine where it should go
+3. **Update the heuristics** in this file to capture similar content in future
+
+---
+
 ## Maintenance Workflows
 
 Four workflows are available in `maintenance/`:
@@ -373,3 +503,19 @@ To execute a workflow:
 ```
 Execute the workflow in @docs/maintenance/audit.md
 ```
+
+---
+
+## Single Source of Truth (SSOT)
+
+Every fact should be mastered in exactly one place:
+
+| Information Type | Canonical Source | Referenced From |
+|------------------|------------------|-----------------|
+| Why we chose X over Y | ADR | PRD, Specs, Architecture |
+| Configuration schema | Tech Spec (or code) | Reference docs |
+| Command syntax | CLI Reference | Tech Spec operations |
+| Feature behavior | Specification | Gherkin tests |
+| Port assignment algorithm | Specification | ADR (for rationale) |
+
+**Key Principle**: When you find yourself copying information, create a reference instead.

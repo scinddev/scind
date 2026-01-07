@@ -1,8 +1,9 @@
-# ADR-0001: Docker Compose Project Name Isolation
+<!-- Migrated from specs/contrail-prd.md:162-169 -->
+<!-- Extraction ID: adr-0001-docker-compose-project-name -->
 
-## Status
+# Docker Compose Project Name Isolation
 
-Accepted
+**Status**: Accepted
 
 ## Context
 
@@ -14,23 +15,4 @@ Use Docker Compose's native `--project-name` (or `name:` in compose file) to cre
 
 ## Consequences
 
-### Positive
-
-- Uses Docker's official mechanism for running multiple copies of the same stack
-- Isolates containers, networks, and volumes without requiring modifications to the application
-- Works with any existing Docker Compose project
-
-### Negative
-
-- Project names must be unique across all workspaces on a host
-- Creative naming that produces identical project names could cause conflicts (e.g., workspace `dev-app` with app `one` and workspace `dev` with app `app-one` both produce project name `dev-app-one`)
-
-### Neutral
-
-- Naming follows convention: `{workspace}-{app}` (e.g., `dev-app-one`)
-
-## Related Documents
-
-- [Naming Conventions Spec](../specs/naming-conventions.md) - Implements the naming patterns derived from this decision
-
-<!-- Migrated from specs/contrail-prd.md:162-169 -->
+This is Docker's official mechanism for running multiple copies of the same stack. It isolates containers, networks, and volumes without requiring modifications to the application.

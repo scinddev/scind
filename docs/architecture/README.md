@@ -1,9 +1,10 @@
+<!-- Generated content - no source file -->
+<!-- Extraction ID: readme-architecture -->
+
 # Architecture Documentation
 
-This directory contains architecture documentation for following C4-lite conventions.
+This directory contains architecture-level documentation for Contrail.
 
 ## Contents
 
-| Document | Description |
-|----------|-------------|
-| [overview.md](./overview.md) | System context and container diagrams |
+- [Overview](./overview.md) - System architecture, network topology, and component relationships

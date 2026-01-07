@@ -1,12 +1,13 @@
-# ADR-0007: Port Type System for Exported Services
+<!-- Migrated from specs/contrail-prd.md:235-264 -->
+<!-- Extraction ID: adr-0007-port-type-system -->
 
-## Status
+# Port Type System for Exported Services
 
-Accepted
+**Status**: Accepted
 
 ## Context
 
-Services need different handling based on how they're accessed - some need HTTP proxying, others need direct port binding.
+Services need different handling based on how they're accessed—some need HTTP proxying, others need direct port binding.
 
 ## Decision
 
@@ -32,27 +33,9 @@ exported_services:
 
 ## Consequences
 
-### Positive
-
 - `type` determines routing: `proxied` (through Traefik) or `assigned` (direct port binding)
 - `protocol` specifies how proxied traffic is handled: `http`, `https`, or future SNI types
 - Supports multiple protocols on the same exported service (both HTTP and HTTPS)
 - Environment variables use proxy values (port 80/443) for proxied services
 - Enables future plugin system for additional protocols (postgresql, mysql SNI routing)
-
-### Negative
-
-- More complex configuration than a single port type
-- Users must understand the distinction between type and protocol
-
-### Neutral
-
-- `visibility` remains as documentation for collaborators (public vs protected)
-- `proxied`: Traffic routed through Traefik; protocol specifies how (http, https, future SNI types)
-- `assigned`: Direct port binding; if port unavailable, Contrail finds next available
-
-## Related Documents
-
-- [Port Types Spec](../specs/port-types.md) - Full specification of port types and their behavior
-
-<!-- Migrated from specs/contrail-prd.md:234-264 -->
+- `visibility` remains as documentation for collaborators

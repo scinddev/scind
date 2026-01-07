@@ -1,16 +1,16 @@
-# Implementation Documentation
+<!-- Generated content - no source file -->
+<!-- Extraction ID: readme-implementation -->
 
-Implementation guides and developer documentation for Contrail.
+# Implementation Guide
+
+This directory contains implementation documentation for building Contrail.
 
 ## Contents
 
-| Document | Description |
-|----------|-------------|
-| [tech-stack.md](./tech-stack.md) | Go technology stack and project scaffolding |
+- [Technology Stack](./tech-stack.md) - Go dependencies and rationale
+- [Project Layout](./project-layout.md) - Directory structure and package responsibilities
+- [CLI Scaffolding](./cli-scaffolding.md) - Cobra command scaffolding and implementation priority
 
 ## Appendices
 
-Code scaffolds are in `appendices/tech-stack/`:
-- Go source file scaffolds for all commands
-- Configuration type definitions
-- Build configuration files (Makefile, GoReleaser)
+- [Tech Stack Scaffolds](./appendices/tech-stack/) - Reference scaffold files for project setup

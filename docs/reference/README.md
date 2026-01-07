@@ -1,16 +1,10 @@
+<!-- Generated content - no source file -->
+<!-- Extraction ID: readme-reference -->
+
 # Reference Documentation
 
-API and configuration reference for Contrail.
+This directory contains reference documentation for Contrail commands and configuration.
 
 ## Contents
 
-| Document | Description |
-|----------|-------------|
-| [cli.md](./cli.md) | CLI command reference |
-| [configuration.md](./configuration.md) | Configuration file reference |
-
-## Appendices
-
-- `appendices/cli/detailed-examples.md` - Complete workflow examples
-- `appendices/cli/error-messages.md` - Error message catalog
-- `appendices/configuration/complete-examples.md` - Full configuration examples
+- [CLI Reference](./cli.md) - Complete command-line interface documentation

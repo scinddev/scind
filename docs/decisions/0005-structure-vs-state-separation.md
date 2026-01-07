@@ -1,8 +1,9 @@
-# ADR-0005: Structure vs State Separation
+<!-- Migrated from specs/contrail-prd.md:204-222 -->
+<!-- Extraction ID: adr-0005-structure-vs-state-separation -->
 
-## Status
+# Structure vs State Separation
 
-Accepted
+**Status**: Accepted
 
 ## Context
 
@@ -22,24 +23,7 @@ Separate structure (what exists) from state (what's active):
 
 ## Consequences
 
-### Positive
-
 - Configuration files describe the system's shape, not its current state
 - State changes frequently; structure changes rarely
 - Avoids polluting config files with transient information
 - Branch management stays with git where it belongs
-
-### Negative
-
-- State must be tracked separately (in `.generated/state.yaml`)
-- Users must understand the distinction between structure and state
-
-### Neutral
-
-- State file is gitignored to avoid conflicts
-
-## Related Documents
-
-- [Configuration Schemas Spec](../specs/configuration-schemas.md) - Implements the structural configuration layer
-
-<!-- Migrated from specs/contrail-prd.md:203-222 -->

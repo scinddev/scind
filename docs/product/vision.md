@@ -1,7 +1,22 @@
-# Contrail Product Vision
+<!-- Migrated from specs/contrail-prd.md:1-108 -->
+<!-- Additional content from specs/contrail-prd.md:562-571 (Non-Goals) -->
+<!-- Additional content from specs/contrail-prd.md:574-578 (Known Limitations) -->
+<!-- Additional content from specs/contrail-prd.md:580-588 (Success Criteria) -->
+<!-- Extraction ID: vision-main, vision-non-goals, vision-known-limitations, vision-success-criteria -->
 
-**Version**: 0.5.2
+# Contrail: Product Requirements Document
+
+**Version**: 0.5.2-draft
+**Date**: December 2024
 **Status**: Design Phase
+
+---
+
+## Executive Summary
+
+Contrail is a workspace orchestration system for Docker Compose that enables developers to run multiple isolated instances of multi-application stacks simultaneously on a single host. It solves the problem of needing complete, independent environments for development, code review, and testing without requiring Kubernetes or cloud infrastructure.
+
+The name "Contrail" evokes the trails left by aircraft—parallel paths that don't intersect, much like the isolated workspaces the system creates.
 
 ---
 
@@ -19,6 +34,16 @@ Each environment needs:
 1. Internal communication between applications (app-one can reach app-two's API)
 2. External access via unique hostnames (dev-app-one-web.contrail.test, review-app-one-web.contrail.test)
 3. Complete isolation (dev's database is separate from review's database)
+
+### Why Existing Solutions Fall Short
+
+| Solution | Limitation |
+|----------|------------|
+| Docker Compose alone | No built-in multi-instance orchestration; manual project naming |
+| Docker Compose `include` | Merges into single application model; doesn't handle parallel instances |
+| DDEV / Lando / Docksal | Single-application focused (one Drupal site, not multi-app stacks) |
+| Skaffold / Tilt / Garden | Kubernetes-focused, not Docker Compose |
+| Manual scripts | Error-prone, hard to maintain, no conventions |
 
 ### The Gap
 
@@ -38,32 +63,6 @@ Contrail provides a thin coordination layer over Docker Compose that:
 
 ---
 
-## Design Principles
-
-### Pure Overlay
-
-Applications have no knowledge of workspaces. All Contrail integration happens through generated Docker Compose override files. This means:
-
-- Applications can run standalone without Contrail
-- No vendor lock-in or special conventions required
-- Same application works with any workspace system
-
-### Convention Over Configuration
-
-Names are derived from conventions, not explicit configuration:
-- Public hostname: `{workspace}-{app}-{service}.{domain}`
-- Internal alias: `{app}-{service}`
-- Project name: `{workspace}-{app}`
-
-### Structure vs State
-
-Configuration files describe what *exists* (structure), not what's *active* (state):
-- What apps exist → `workspace.yaml`
-- Which flavor is active → runtime state
-- Which containers are running → Docker state
-
----
-
 ## Core Concepts
 
 ### Workspace
@@ -72,27 +71,15 @@ A logical grouping of applications that run together, sharing an internal networ
 
 ```
 workspace: dev
-  app-one (project: dev-app-one)
-  app-two (project: dev-app-two)
-  app-three (project: dev-app-three)
-    all connected via: dev-internal network
+├── app-one (project: dev-app-one)
+├── app-two (project: dev-app-two)
+└── app-three (project: dev-app-three)
+    └── all connected via: dev-internal network
 ```
-
-**Key properties**:
-- Has a unique name (e.g., `main`, `feature-auth`, `hotfix-login`)
-- Contains references to one or more applications
-- Provides an isolated internal network for its applications
-- Can coexist with other workspaces on the same machine
 
 ### Application
 
 A Docker Compose-based service that can participate in workspaces. Applications define a **service contract** (`application.yaml`) that declares what they export to the workspace, but their core `docker-compose.yaml` remains workspace-agnostic.
-
-**Key properties**:
-- Lives in its own directory with a `docker-compose.yaml`
-- Optionally has an `application.yaml` defining exported services and flavors
-- Can participate in multiple workspaces simultaneously
-- Remains completely unaware of Contrail (pure overlay design)
 
 ### Single-Application Workspace
 
@@ -104,10 +91,6 @@ contrail workspace init --workspace=dev
 contrail app init --app=myapp
 ```
 
-### Exported Service
-
-An exported service is a container port that Contrail exposes, either through the reverse proxy or via direct port binding.
-
 ### Port Types and Proxying
 
 | Type | Protocol | Behavior | External Access | Internal Access | Use Case |
@@ -117,31 +100,17 @@ An exported service is a container port that Contrail exposes, either through th
 | **assigned** | - | Direct port binding | Via assigned host port | Via alias | Databases, caches, debug ports |
 | **proxied** | `tcp`, etc. | SNI TCP proxy (future) | Via hostname | Via alias | Database GUIs, external tools |
 
-Services not listed in `exported_services` remain **private** - only accessible within the application's own Docker Compose network.
+Services not listed in `exported_services` remain **private**—only accessible within the application's own Docker Compose network.
 
 ### Visibility
 
-Each port can have a `visibility` of `public` or `protected` (defaults to `protected` if not specified). This is primarily **documentation** to communicate intent to collaborators - it does not change Contrail's core behavior.
+Each port can have a `visibility` of `public` or `protected` (defaults to `protected` if not specified). This is primarily **documentation** to communicate intent to collaborators—it does not change Contrail's core behavior. Both public and protected proxied services route through Traefik.
+
+Visibility is exposed via Docker labels (`workspace.visibility`), enabling external tools like Servlo to distinguish between public and protected services for display or filtering purposes.
 
 ### Flavor
 
 A named configuration that specifies which Docker Compose files to use when running an application. Enables "lite" vs "full" modes without duplicating configuration.
-
-**Common patterns**:
-- `full`: All services running locally
-- `backend-only`: Just the API and database
-- `external-db`: Backend using an external database
-- `minimal`: Bare minimum for testing
-
----
-
-## Success Criteria
-
-1. **Zero application changes**: Existing Docker Compose applications work without modification
-2. **Parallel environments**: Can run dev, review, and control simultaneously without conflicts
-3. **Predictable naming**: Given workspace and app names, hostnames and aliases are deterministic
-4. **Fast iteration**: Switching flavors or regenerating config takes seconds
-5. **Debuggable**: Generated files are human-readable; easy to understand what's happening
 
 ---
 
@@ -164,32 +133,10 @@ A named configuration that specifies which Docker Compose files to use when runn
 
 ---
 
-## Terminology
+## Success Criteria
 
-| Term | Definition |
-|------|------------|
-| **Workspace** | An isolated environment containing multiple applications |
-| **Application** | A Docker Compose-based service that participates in workspaces |
-| **Flavor** | A named configuration specifying which compose files to use |
-| **Service Contract** | The `application.yaml` file defining what an application exports |
-| **Exported Service** | A named export in `application.yaml`, may map to a different Compose service |
-| **Override File** | Generated Docker Compose file that adds workspace integration |
-| **Manifest** | Generated read-only file showing computed hostnames, ports, and environment variables |
-| **Port Type** | How a port is routed: `proxied` (through Traefik) or `assigned` (direct port binding) |
-| **Protocol** | For proxied types, the traffic protocol: `http`, `https`, or future SNI types |
-| **Visibility** | Flag (`public`/`protected`) indicating intended use; exposed via Docker labels for external tools |
-| **Alias** | A DNS name on the workspace-internal network |
-| **Context Detection** | Automatic discovery of workspace/app from current directory |
-
----
-
-## Related Documentation
-
-- [Architecture Overview](../architecture/overview.md) - System design implementing this vision
-- [Architectural Decisions](../decisions/README.md) - Key technical decisions
-- [ADR-0003: Pure Overlay Design](../decisions/0003-pure-overlay-design.md)
-- [ADR-0004: Convention-Based Naming](../decisions/0004-convention-based-naming.md)
-- [ADR-0005: Structure vs State Separation](../decisions/0005-structure-vs-state-separation.md)
-- [Comparison](./comparison.md) - How Contrail compares to alternatives
-
-<!-- Migrated from specs/contrail-prd.md:1-159 -->
+1. **Zero application changes**: Existing Docker Compose applications work without modification
+2. **Parallel environments**: Can run dev, review, and control simultaneously without conflicts
+3. **Predictable naming**: Given workspace and app names, hostnames and aliases are deterministic
+4. **Fast iteration**: Switching flavors or regenerating config takes seconds
+5. **Debuggable**: Generated files are human-readable; easy to understand what's happening

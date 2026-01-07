@@ -1,6 +1,10 @@
-# CLI Reference
+<!-- Migrated from specs/contrail-cli-reference.md:1-1599 -->
+<!-- Extraction ID: reference-cli -->
+
+# Contrail CLI Reference
 
 **Version**: 0.2.3-draft
+**Date**: December 2024
 **Status**: Design Phase
 
 This document is the authoritative reference for Contrail's command-line interface. It defines command structure, arguments, flags, and behaviors.
@@ -31,7 +35,118 @@ contrail app status
 
 Contrail automatically detects workspace and application context from the current directory, reducing the need for explicit `--workspace` and `--app` flags.
 
-For complete context detection rules, edge cases, and error handling, see the [Context Detection Specification](../specs/context-detection.md).
+### Detection Rules
+
+Context detection uses a **workspace boundary** approach to prevent accidental detection of config files in vendor packages or nested test fixtures.
+
+1. **Workspace context** (found first): Walk up the directory tree looking for `workspace.yaml`
+   - If found, this establishes the **workspace root**
+   - The `workspace.name` value becomes the implicit `--workspace` value
+
+2. **Application context** (bounded by workspace): Walk up from current directory toward the workspace root looking for `application.yaml`
+   - Only considers `application.yaml` files **within the workspace directory tree**
+   - If found, the directory name containing it becomes the implicit `--app` value
+   - **Never traverses above the workspace root**—this prevents vendor packages from hijacking context
+
+3. **Both can be detected simultaneously**:
+   ```
+   ~/workspaces/dev/app-one/src/components/
+                   │        │
+                   │        └── application.yaml → app = "app-one"
+                   │
+                   └── workspace.yaml → workspace = "dev"
+   ```
+
+4. **Explicit flags override detection**: `--workspace` and `--app` always take precedence over context detection
+   - When any `--app` flag is specified, context-detected application is **completely ignored**
+   - This applies even when multiple `-a` flags are used
+   - To start multiple specific apps: `contrail up -a app-one -a app-two`
+
+5. **Global commands ignore context**: `port`, `proxy`, and `config` commands don't use directory context
+
+### Flag Override Behavior
+
+When explicit flags are provided, they **replace** (not add to) context detection:
+
+```bash
+# From within app-one directory (context would detect app-one)
+$ cd ~/workspaces/dev/app-one
+
+# This starts ONLY app-two, not both app-one and app-two
+$ contrail up -a app-two
+# Starting: app-two
+# (app-one from context is ignored)
+
+# To start multiple apps, list them all explicitly
+$ contrail up -a app-one -a app-two
+# Starting: app-one, app-two
+```
+
+This "explicit replaces context" behavior ensures predictable results—when you specify apps explicitly, you get exactly what you asked for.
+
+### Edge Cases
+
+**Nested vendor packages**: If working in `app-one/vendor/some-package/` where the vendor package has its own `application.yaml`, it is ignored. The workspace's `app-one/application.yaml` is found first when walking toward the workspace root.
+
+**Workspace within workspace**: If a test fixture has its own `workspace.yaml` nested inside a workspace (e.g., for integration tests), the closest `workspace.yaml` wins—this is the test fixture, which is the expected behavior.
+
+### Context Feedback
+
+When context is detected, commands indicate what was found:
+
+```bash
+$ cd ~/workspaces/dev/app-one
+$ contrail app status
+# Using workspace: dev (from ../workspace.yaml)
+# Using app: app-one (from ./application.yaml)
+
+Status: running
+Services: 3 running, 0 stopped
+...
+```
+
+Use `--quiet` or `-q` to suppress context indicators.
+
+### Error Handling
+
+When context is required but not detected, error messages provide debugging hints:
+
+**No workspace found, but application.yaml exists** (helps identify misplaced apps):
+```bash
+$ cd ~/random-project
+$ contrail app status
+Error: No workspace found (workspace.yaml) in current directory or any parent directories,
+but found an application (application.yaml) at: /home/user/random-project/application.yaml
+
+Create a workspace with: contrail workspace init --workspace=NAME
+```
+
+**Neither workspace nor application found**:
+```bash
+$ cd ~
+$ contrail app status
+Error: No workspace found (workspace.yaml) in current directory or any parent directories,
+and no application (application.yaml) found either.
+
+Either:
+  1. Run from within a workspace directory
+  2. Specify explicitly: contrail app status --workspace=NAME --app=NAME
+
+Available workspaces: contrail workspace list
+```
+
+**Workspace found but no application context** (for app-specific commands):
+```bash
+$ cd ~/workspaces/dev
+$ contrail app status
+Error: No application context detected.
+
+Either:
+  1. Run from within an application directory
+  2. Specify explicitly: contrail app status --app=NAME
+
+Available apps in 'dev': app-one, app-two, app-three
+```
 
 ---
 
@@ -855,7 +970,7 @@ $ contrail proxy init
 Created proxy configuration at ~/.config/contrail/proxy/
 
 Next steps:
-  1. Configure DNS for *.contrail.test -> 127.0.0.1
+  1. Configure DNS for *.contrail.test → 127.0.0.1
      (See: contrail doctor for DNS verification)
   2. Start the proxy:
      contrail proxy up
@@ -1191,10 +1306,10 @@ Checking Contrail environment...
 ✓ Proxy network: created
 ✓ Traefik: running
 ✓ Config directory: ~/.config/contrail
-✓ Domain resolution: contrail.test -> 127.0.0.1
+✓ Domain resolution: contrail.test → 127.0.0.1
 ✓ Workspace domains:
-  - dev-app-one-web.contrail.test -> 127.0.0.1
-  - dev-app-two-api.contrail.test -> 127.0.0.1
+  - dev-app-one-web.contrail.test → 127.0.0.1
+  - dev-app-two-api.contrail.test → 127.0.0.1
 
 All checks passed.
 ```
@@ -1362,11 +1477,9 @@ This provides:
 
 ## Error Messages
 
-This section covers common errors. For a complete catalog, see [appendices/cli/error-messages.md](./appendices/cli/error-messages.md).
-
 ### Docker Not Available
 
-Commands that require Docker check for availability upfront:
+Commands that require Docker check for availability upfront. If Docker is not installed or not running:
 
 ```
 Error: Docker is not installed or not running.
@@ -1375,97 +1488,92 @@ Run 'contrail doctor' for setup guidance.
 
 Exit code: 4
 
-### Context Detection Errors
-
-When no workspace can be found:
-
-```bash
-$ cd ~
-$ contrail app status
-Error: No workspace found (workspace.yaml) in current directory or any parent directories.
-
-Either:
-  1. Run from within a workspace directory
-  2. Specify explicitly with --workspace flag
-
-Available workspaces: contrail workspace list
-```
-
-Exit code: 5
-
-When application context is required but not found:
-
-```bash
-$ cd ~/workspaces/dev
-$ contrail app status
-Error: No application context detected.
-
-Either:
-  1. Run from within an application directory
-  2. Specify explicitly with -a flag
-
-Available apps in 'dev': app-one, app-two, app-three
-```
-
-Exit code: 5
-
-### Configuration Errors
-
-When workspace name collides with an existing registration:
-
-```bash
-$ contrail workspace init --workspace=dev
-Error: Workspace "dev" already registered at ~/workspaces/dev
-Use a different name, or run `contrail workspace prune` if that path no longer exists
-```
-
-Exit code: 3
-
-When a flavor references a non-existent compose file:
-
-```bash
-$ contrail up
-Error: Flavor "full" references non-existent file: docker-compose.worker.yaml
-  Application: app-two
-  Available compose files: docker-compose.yaml, docker-compose.dev.yaml
-```
-
-Exit code: 3
-
-### Port Conflicts
-
-When a previously assigned port is no longer available:
-
-```
-Error: Port conflict detected for app-one
-
-Port 5432 is assigned to app-one/postgres but is no longer available.
-Another process may be using this port.
-
-To resolve:
-  contrail port scan       # Check which ports are conflicting
-  contrail port release 5432   # Release the conflicting assignment
-  contrail generate --force    # Regenerate with new port assignment
-```
-
-Exit code: 4
-
 ---
 
 ## Examples
 
-For detailed workflow examples, see [appendices/cli/detailed-examples.md](./appendices/cli/detailed-examples.md).
+### New workspace from scratch
 
----
+```bash
+mkdir ~/workspaces && cd ~/workspaces
+contrail workspace init --workspace=dev
+cd dev
+contrail app add --app=frontend --repo=git@github.com:org/frontend.git
+contrail app add --app=backend --repo=git@github.com:org/backend.git
+contrail up
+contrail urls
+```
 
-## Related Documentation
+### Promote existing project to workspace
 
-- [Context Detection Spec](../specs/context-detection.md) - How context detection works
-- [Shell Integration Spec](../specs/shell-integration.md) - Shell function details
-- [Configuration Reference](./configuration.md) - Configuration file reference
+```bash
+cd ~/my-docker-project
+contrail workspace init --workspace=dev
+contrail app init --app=myapp
+# Edit application.yaml to define exported_services
+contrail up
+```
 
----
+### Daily development workflow
 
-## Source Attribution
+```bash
+cd ~/workspaces/dev/frontend
 
-<!-- Source: specs/contrail-cli-reference.md -->
+# Start your day
+contrail up                    # Brings up entire dev workspace
+
+# Work on frontend
+contrail-compose logs -f       # Tail frontend logs (context detected)
+contrail app restart           # Restart after changes
+
+# Direct Docker Compose interaction (uses contrail-compose)
+contrail-compose exec php bash          # Shell into container
+contrail-compose exec php php artisan   # Run artisan command
+
+# Check on another app
+contrail app status -a backend
+contrail-compose -a backend logs --tail=50
+contrail-compose -a backend exec node npm test
+
+# End of day
+contrail down
+```
+
+### Direct Docker Compose operations
+
+```bash
+# contrail-compose provides context-aware docker compose access
+cd ~/workspaces/dev/app-one
+
+# These are equivalent:
+contrail-compose exec php bash
+# ...to running:
+docker compose -p dev-app-one \
+  -f ~/workspaces/dev/app-one/docker-compose.yaml \
+  -f ~/workspaces/dev/.generated/app-one.override.yaml \
+  exec php bash
+
+# Target different app from workspace root
+cd ~/workspaces/dev
+contrail-compose -a app-two logs -f php
+
+# Full docker compose functionality with tab completion
+contrail-compose build --no-cache php
+contrail-compose run --rm php composer install
+```
+
+### Switch application flavor
+
+```bash
+contrail flavor list -a backend
+contrail flavor set full -a backend
+contrail app restart -a backend
+```
+
+### Manage ports
+
+```bash
+contrail port list
+contrail port list --verbose   # Check bind status
+contrail port gc               # Clean up stale assignments
+```

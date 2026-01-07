@@ -1,8 +1,9 @@
-# ADR-0002: Two-Layer Networking
+<!-- Migrated from specs/contrail-prd.md:171-179 -->
+<!-- Extraction ID: adr-0002-two-layer-networking -->
 
-## Status
+# Two-Layer Networking
 
-Accepted
+**Status**: Accepted
 
 ## Context
 
@@ -10,29 +11,9 @@ Services need both external access (via reverse proxy) and internal access (betw
 
 ## Decision
 
-Implement two network layers:
 - `contrail-proxy` network: Host-wide, connects Traefik to public services
 - `{workspace}-internal` network: Per-workspace, connects all applications for internal communication
 
 ## Consequences
 
-### Positive
-
-- Separating concerns allows public services to be routable via Traefik while protected services remain internal
-- The workspace-internal network provides isolation between workspaces
-- Applications in different workspaces cannot accidentally communicate
-
-### Negative
-
-- More complex network topology than a single flat network
-- Debugging network issues requires understanding both layers
-
-### Neutral
-
-- Each workspace has its own internal network named `{workspace}-internal`
-
-## Related Documents
-
-- [Proxy Infrastructure Spec](../specs/proxy-infrastructure.md) - Implements the two-layer networking architecture
-
-<!-- Migrated from specs/contrail-prd.md:170-179 -->
+Separating concerns allows public services to be routable via Traefik while protected services remain internal. The workspace-internal network provides isolation between workspaces.

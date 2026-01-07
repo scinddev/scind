@@ -1,78 +1,10 @@
-# Workspace Lifecycle Specification
-
-**Version**: 1.0.0
-**Date**: 2026-01-02
-**Status**: Accepted
-
----
-
-## Overview
-
-Workspace lifecycle commands manage the state of workspaces and applications: starting containers, stopping them, and handling the transitions between states. This specification defines the behavior of `up`, `down`, `restart`, and `destroy` operations.
-
-**Related Documents**:
-- [ADR-0010: Up/Down Command Semantics](../decisions/0010-up-down-command-semantics.md)
-- [Generated Override Files](./generated-override-files.md)
-- [Context Detection](./context-detection.md)
-
----
-
-## Behavior
-
-### State Model
-
-Workspaces and applications can be in one of these states:
-
-| State | Description |
-|-------|-------------|
-| `stopped` | No containers running |
-| `running` | All containers running |
-| `partial` | Some containers running, some stopped |
-
-State is determined by querying Docker, not stored in files.
-
----
-
-## Data Schema
-
-### Workspace State
-
-Tracked via Docker labels on running containers:
-- `contrail.workspace.name` identifies workspace membership
-- `contrail.app.name` identifies application membership
-
-### Runtime State File
-
-**Location**: `{workspace}/.generated/state.yaml`
-
-Stores explicit user choices (like active flavor), not container state:
-
-```yaml
-applications:
-  app-one:
-    flavor: default
-  app-two:
-    flavor: lite
-```
-
----
+<!-- Migrated from specs/contrail-technical-spec.md:1125-1245 -->
+<!-- Extraction ID: spec-operations -->
 
 ## Operations
 
 ### Startup Sequence (`workspace up`)
 
-**Command**: `contrail workspace up` / `contrail up`
-
-**Flags**:
-| Flag | Description |
-|------|-------------|
-| `-w, --workspace` | Target workspace (or use context) |
-| `-a, --app` | Start specific app(s) only (repeatable) |
-| `--no-generate` | Skip automatic regeneration |
-| `--force-generate` | Force regeneration even if up-to-date |
-| `-d, --detach` | Run in background (default: true) |
-
-**Sequence**:
 1. Ensure proxy is running
 2. Create workspace network if it doesn't exist
 3. Check if override files are stale; regenerate if needed (see Staleness Detection)
@@ -81,57 +13,10 @@ applications:
    - Execute `docker compose up -d --remove-orphans` with compose files + override
 
 **Notes**:
-- The `--remove-orphans` flag is **always** passed to `docker compose up`. This ensures containers from services removed by flavor changes, manual compose file edits, or renamed services are automatically stopped and removed.
-- The workspace network is **always** created if it doesn't exist, even when starting a single application with `-a`. This ensures cross-application communication is available when other apps start later.
+- The `--remove-orphans` flag is always passed to `docker compose up`. This ensures that containers from services removed by flavor changes, manual compose file edits, or renamed services are automatically stopped and removed.
+- The workspace network is always created if it doesn't exist, even when starting a single application with `-a`. This ensures cross-application communication is available when other apps are started later.
 
----
-
-### Shutdown Sequence (`workspace down`)
-
-**Command**: `contrail workspace down` / `contrail down`
-
-**Flags**:
-| Flag | Description |
-|------|-------------|
-| `-w, --workspace` | Target workspace (or use context) |
-| `-a, --app` | Stop specific app(s) only (repeatable) |
-| `--volumes` | Also remove volumes |
-| `--force` | Skip confirmation for destructive actions |
-
-**Sequence**:
-1. For each application (or specified apps if `-a` flag used):
-   - Execute `docker compose down`
-2. If full workspace teardown (no `-a` flag): remove workspace network
-3. If `--volumes` specified, remove associated volumes
-
-**Network Removal Timing**: The workspace network (`{workspace}-internal`) is only removed during a full workspace teardown (i.e., `workspace down` without the `-a` flag). When stopping individual applications with `-a`, the network is preserved to allow other running applications to continue communicating.
-
----
-
-### Destroy Sequence (`workspace destroy`)
-
-**Command**: `contrail workspace destroy`
-
-Completely removes a workspace and optionally its application directories.
-
-**Flags**:
-| Flag | Description |
-|------|-------------|
-| `-w, --workspace` | Target workspace (or use context) |
-| `--force` | Skip confirmation prompts and remove application directories |
-| `--keep-apps` | Preserve application directories without prompting |
-
-**Sequence**:
-1. Run `workspace down --volumes` to stop all containers and remove volumes
-2. Remove `.generated/` directory
-3. Prompt before removing application directories (unless `--force` or `--keep-apps`)
-4. Remove `workspace.yaml`
-5. Release any assigned ports from global state
-6. Remove workspace from registry (`~/.config/contrail/workspaces.yaml`)
-
----
-
-## Staleness Detection
+### Staleness Detection
 
 Contrail uses **mtime comparison** to determine if generated override files need to be regenerated. Override files are considered stale if any of the following source files have a newer modification time than the generated override:
 
@@ -140,107 +25,63 @@ Contrail uses **mtime comparison** to determine if generated override files need
 - `.generated/state.yaml` (active flavor may have changed)
 - Active flavor's compose files (e.g., `docker-compose.yaml`, `docker-compose.worker.yaml`)
 
-### Behavior
-
+**Behavior**:
 - `workspace up` and `workspace generate` automatically regenerate stale overrides
 - Use `--force` flag to regenerate regardless of staleness
 - Touch a file accidentally? Use `--force` to ensure clean state
 
 **Note**: mtime comparison is simple and fast but may trigger unnecessary regeneration if files are touched without content changes. The `--force` flag provides explicit control when needed.
 
----
-
-## Generation Logic (`workspace generate`)
+### Generation Logic (`workspace generate`)
 
 1. **Resolve flavor** for each application (CLI → state → default_flavor → "default")
-
 2. **Get compose files** from resolved flavor's `compose_files` list
-
 3. **Validate compose files exist** on disk; if any are missing, report error with available alternatives:
    ```
    Error: Flavor "full" references non-existent file: docker-compose.worker.yaml
      Application: app-two
      Available compose files: docker-compose.yaml, docker-compose.dev.yaml
    ```
-
 4. **Validate service references** in `exported_services` point to actual Compose services:
    ```
    Error: Exported service "api" references non-existent Compose service: backend
      Application: my-app
      Available services in docker-compose.yaml: web, db, redis
    ```
-
 5. **Infer port values** for any exported services with omitted `port:` field (see Port Configuration)
-
 6. **Default service names** for any exported services with omitted `service:` field
-
 7. **Collect all exported services** across all applications in workspace
-
 8. **Generate override file** with networks, aliases, labels, and environment variables
-
 9. **Update state file** with resolved flavors
-
 10. **Update manifest** with computed values
 
----
+### Shutdown Sequence (`workspace down`)
 
-## Examples
+1. For each application (or specified apps if `-a` flag used):
+   - Execute `docker compose down`
+2. If full workspace teardown (no `-a` flag): remove workspace network
+3. If `--volumes` specified, remove associated volumes
 
-### Example 1: Complete Startup Sequence
+**Network removal timing**: The workspace network (`{workspace}-internal`) is only removed during a full workspace teardown (i.e., `workspace down` without the `-a` flag). When stopping individual applications with `-a`, the network is preserved to allow other running applications to continue communicating.
 
-```bash
-$ contrail workspace up --workspace=dev
-Proxy not running, starting...
-Proxy: started
-Creating network dev-internal...
-Regenerating app-one.override.yaml (stale)...
-Starting app-one... done
-Starting app-two... done
-Starting app-three... done
+### Destroy Sequence (`workspace destroy`)
 
-Workspace 'dev' is running.
-```
+Completely removes a workspace and optionally its application directories:
 
-### Example 2: Partial Operations
+1. Run `workspace down --volumes` to stop all containers and remove volumes
+2. Remove `.generated/` directory
+3. Prompt before removing application directories (unless `--force` or `--keep-apps`)
+4. Remove `workspace.yaml`
+5. Release any assigned ports from global state
+6. Remove workspace from registry (`~/.config/contrail/workspaces.yaml`)
 
-```bash
-# Stop just one app (network preserved)
-$ contrail down -a app-one
-Stopping app-one... done
+**Flags**:
+- `--force`: Skip confirmation prompts and remove application directories
+- `--keep-apps`: Preserve application directories without prompting
 
-# Start it back up
-$ contrail up -a app-one
-Starting app-one... done
-```
+### Viewing Logs
 
-### Example 3: Full Workspace Destruction
-
-```bash
-$ contrail workspace destroy
-This will:
-  - Stop all containers in workspace 'dev'
-  - Remove all volumes
-  - Delete .generated/ directory
-  - Remove workspace from registry
-
-Application directories:
-  ./app-one/
-  ./app-two/
-  ./app-three/
-
-Delete application directories? [y/N/keep]
-> keep
-
-Workspace 'dev' destroyed.
-Application directories preserved.
-```
-
----
-
-## Viewing Logs
-
-### Using `contrail-compose` (recommended)
-
+Using `contrail-compose` (recommended):
 ```bash
 # All logs for an application (context-aware)
 contrail-compose logs -f
@@ -252,8 +93,7 @@ contrail-compose logs -f web
 contrail-compose -a app-two logs -f
 ```
 
-### Using raw Docker Compose
-
+Using raw Docker Compose:
 ```bash
 # All logs for an application
 docker compose -p dev-app-two logs -f
@@ -265,26 +105,15 @@ docker compose -p dev-app-two logs -f web
 docker logs $(docker ps -q --filter "label=contrail.workspace.name=dev")
 ```
 
----
+### Listing Workspace Status
 
-## Listing Workspace Status
-
-### Using `contrail`
-
+Using `contrail-compose`:
 ```bash
-$ contrail workspace status
-Workspace: dev
-Network: dev-internal (created)
-Proxy: running
-
-APPLICATION  FLAVOR   STATUS   SERVICES         URL
-app-one      default  running  3/3 running      https://dev-app-one-web.contrail.test
-app-two      full     running  5/5 running      https://dev-app-two-web.contrail.test
-app-three    lite     stopped  0/2 running      —
+contrail-compose ps
+contrail-compose -a app-two ps
 ```
 
-### Using Docker filters
-
+Using raw Docker Compose:
 ```bash
 # All containers in a workspace
 docker ps --filter "label=contrail.workspace.name=dev"
@@ -292,56 +121,3 @@ docker ps --filter "label=contrail.workspace.name=dev"
 # All containers for an application
 docker ps --filter "label=contrail.app.name=app-two"
 ```
-
----
-
-## Edge Cases
-
-### Orphaned Containers
-
-**Scenario**: Flavor change removes a service that was previously running.
-
-**Behavior**: `--remove-orphans` is always passed to `docker compose up`, automatically stopping and removing containers for services no longer defined.
-
-### Port Conflict at Startup
-
-**Scenario**: Previously assigned port is now unavailable.
-
-**Behavior**: Error with resolution steps:
-```
-Error: Port conflict detected for app-one
-
-Port 5432 is assigned to app-one/postgres but is no longer available.
-Another process may be using this port.
-
-To resolve:
-  contrail port scan       # Check which ports are conflicting
-  contrail port release 5432   # Release the conflicting assignment
-  contrail generate --force    # Regenerate with new port assignment
-```
-
-### Proxy Not Running
-
-**Scenario**: User runs `workspace up` but proxy is down.
-
-**Behavior**: Contrail automatically starts the proxy.
-
----
-
-## Error Handling
-
-| Error Condition | Message | Recovery |
-|-----------------|---------|----------|
-| Docker not running | `Docker is not installed or not running` | Start Docker |
-| Compose file not found | `Compose file not found: {path}` | Fix configuration |
-| Build failure | `Service '{name}' failed to build` | Fix Dockerfile |
-| Port conflict | `Port {port} is assigned but no longer available` | Release and regenerate |
-| Network creation failed | `Cannot create network: {error}` | Check Docker daemon |
-
----
-
-## Revision History
-
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0.0 | 2026-01-02 | Initial specification extracted from technical spec |

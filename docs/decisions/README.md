@@ -1,6 +1,9 @@
-# Architectural Decision Records
+<!-- Generated content - no source file -->
+<!-- Extraction ID: readme-decisions -->
 
-This directory contains Architecture Decision Records (ADRs) documenting significant technical and product decisions for Contrail.
+# Architecture Decision Records
+
+This directory contains Architecture Decision Records (ADRs) documenting significant design choices for Contrail.
 
 ## Index
 
@@ -17,12 +20,13 @@ This directory contains Architecture Decision Records (ADRs) documenting signifi
 | [0009](./0009-flexible-tls-configuration.md) | Flexible TLS Configuration | Accepted |
 | [0010](./0010-up-down-command-semantics.md) | up/down Command Semantics | Accepted |
 | [0011](./0011-options-based-targeting.md) | Options-Based Targeting | Accepted |
+| [0012](./0012-layered-documentation-system.md) | Layered Documentation System | Accepted |
 
-## Creating New ADRs
+## ADR Format
 
-Use `0000-template.md` as a starting point for new decisions.
-
-## Related Documentation
-
-- [Architecture Overview](../architecture/overview.md) - How these decisions manifest in the system design
-- [Product Vision](../product/vision.md) - The problem these decisions solve
+Each ADR follows the MADR minimal template with:
+- **Title**: Short descriptive name
+- **Status**: Accepted, Superseded, or Deprecated
+- **Context**: The situation requiring a decision
+- **Decision**: The choice made
+- **Consequences**: Resulting implications
