@@ -1,6 +1,3 @@
-<!-- Migrated from specs/scind-prd.md:235-264 -->
-<!-- Extraction ID: adr-0007-port-type-system -->
-
 # Port Type System for Exported Services
 
 **Status**: Accepted
@@ -39,3 +36,8 @@ exported_services:
 - Environment variables use proxy values (port 80/443) for proxied services
 - Enables future plugin system for additional protocols (postgresql, mysql SNI routing)
 - `visibility` remains as documentation for collaborators
+
+## Related Decisions
+
+- [ADR-0008: Traefik for Reverse Proxy](0008-traefik-reverse-proxy.md) - Traefik handles proxied port routing
+- [ADR-0009: Flexible TLS Configuration](0009-flexible-tls-configuration.md) - TLS for proxied ports

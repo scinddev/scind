@@ -1,6 +1,3 @@
-<!-- Migrated from specs/scind-prd.md:162-169 -->
-<!-- Extraction ID: adr-0001-docker-compose-project-name -->
-
 # Docker Compose Project Name Isolation
 
 **Status**: Accepted

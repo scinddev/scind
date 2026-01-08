@@ -1,6 +1,3 @@
-<!-- Migrated from specs/scind-technical-spec.md:1247-1315 -->
-<!-- Extraction ID: spec-naming-conventions -->
-
 ## Conventions and Best Practices
 
 ### Application Requirements
@@ -35,17 +32,17 @@ Application developers should update `application.yaml` when:
 - **Workspace names**: Lowercase alphanumeric with hyphens (e.g., `dev`, `feature-x`, `pr-123`)
 - **Application names**: Lowercase alphanumeric with hyphens, inferred from directory name
 - **Exported service names**: The key in `exported_services`, may differ from the underlying Compose service name
-- **Proxied hostnames** (proxied type): `{workspace}-{application}-{exported_service}.{domain}` (e.g., `dev-app-one-web.scind.test`)
-- **Internal aliases** (all types): `{application}-{exported_service}` (e.g., `app-one-web`, `app-one-db`)
+- **Proxied hostnames** (proxied type): `{workspace}-{application}-{exported_service}.{domain}` (e.g., `dev-frontend-web.scind.test`)
+- **Internal aliases** (all types): `{application}-{exported_service}` (e.g., `frontend-web`, `shared-db-db`)
 - **Environment variables**: `SCIND_{APPLICATION}_{EXPORTED_SERVICE}_{SUFFIX}` in SCREAMING_SNAKE_CASE
-- **Traefik router names**: `{workspace}-{application}-{exported_service}-{protocol}` (e.g., `dev-app-one-web-https`)
+- **Traefik router names**: `{workspace}-{application}-{exported_service}-{protocol}` (e.g., `dev-frontend-web-https`)
 
 **Collision warning**: Docker Compose project names, Traefik router names, volume names, and network names are derived from the naming patterns above. Creative naming that produces identical project names could cause conflicts:
 - **Traefik routers**: Conflicting router names cause routing failures
-- **Docker volumes**: Conflicting volume names (e.g., `dev-app-one_postgres_data`) could cause data to be shared unexpectedly or overwritten
+- **Docker volumes**: Conflicting volume names (e.g., `dev-frontend_postgres_data`) could cause data to be shared unexpectedly or overwritten
 - **Docker networks**: Conflicting network names could connect unrelated services
 
-Example collision: workspace `dev-app` with app `one` and workspace `dev` with app `app-one` both produce project name `dev-app-one`.
+Example collision: workspace `dev-front` with app `end` and workspace `dev` with app `frontend` both produce project name `dev-frontend`.
 
 Follow the lowercase-alphanumeric-with-hyphens convention and avoid names that could produce ambiguous concatenations.
 
@@ -68,3 +65,10 @@ Example workspace `.gitignore`:
 .generated/
 app-*/
 ```
+
+## Related Documents
+
+- [ADR-0004: Convention-Based Naming](../decisions/0004-convention-based-naming.md) - Rationale for naming conventions
+- [Port Types](./port-types.md) - How port types affect naming
+- [Generated Override Files](./generated-override-files.md) - Naming in generated Docker labels
+- [Docker Labels](./docker-labels.md) - Label naming conventions

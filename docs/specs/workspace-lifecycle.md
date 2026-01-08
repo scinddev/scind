@@ -1,5 +1,56 @@
-<!-- Migrated from specs/scind-technical-spec.md:1125-1245 -->
-<!-- Extraction ID: spec-operations -->
+# Workspace Lifecycle Specification
+
+**Version**: 1.0.0
+**Date**: 2026-01-07
+**Status**: Accepted
+
+---
+
+## Workspace States
+
+Workspaces transition through defined states during their lifecycle. State is determined at runtime by inspecting Docker container status and the presence of generated files.
+
+### State Definitions
+
+| State | Description | Entry Condition |
+|-------|-------------|-----------------|
+| `dormant` | Defined in `workspace.yaml` but never started | Initial state after `workspace init` |
+| `starting` | `workspace up` initiated, containers launching | `workspace up` command executed |
+| `running` | All containers up and healthy | Startup complete, health checks passed |
+| `stopping` | `workspace down` initiated | `workspace down` command executed |
+| `stopped` | Containers stopped, data preserved | Shutdown complete |
+| `error` | Operation failed, requires intervention | Any failure during transition |
+
+### State Transitions
+
+```
+dormant ──[workspace up]──> starting ──[containers ready]──> running
+                                │                              │
+                                └──[failure]──> error <────────┘
+                                                  │
+running ──[workspace down]──> stopping ──> stopped
+                                              │
+stopped ──[workspace up]──> starting          │
+                                              │
+stopped ──[workspace destroy]──> (removed) <──┘
+```
+
+### Error States and Recovery
+
+- **Starting failure**: Check container logs with `scind-compose logs` or `workspace logs`
+- **Runtime failure**: Container exited unexpectedly; check exit codes and logs
+- **Recovery**: Run `workspace down` then `workspace up` to reset state
+
+### State Persistence
+
+Current state is determined by:
+1. Docker container status (running/stopped/missing)
+2. Presence of `.generated/` directory
+3. Entry in `~/.config/scind/workspaces.yaml`
+
+State is not explicitly stored; it is inferred from the environment at runtime.
+
+---
 
 ## Operations
 
@@ -39,7 +90,7 @@ Scind uses **mtime comparison** to determine if generated override files need to
 3. **Validate compose files exist** on disk; if any are missing, report error with available alternatives:
    ```
    Error: Flavor "full" references non-existent file: docker-compose.worker.yaml
-     Application: app-two
+     Application: backend
      Available compose files: docker-compose.yaml, docker-compose.dev.yaml
    ```
 4. **Validate service references** in `exported_services` point to actual Compose services:
@@ -90,16 +141,16 @@ scind-compose logs -f
 scind-compose logs -f web
 
 # Different app from workspace root
-scind-compose -a app-two logs -f
+scind-compose -a backend logs -f
 ```
 
 Using raw Docker Compose:
 ```bash
 # All logs for an application
-docker compose -p dev-app-two logs -f
+docker compose -p dev-backend logs -f
 
 # Specific service
-docker compose -p dev-app-two logs -f web
+docker compose -p dev-backend logs -f web
 
 # All containers in a workspace (using labels)
 docker logs $(docker ps -q --filter "label=scind.workspace.name=dev")
@@ -110,7 +161,7 @@ docker logs $(docker ps -q --filter "label=scind.workspace.name=dev")
 Using `scind-compose`:
 ```bash
 scind-compose ps
-scind-compose -a app-two ps
+scind-compose -a backend ps
 ```
 
 Using raw Docker Compose:
@@ -119,5 +170,5 @@ Using raw Docker Compose:
 docker ps --filter "label=scind.workspace.name=dev"
 
 # All containers for an application
-docker ps --filter "label=scind.app.name=app-two"
+docker ps --filter "label=scind.app.name=backend"
 ```

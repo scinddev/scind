@@ -70,7 +70,7 @@ This section defines key terms and concepts used throughout the documentation.
 | 3 | **Architecture** | (none) | `architecture/` |
 | 4 | **Specifications** | Specs | `specs/` |
 | 5 | **Reference** | (none) | `reference/` |
-| 6 | **Behaviors** | Gherkin, Feature Files | `features/` |
+| 6 | **Behaviors** | Gherkin, Feature Files | `behaviors/` |
 | 7 | **Implementation** | Implementation Guides, Scaffolding | `implementation/` |
 
 ### Layer-Specific Terms
@@ -134,7 +134,7 @@ This documentation system uses 7 layers, organized by purpose:
 | 3. Architecture | `architecture/` | Show HOW components relate | Evolving | Engineers, architects |
 | 4. Specifications | `specs/` | Detail HOW features work | Living | Engineers |
 | 5. Reference | `reference/` | Provide lookup tables | Generated/maintained | Engineers |
-| 6. Behaviors | `features/` | Verify expected behaviors | Executable | QA, engineers |
+| 6. Behaviors | `behaviors/` | Verify expected behaviors | Executable | QA, engineers |
 | 7. Implementation | `implementation/` | Guide HOW to build | Short-lived | Implementing engineers |
 
 ---
@@ -375,7 +375,7 @@ docs/
 ├── decisions/                   # Layer 1: ADRs (simple files)
 │   ├── README.md               # ADR index
 │   ├── 0000-template.md        # Template
-│   └── 0001-*.md ... 0011-*.md # ADR files
+│   └── 0001-*.md ... 0012-*.md # ADR files
 │
 ├── product/                     # Layer 2: Vision
 │   ├── README.md
@@ -397,8 +397,10 @@ docs/
 ├── reference/                   # Layer 5: Reference
 │   ├── README.md
 │   ├── cli.md
+│   ├── configuration.md
 │   └── appendices/
-│       └── cli/
+│       ├── cli/
+│       └── configuration/
 │
 ├── implementation/              # Layer 7: Implementation
 │   ├── README.md

@@ -1,6 +1,3 @@
-<!-- Migrated from specs/scind-technical-spec.md:686-706 -->
-<!-- Extraction ID: spec-state-management -->
-
 # State Management Specification
 
 **Version**: 1.0.0
@@ -24,9 +21,9 @@ Runtime state is tracked separately from configuration. State represents explici
 ```yaml
 # AUTO-GENERATED - Managed by workspace tooling
 applications:
-  app-one:
-    flavor: default
-  app-two:
+  frontend:
+    flavor: full
+  backend:
     flavor: lite                      # Overridden from default
 ```
 
@@ -51,14 +48,17 @@ This file tracks port assignments for `assigned` type ports across all workspace
 
 assigned_ports:
   dev:                                  # Workspace name
-    app-one:                            # Application name
-      db: 5432                          # Exported service: assigned host port
-    app-two:
-      db: 5433                          # Incremented because 5432 was taken
+    frontend:                           # Application name
+      web: 8080                         # Exported service: assigned host port
+    backend:
+      api: 3000
+      worker: 9000
+    shared-db:
+      db: 5432
       cache: 6379
   review:
-    app-one:
-      db: 5434                          # Different workspace, different port
+    frontend:
+      web: 8081                         # Different workspace, different port
 
 port_inventory:
   5432:
@@ -67,16 +67,16 @@ port_inventory:
     last_checked: 2025-12-29T13:01:33Z
     assignment:                         # Present only if status=assigned
       workspace: dev
-      application: app-one
+      application: shared-db
       exported_service: db
-  5433:
+  6379:
     status: assigned
     first_seen: 2025-12-28T17:53:58Z
     last_checked: 2025-12-29T13:01:37Z
     assignment:
       workspace: dev
-      application: app-two
-      exported_service: db
+      application: shared-db
+      exported_service: cache
   5434:
     status: unavailable                 # External process using this port
     first_seen: 2025-12-28T17:54:00Z
@@ -101,9 +101,9 @@ port_inventory:
 If a previously assigned port has become unavailable (e.g., taken by an external process) when `workspace up` runs, Scind fails with a clear error:
 
 ```
-Error: Port conflict detected for app-one
+Error: Port conflict detected for frontend
 
-Port 5432 is assigned to app-one/postgres but is no longer available.
+Port 5432 is assigned to frontend/postgres but is no longer available.
 Another process may be using this port.
 
 To resolve:
@@ -156,4 +156,5 @@ To resolve:
 
 - [Port Types Specification](./port-types.md)
 - [Configuration Schemas](./configuration-schemas.md)
-- [Workspace Lifecycle](./workspace-lifecycle.md)
+- [Workspace States](./workspace-lifecycle.md#workspace-states)
+- [Workspace Operations](./workspace-lifecycle.md#operations)

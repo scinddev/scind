@@ -1,6 +1,3 @@
-<!-- Generated content - no source file -->
-<!-- Extraction ID: readme-decisions -->
-
 # Architecture Decision Records
 
 This directory contains Architecture Decision Records (ADRs) documenting significant design choices for Scind.

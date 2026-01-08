@@ -1,6 +1,3 @@
-<!-- Migrated from specs/scind-prd.md:291-303 -->
-<!-- Extraction ID: adr-0010-up-down-command-semantics -->
-
 # up/down Command Semantics
 
 **Status**: Accepted

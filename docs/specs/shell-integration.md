@@ -29,6 +29,51 @@ This separation exists because:
 
 ---
 
+## CLI Completion
+
+Scind provides shell completion for all commands.
+
+### Installation
+
+**Bash**:
+```bash
+source <(scind completion bash)
+# Or add to ~/.bashrc:
+# echo 'source <(scind completion bash)' >> ~/.bashrc
+```
+
+**Zsh**:
+```bash
+source <(scind completion zsh)
+# Or add to ~/.zshrc
+```
+
+**Fish**:
+```bash
+scind completion fish | source
+# Or save to completions directory
+```
+
+### Features
+
+Completion supports:
+- Command and subcommand names
+- Flag names and values
+- Workspace names (from registry)
+- Application names (from current workspace)
+
+---
+
+## Shell Compatibility
+
+| Shell | Minimum Version | Notes |
+|-------|-----------------|-------|
+| Bash | 4.0+ | Required for associative arrays |
+| Zsh | 5.0+ | |
+| Fish | 3.0+ | |
+
+---
+
 ## Architecture
 
 ```
@@ -53,7 +98,7 @@ This separation exists because:
 │         │                                   ▼                       │
 │         │                    ┌──────────────────────────┐           │
 │         │                    │     docker compose       │           │
-│         │                    │  -p dev-app-one          │           │
+│         │                    │  -p dev-frontend         │           │
 │         │                    │  -f docker-compose.yaml  │           │
 │         │                    │  -f override.yaml        │           │
 │         │                    │  exec php bash           │           │
@@ -75,13 +120,13 @@ This command is the bridge between the shell function and Scind's context resolu
 ### Behavior
 
 ```bash
-$ cd ~/workspaces/dev/app-one
+$ cd ~/workspaces/dev/frontend
 $ scind compose-prefix
-docker compose -p dev-app-one -f '/home/user/workspaces/dev/app-one/docker-compose.yaml' -f '/home/user/workspaces/dev/.generated/app-one.override.yaml'
+docker compose -p dev-frontend -f '/home/user/workspaces/dev/frontend/docker-compose.yaml' -f '/home/user/workspaces/dev/.generated/frontend.override.yaml'
 
 $ cd ~/workspaces/dev
-$ scind compose-prefix -a app-two
-docker compose -p dev-app-two -f '/home/user/workspaces/dev/app-two/docker-compose.yaml' -f '/home/user/workspaces/dev/app-two/docker-compose.worker.yaml' -f '/home/user/workspaces/dev/.generated/app-two.override.yaml'
+$ scind compose-prefix -a backend
+docker compose -p dev-backend -f '/home/user/workspaces/dev/backend/docker-compose.yaml' -f '/home/user/workspaces/dev/backend/docker-compose.worker.yaml' -f '/home/user/workspaces/dev/.generated/backend.override.yaml'
 ```
 
 ### Flags
@@ -162,18 +207,18 @@ See the shell-specific setup scripts in the appendices:
 
 ```bash
 # From within an application directory (context detected)
-$ cd ~/workspaces/dev/app-one
+$ cd ~/workspaces/dev/frontend
 $ scind-compose exec php bash
 $ scind-compose logs -f
 $ scind-compose up -d
 
 # From workspace root with explicit app
 $ cd ~/workspaces/dev
-$ scind-compose -a app-two exec php bash
-$ scind-compose -a app-one logs -f php
+$ scind-compose -a backend exec php bash
+$ scind-compose -a frontend logs -f php
 
 # From anywhere with explicit workspace and app
-$ scind-compose -w dev -a app-one ps
+$ scind-compose -w dev -a frontend ps
 ```
 
 ### Tab Completion Examples
@@ -193,10 +238,10 @@ $ scind-compose exec -[TAB]
 --index     --no-tty        --privileged ...
 
 # Complete with explicit app (scind flags first)
-$ scind-compose -a app-[TAB]
-app-one     app-two     app-three
+$ scind-compose -a [TAB]
+frontend     backend     shared-db
 
-$ scind-compose -a app-two exec [TAB]
+$ scind-compose -a backend exec [TAB]
 php     nginx   postgres    worker
 ```
 
@@ -234,12 +279,14 @@ php     nginx   postgres    worker
 
 ## Implementation Checklist
 
-- [ ] Implement `scind compose-prefix` command in Scind CLI (see Go Stack for Cobra scaffolding)
-- [ ] Add `scind init-shell {bash|zsh|fish}` command using `//go:embed` for shell scripts
-- [ ] Document installation in main Scind documentation
-- [ ] Test completion delegation with various Docker Desktop / Docker Engine versions
-- [ ] Test with paths containing spaces and special characters
-- [ ] Add integration tests for shell functions
+> **Status**: Pre-implementation. These tasks track what needs to be built. See [CLI Scaffolding](../implementation/cli-scaffolding.md) and [Go Technology Stack](../implementation/tech-stack.md) for implementation guidance.
+
+1. Implement `scind compose-prefix` command in Scind CLI
+2. Add `scind init-shell {bash|zsh|fish}` command using `//go:embed` for shell scripts
+3. Document installation in main Scind documentation
+4. Test completion delegation with various Docker Desktop / Docker Engine versions
+5. Test with paths containing spaces and special characters
+6. Add integration tests for shell functions
 
 ---
 
@@ -270,3 +317,11 @@ php     nginx   postgres    worker
 2. **Alias-only approach** (`alias dc='docker compose -p ... -f ...'`): Doesn't support dynamic context detection. Rejected.
 
 3. **Separate commands per docker compose subcommand** (`scind-exec`, `scind-logs`, etc.): Fragments the interface unnecessarily. Rejected.
+
+---
+
+## Related Documents
+
+- [Context Detection](./context-detection.md) - How Scind detects workspace and application context
+- [CLI Reference](../reference/cli.md) - Full CLI command documentation
+- [ADR-0011: Options-Based Targeting](../decisions/0011-options-based-targeting.md) - CLI targeting strategy

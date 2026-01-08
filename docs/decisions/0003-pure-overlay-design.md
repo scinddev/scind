@@ -1,6 +1,3 @@
-<!-- Migrated from specs/scind-prd.md:181-192 -->
-<!-- Extraction ID: adr-0003-pure-overlay-design -->
-
 # Pure Overlay Design (Applications Remain Workspace-Agnostic)
 
 **Status**: Accepted

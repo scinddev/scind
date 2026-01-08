@@ -2,8 +2,6 @@
 
 Full working configuration examples for Scind.
 
-<!-- Source: specs/scind-technical-spec.md -->
-
 ---
 
 ## Multi-Application Workspace
@@ -50,11 +48,11 @@ exported_services:
       - type: proxied
         protocol: https
         visibility: public
-        container_port: 80
+        port: 80
       - type: proxied
         protocol: http
         visibility: protected
-        container_port: 80
+        port: 80
 ```
 
 ### backend/application.yaml
@@ -82,7 +80,7 @@ exported_services:
       - type: proxied
         protocol: https
         visibility: public
-        container_port: 3000
+        port: 3000
       - type: assigned
         port: 9229                    # Node.js debug port
         visibility: protected
@@ -148,14 +146,14 @@ exported_services:
       - type: proxied
         protocol: https
         visibility: public
-        container_port: 80
+        port: 80
   api:
     service: php
     ports:
       - type: proxied
         protocol: https
         visibility: public
-        container_port: 9000
+        port: 9000
   db:
     service: mysql
     ports:
@@ -215,12 +213,12 @@ exported_services:
       - type: proxied
         protocol: https
         visibility: public
-        container_port: 443
+        port: 443
       # Protected HTTP endpoint for internal tools
       - type: proxied
         protocol: http
         visibility: protected
-        container_port: 80
+        port: 80
       # Direct access for debugging
       - type: assigned
         port: 8080
@@ -261,14 +259,17 @@ services:
 
 assigned_ports:
   dev:
-    app-one:
+    frontend:
+      web: 8080
+    backend:
+      api: 3000
+      worker: 9000
+    shared-db:
       db: 5432
-    app-two:
-      db: 5433
       cache: 6379
   review:
-    app-one:
-      db: 5434
+    frontend:
+      web: 8081
 
 port_inventory:
   5432:
@@ -277,16 +278,16 @@ port_inventory:
     last_checked: 2025-12-29T13:01:33Z
     assignment:
       workspace: dev
-      application: app-one
+      application: shared-db
       exported_service: db
-  5433:
+  6379:
     status: assigned
     first_seen: 2025-12-28T17:53:58Z
     last_checked: 2025-12-29T13:01:37Z
     assignment:
       workspace: dev
-      application: app-two
-      exported_service: db
+      application: shared-db
+      exported_service: cache
 ```
 
 ---
@@ -323,10 +324,12 @@ workspaces:
 ```yaml
 # AUTO-GENERATED - Managed by workspace tooling
 applications:
-  app-one:
+  frontend:
+    flavor: full
+  backend:
+    flavor: full
+  shared-db:
     flavor: default
-  app-two:
-    flavor: lite
 ```
 
 ---
@@ -347,24 +350,24 @@ proxy:
   domain: scind.test
 
 applications:
-  app-one:
-    flavor: default
-    project: dev-app-one
+  frontend:
+    flavor: full
+    project: dev-frontend
     exported_services:
       web:
         service: web
-        alias: app-one-web
+        alias: frontend-web
         ports:
           - type: proxied
             protocol: https
-            container_port: 443
+            port: 443
             visibility: public
-            hostname: dev-app-one-web.scind.test
+            hostname: dev-frontend-web.scind.test
         environment:
-          SCIND_APP_ONE_WEB_HOST: dev-app-one-web.scind.test
-          SCIND_APP_ONE_WEB_PORT: 443
-          SCIND_APP_ONE_WEB_SCHEME: https
-          SCIND_APP_ONE_WEB_URL: https://dev-app-one-web.scind.test
+          SCIND_FRONTEND_WEB_HOST: dev-frontend-web.scind.test
+          SCIND_FRONTEND_WEB_PORT: 443
+          SCIND_FRONTEND_WEB_SCHEME: https
+          SCIND_FRONTEND_WEB_URL: https://dev-frontend-web.scind.test
 ```
 
 ---

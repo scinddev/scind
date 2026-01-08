@@ -1,6 +1,3 @@
-<!-- Migrated from specs/scind-prd.md:194-202 -->
-<!-- Extraction ID: adr-0004-convention-based-naming -->
-
 # Convention-Based Naming
 
 **Status**: Accepted
@@ -12,8 +9,8 @@ Hostnames and aliases could be explicitly configured or derived from conventions
 ## Decision
 
 Derive names from conventions:
-- Public hostname: `{workspace}-{app}-{service}.{domain}`
-- Protected alias: `{app}-{service}`
+- Public hostname: `{workspace}-{application}-{service}.{domain}`
+- Internal alias: `{application}-{service}`
 - Network name: `{workspace}-internal`
 
 ## Consequences

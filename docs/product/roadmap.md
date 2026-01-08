@@ -3,7 +3,11 @@
 
 ## Future Considerations
 
+> **Note**: This roadmap describes planned features without specific version targets. Features are prioritized based on community feedback and project needs rather than fixed release schedules.
+
 ### Port Type Plugins (Future)
+
+*Extends [ADR-0007: Port Type System](../decisions/0007-port-type-system.md)*
 
 **Context**: Different services need different proxying strategies—HTTP/HTTPS is handled by Traefik's HTTP routers, but databases need TCP routing with SNI.
 
@@ -23,15 +27,17 @@ Plugins would generate appropriate Traefik configuration (TCP routers, SNI rules
 
 ### Application Dependencies (Future)
 
+*Related to [ADR-0010: Up/Down Command Semantics](../decisions/0010-up-down-command-semantics.md)*
+
 **Context**: Some applications may need others to be running first.
 
 **Consideration**: Add dependency ordering:
 ```yaml
 workspace:
   applications:
-    app-two:
+    backend:
       depends_on:
-        - app-one
+        - shared-db
 ```
 
 ### Shared Volumes (Future)

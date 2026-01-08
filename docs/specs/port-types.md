@@ -1,20 +1,17 @@
-<!-- Migrated from specs/scind-technical-spec.md:96-135 -->
-<!-- Extraction ID: spec-port-types -->
-
 ## Port Types and Proxying
 
 Exported services declare ports with a `type` that determines how the port is routed, and optionally a `protocol` for proxied services:
 
 | Type | Protocol | Behavior | Traefik | Environment Variables |
 |------|----------|----------|---------|----------------------|
-| `proxied` | `https` | HTTPS proxy via Traefik | Yes (HTTPS router) | `*_HOST`, `*_PORT`, `*_SCHEME`, `*_URL` |
-| `proxied` | `http` | HTTP proxy via Traefik | Yes (HTTP router) | `*_HOST`, `*_PORT`, `*_SCHEME`, `*_URL` |
-| `proxied` | `tcp`, `postgresql`, etc. | SNI-based TCP proxy (future) | Yes (TCP router) | `*_HOST`, `*_PORT` |
-| `assigned` | - | Direct port binding, auto-assigned if unavailable | No | `*_HOST`, `*_PORT` |
+| `proxied` | `https` | HTTPS proxy via Traefik | Yes (HTTPS router) | `SCIND_{APP}_{SERVICE}_HOST`, `_PORT`, `_SCHEME`, `_URL` |
+| `proxied` | `http` | HTTP proxy via Traefik | Yes (HTTP router) | `SCIND_{APP}_{SERVICE}_HOST`, `_PORT`, `_SCHEME`, `_URL` |
+| `proxied` | `tcp`, `postgresql`, etc. | SNI-based TCP proxy (future) | Yes (TCP router) | `SCIND_{APP}_{SERVICE}_HOST`, `_PORT` |
+| `assigned` | - | Direct port binding, auto-assigned if unavailable | No | `SCIND_{APP}_{SERVICE}_HOST`, `_PORT` |
 
 ### Port Type Descriptions
 
-- **proxied**: Traffic is routed through Traefik. The exported service gets a hostname (`{workspace}-{app}-{export}.{domain}`) and Traefik labels are generated. Environment variables contain the **proxy values** (hostname and proxy port 80/443), not the container port.
+- **proxied**: Traffic is routed through Traefik. The exported service gets a hostname (`{workspace}-{application}-{export}.{domain}`) and Traefik labels are generated. Environment variables contain the **proxy values** (hostname and proxy port 80/443), not the container port.
 - **assigned**: The port is bound directly to the host. If the specified port is unavailable (used by another workspace or external process), Scind increments until an available port is found and records the assignment in global state. Environment variables point to the internal alias and assigned host port.
 
 ### Port Type Constraints
@@ -48,3 +45,10 @@ Visibility does not change Scind's core behavior—all exported services receive
 ### Private Services
 
 Services not listed in `exported_services` remain private (standard Docker Compose behavior—only accessible within the application's own compose network).
+
+## Related Documents
+
+- [Naming Conventions](./naming-conventions.md) - Hostname and environment variable patterns
+- [Proxy Infrastructure](./proxy-infrastructure.md) - Traefik configuration for proxied ports
+- [Generated Override Files](./generated-override-files.md) - How port types translate to Docker labels
+- [Configuration Schemas](./configuration-schemas.md) - Port configuration in application.yaml

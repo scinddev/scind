@@ -3,6 +3,10 @@
 
 ## Comparison with Related Tools
 
+This table compares Scind with existing tools that developers commonly consider for local multi-application development. Each tool has different strengths—understanding these trade-offs helps determine when Scind is the right choice.
+
+For context on why Scind was created, see the [Problem Statement](./vision.md#problem-statement) in the Product Vision.
+
 | Feature | Scind | Docker `include` | DDEV/Lando | Tilt/Garden |
 |---------|----------|------------------|------------|-------------|
 | Multi-app orchestration | ✓ | ✓ (merged) | ✗ | ✓ |

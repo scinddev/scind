@@ -6,8 +6,8 @@
 
 # Scind: Product Requirements Document
 
-**Version**: 0.5.2-draft
-**Date**: December 2024
+**Version**: 0.6.0
+**Date**: January 2025
 **Status**: Design Phase
 
 ---
@@ -16,7 +16,7 @@
 
 Scind is a workspace orchestration system for Docker Compose that enables developers to run multiple isolated instances of multi-application stacks simultaneously on a single host. It solves the problem of needing complete, independent environments for development, code review, and testing without requiring Kubernetes or cloud infrastructure.
 
-The name "Scind" evokes the trails left by aircraft—parallel paths that don't intersect, much like the isolated workspaces the system creates.
+The name "Scind" (from Latin *scindere*, to cut/split) reflects the system's core purpose: cleanly separating isolated workspaces that don't intersect.
 
 ---
 
@@ -24,15 +24,15 @@ The name "Scind" evokes the trails left by aircraft—parallel paths that don't 
 
 ### The Scenario
 
-A developer works on a system composed of multiple applications (e.g., `app-one`, `app-two`, `app-three`) that communicate with each other. They need to run multiple complete copies of this stack simultaneously:
+A developer works on a system composed of multiple applications (e.g., `frontend`, `backend`, `shared-db`) that communicate with each other. They need to run multiple complete copies of this stack simultaneously:
 
 - **dev**: Active development with local changes
 - **review**: Clean checkout of a PR branch for code review
 - **control**: Stable baseline for comparison
 
 Each environment needs:
-1. Internal communication between applications (app-one can reach app-two's API)
-2. External access via unique hostnames (dev-app-one-web.scind.test, review-app-one-web.scind.test)
+1. Internal communication between applications (frontend can reach backend's API)
+2. External access via unique hostnames (dev-frontend-web.scind.test, review-frontend-web.scind.test)
 3. Complete isolation (dev's database is separate from review's database)
 
 ### Why Existing Solutions Fall Short
@@ -63,6 +63,16 @@ Scind provides a thin coordination layer over Docker Compose that:
 
 ---
 
+## Target Audience
+
+Scind is designed for:
+
+- **Developers working on multi-application projects**: Teams building systems composed of multiple cooperating services (frontend, backend, databases)
+- **Teams needing isolated local development environments**: Reviewers and developers who need to run multiple complete copies of a system simultaneously
+- **Projects using Docker Compose for local development**: Teams already invested in Docker Compose who want workspace orchestration without migrating to Kubernetes
+
+---
+
 ## Core Concepts
 
 ### Workspace
@@ -71,11 +81,13 @@ A logical grouping of applications that run together, sharing an internal networ
 
 ```
 workspace: dev
-├── app-one (project: dev-app-one)
-├── app-two (project: dev-app-two)
-└── app-three (project: dev-app-three)
+├── frontend (project: dev-frontend)
+├── backend (project: dev-backend)
+└── shared-db (project: dev-shared-db)
     └── all connected via: dev-internal network
 ```
+
+*For the isolation mechanism, see [ADR-0001: Docker Compose Project Name Isolation](../decisions/0001-docker-compose-project-name-isolation.md).*
 
 ### Application
 
@@ -101,6 +113,8 @@ scind app init --app=myapp
 | **proxied** | `tcp`, etc. | SNI TCP proxy (future) | Via hostname | Via alias | Database GUIs, external tools |
 
 Services not listed in `exported_services` remain **private**—only accessible within the application's own Docker Compose network.
+
+*For the technical decision, see [ADR-0007: Port Type System](../decisions/0007-port-type-system.md).*
 
 ### Visibility
 

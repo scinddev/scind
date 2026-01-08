@@ -1,6 +1,3 @@
-<!-- Migrated from specs/scind-technical-spec.md:956-1027 -->
-<!-- Extraction ID: spec-environment-variables -->
-
 ## Environment Variable Injection
 
 All exported services receive environment variables for service discovery. This enables applications to reference other services without hardcoding hostnames.
@@ -9,7 +6,7 @@ All exported services receive environment variables for service discovery. This 
 
 Environment variables use a `SCIND_` prefix to avoid conflicts with application-defined variables.
 
-**Name transformation**: Hyphens in application and exported service names are converted to underscores, and names are uppercased (e.g., `app-one` becomes `APP_ONE`, `web-debug` becomes `WEB_DEBUG`).
+**Name transformation**: Hyphens in application and exported service names are converted to underscores, and names are uppercased (e.g., `shared-db` becomes `SHARED_DB`, `web-debug` becomes `WEB_DEBUG`).
 
 **Base variables** (always generated for each exported service):
 ```
@@ -29,13 +26,13 @@ SCIND_{APPLICATION}_{EXPORTED_SERVICE}_{PROTOCOL}_URL={url}
 ### Variable Generation Rules
 
 **For `proxied` type ports**:
-- `*_HOST` contains the fully qualified proxied hostname (e.g., `dev-app-one-web.scind.test`)
+- `*_HOST` contains the fully qualified proxied hostname (e.g., `dev-frontend-web.scind.test`)
 - `*_PORT` contains the proxy port (443 for HTTPS, 80 for HTTP)—**not** the container port
 - `*_SCHEME` and `*_URL` are generated
 - Protocol-specific variables (`*_HTTPS_*`, `*_HTTP_*`) are also generated
 
 **For `assigned` type ports**:
-- `*_HOST` contains the internal alias (e.g., `app-one-db`)
+- `*_HOST` contains the internal alias (e.g., `shared-db-db`)
 - `*_PORT` contains the assigned host port (which may differ from the requested port)
 - No `*_SCHEME` or `*_URL` variables
 - No protocol-specific variables
@@ -53,21 +50,42 @@ SCIND_{APPLICATION}_{EXPORTED_SERVICE}_{PROTOCOL}_URL={url}
 
 ```php
 // PHP example - using URL directly for proxied services
-$apiUrl = getenv('SCIND_APP_TWO_API_URL') ?: 'https://app-two-api.scind.test';
+$apiUrl = getenv('SCIND_BACKEND_API_URL') ?: 'https://backend-api.scind.test';
 $response = $httpClient->get("{$apiUrl}/endpoint");
 
 // PHP example - building connection for assigned port services
-$dbHost = getenv('SCIND_APP_ONE_DB_HOST') ?: 'app-one-db';
-$dbPort = getenv('SCIND_APP_ONE_DB_PORT') ?: '5432';
+$dbHost = getenv('SCIND_SHARED_DB_DB_HOST') ?: 'shared-db-db';
+$dbPort = getenv('SCIND_SHARED_DB_DB_PORT') ?: '5432';
 $dsn = "pgsql:host={$dbHost};port={$dbPort};dbname=app";
 ```
 
 ```javascript
 // Node.js example - using URL directly
-const apiUrl = process.env.SCIND_APP_TWO_API_URL || 'https://app-two-api.scind.test';
+const apiUrl = process.env.SCIND_BACKEND_API_URL || 'https://backend-api.scind.test';
 const response = await fetch(`${apiUrl}/endpoint`);
 
 // Node.js example - building connection manually
-const dbHost = process.env.SCIND_APP_ONE_DB_HOST || 'app-one-db';
-const dbPort = process.env.SCIND_APP_ONE_DB_PORT || '5432';
+const dbHost = process.env.SCIND_SHARED_DB_DB_HOST || 'shared-db-db';
+const dbPort = process.env.SCIND_SHARED_DB_DB_PORT || '5432';
 ```
+
+---
+
+## Configuration Environment Variables
+
+These environment variables configure Scind itself (distinct from service discovery variables injected into containers).
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `TRAEFIK_IMAGE` | Traefik Docker image to use | `traefik:v3.2.3` |
+| `SCIND_CONFIG_DIR` | Configuration directory | `~/.config/scind` |
+| `SCIND_STATE_DIR` | State file directory | `~/.config/scind` |
+
+These can also be set in `proxy.yaml` configuration.
+
+---
+
+## Related Documents
+
+- [Configuration Schemas](configuration-schemas.md) - Configuration file formats
+- [Generated Override Files](generated-override-files.md) - How variables are injected

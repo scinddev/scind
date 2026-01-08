@@ -1,6 +1,3 @@
-<!-- Migrated from specs/scind-technical-spec.md:1059-1122 -->
-<!-- Extraction ID: spec-context-detection -->
-
 ## Context Detection Algorithm
 
 Context detection uses a **workspace boundary** approach to prevent accidental detection of config files in vendor packages or nested test fixtures.
@@ -23,9 +20,23 @@ Context detection uses a **workspace boundary** approach to prevent accidental d
   ```
 
 **Edge cases**:
-- **Nested vendor packages**: If working in `app-one/vendor/some-package/` where the vendor package has its own `application.yaml`, it is ignored because the workspace's `app-one/application.yaml` is found first when walking toward the workspace root.
+- **Nested vendor packages**: If working in `frontend/vendor/some-package/` where the vendor package has its own `application.yaml`, it is ignored because the workspace's `frontend/application.yaml` is found first when walking toward the workspace root.
 - **Workspace within workspace**: If a test fixture has its own `workspace.yaml` nested inside a workspace, the closest (innermost) `workspace.yaml` wins—this is typically the test fixture, which is the expected behavior.
 - **Single-app workspaces**: With `path: .`, both `workspace.yaml` and `application.yaml` are in the same directory, so detection finds both immediately.
+
+## Error Cases
+
+### No Configuration Found
+
+If no `workspace.yaml` or `application.yaml` is found in the current directory or parents:
+- Error: "Not in a workspace or application directory"
+- Exit code: 1
+
+### Ambiguous Context
+
+If both `workspace.yaml` and `application.yaml` exist in the same directory:
+- Behavior: Treat as workspace context (single-app workspace pattern)
+- The application is resolved using the workspace's `applications` section
 
 ### Quick Reference
 
@@ -54,5 +65,11 @@ scind down
 # Docker Compose passthrough (shell function)
 scind-compose exec php bash
 scind-compose logs -f
-scind-compose -a app-two ps
+scind-compose -a backend ps
 ```
+
+## Related Documents
+
+- [Shell Integration](./shell-integration.md) - How context detection integrates with shell functions
+- [Directory Structure](./directory-structure.md) - File locations for workspace.yaml and application.yaml
+- [ADR-0011: Options-Based Targeting](../decisions/0011-options-based-targeting.md) - CLI targeting strategy

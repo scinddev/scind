@@ -19,6 +19,10 @@ Welcome to the Scind documentation. Scind is a workspace orchestration system fo
 2. Review the [Architecture Overview](./architecture/overview.md) for system design
 3. See the [CLI Reference](./reference/cli.md) for command usage
 
+## Maintenance
+
+For documentation maintenance procedures, see [Maintenance](maintenance/).
+
 ## Documentation Guide
 
 For contributors, see the [Documentation Guide](./DOCUMENTATION-GUIDE.md) for how to maintain and extend this documentation.

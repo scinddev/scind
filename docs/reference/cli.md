@@ -1,10 +1,6 @@
-<!-- Migrated from specs/scind-cli-reference.md:1-1599 -->
-<!-- Extraction ID: reference-cli -->
-
 # Scind CLI Reference
 
-**Version**: 0.2.3-draft
-**Date**: December 2024
+**Date**: January 2025
 **Status**: Design Phase
 
 This document is the authoritative reference for Scind's command-line interface. It defines command structure, arguments, flags, and behaviors.
@@ -23,7 +19,7 @@ All targeting uses **options** rather than positional arguments:
 
 ```bash
 # Good: Options-based
-scind app status --workspace=dev --app=app-one
+scind app status --workspace=dev --app=frontend
 
 # With context detection (from current directory)
 scind app status
@@ -50,9 +46,9 @@ Context detection uses a **workspace boundary** approach to prevent accidental d
 
 3. **Both can be detected simultaneously**:
    ```
-   ~/workspaces/dev/app-one/src/components/
+   ~/workspaces/dev/frontend/src/components/
                    │        │
-                   │        └── application.yaml → app = "app-one"
+                   │        └── application.yaml → app = "frontend"
                    │
                    └── workspace.yaml → workspace = "dev"
    ```
@@ -60,7 +56,7 @@ Context detection uses a **workspace boundary** approach to prevent accidental d
 4. **Explicit flags override detection**: `--workspace` and `--app` always take precedence over context detection
    - When any `--app` flag is specified, context-detected application is **completely ignored**
    - This applies even when multiple `-a` flags are used
-   - To start multiple specific apps: `scind up -a app-one -a app-two`
+   - To start multiple specific apps: `scind up -a frontend -a backend`
 
 5. **Global commands ignore context**: `port`, `proxy`, and `config` commands don't use directory context
 
@@ -69,24 +65,24 @@ Context detection uses a **workspace boundary** approach to prevent accidental d
 When explicit flags are provided, they **replace** (not add to) context detection:
 
 ```bash
-# From within app-one directory (context would detect app-one)
-$ cd ~/workspaces/dev/app-one
+# From within frontend directory (context would detect frontend)
+$ cd ~/workspaces/dev/frontend
 
-# This starts ONLY app-two, not both app-one and app-two
-$ scind up -a app-two
-# Starting: app-two
-# (app-one from context is ignored)
+# This starts ONLY backend, not both frontend and backend
+$ scind up -a backend
+# Starting: backend
+# (frontend from context is ignored)
 
 # To start multiple apps, list them all explicitly
-$ scind up -a app-one -a app-two
-# Starting: app-one, app-two
+$ scind up -a frontend -a backend
+# Starting: frontend, backend
 ```
 
 This "explicit replaces context" behavior ensures predictable results—when you specify apps explicitly, you get exactly what you asked for.
 
 ### Edge Cases
 
-**Nested vendor packages**: If working in `app-one/vendor/some-package/` where the vendor package has its own `application.yaml`, it is ignored. The workspace's `app-one/application.yaml` is found first when walking toward the workspace root.
+**Nested vendor packages**: If working in `frontend/vendor/some-package/` where the vendor package has its own `application.yaml`, it is ignored. The workspace's `frontend/application.yaml` is found first when walking toward the workspace root.
 
 **Workspace within workspace**: If a test fixture has its own `workspace.yaml` nested inside a workspace (e.g., for integration tests), the closest `workspace.yaml` wins—this is the test fixture, which is the expected behavior.
 
@@ -95,10 +91,10 @@ This "explicit replaces context" behavior ensures predictable results—when you
 When context is detected, commands indicate what was found:
 
 ```bash
-$ cd ~/workspaces/dev/app-one
+$ cd ~/workspaces/dev/frontend
 $ scind app status
 # Using workspace: dev (from ../workspace.yaml)
-# Using app: app-one (from ./application.yaml)
+# Using app: frontend (from ./application.yaml)
 
 Status: running
 Services: 3 running, 0 stopped
@@ -145,7 +141,7 @@ Either:
   1. Run from within an application directory
   2. Specify explicitly: scind app status --app=NAME
 
-Available apps in 'dev': app-one, app-two, app-three
+Available apps in 'dev': frontend, backend, shared-db
 ```
 
 ---
@@ -181,18 +177,30 @@ These flags are available on all commands:
 | `--help` | `-h` | Show help for command |
 | `--version` | | Show Scind version |
 
+### Version Information
+
+Both `scind --version` and `scind version` display version information. The `--version` flag is available on all commands.
+
+```bash
+$ scind --version
+scind version 0.2.3
+
+$ scind version
+scind version 0.2.3
+```
+
 ### Output Behavior
 
 **Progress output**: Multi-application operations show per-application progress by default:
 ```
-Starting app-one... done
-Starting app-two... done
-Starting app-three... done
+Starting frontend... done
+Starting backend... done
+Starting shared-db... done
 ```
 
 **`--quiet` behavior**:
 - Suppresses context indicators ("Using workspace: dev")
-- Suppresses progress messages ("Starting app-one... done")
+- Suppresses progress messages ("Starting frontend... done")
 - Status commands output just the value: `running`
 - List commands output names only, one per line
 - Errors are always shown regardless of `--quiet`
@@ -200,9 +208,9 @@ Starting app-three... done
 ```bash
 # Normal output
 $ scind workspace list
-NAME    PATH                      APPS   STATUS
-dev     ~/workspaces/dev          3      running
-staging ~/workspaces/staging      2      stopped
+NAME     APPS  STATUS   PATH
+dev      3     running  ~/workspaces/dev
+staging  2     stopped  ~/workspaces/staging
 
 # Quiet output (machine-readable)
 $ scind workspace list -q
@@ -288,6 +296,11 @@ scind workspace show [flags]
 
 **Output**: Workspace configuration, applications, computed hostnames, port assignments.
 
+**Example**:
+```bash
+scind workspace show --workspace=dev
+```
+
 ---
 
 ### `scind workspace init`
@@ -364,7 +377,7 @@ scind workspace clone [flags]
 ```bash
 scind workspace clone
 # Skipping myapp: application is workspace root (path: .)
-# Cloned: app-two -> ./app-two
+# Cloned: backend -> ./backend
 ```
 
 ---
@@ -424,7 +437,7 @@ scind workspace up [flags]
 **Example**:
 ```bash
 scind workspace up --workspace=dev
-scind workspace up -a app-one -a app-two  # With context
+scind workspace up -a frontend -a backend  # With context
 scind up  # Alias, with context
 ```
 
@@ -492,10 +505,10 @@ Workspace: dev
 Network: dev-internal (created)
 Proxy: running
 
-APPLICATON  FLAVOR   STATUS   SERVICES         URL
-app-one     default  running  3/3 running      https://dev-app-one-web.scind.test
-app-two     full     running  5/5 running      https://dev-app-two-web.scind.test
-app-three   lite     stopped  0/2 running      —
+APPLICATION  FLAVOR   STATUS   SERVICES         URL
+frontend    full     running  3/3 running      https://dev-frontend-web.scind.test
+backend     full     running  5/5 running      https://dev-backend-api.scind.test
+shared-db   default  stopped  0/2 running      —
 ```
 
 ---
@@ -547,9 +560,9 @@ scind app list [flags]
 **Output**:
 ```
 NAME       FLAVOR   STATUS   SERVICES  PATH
-app-one    default  running  3/3       ./app-one
-app-two    full     running  5/5       ./app-two
-app-three  lite     stopped  0/2       ./app-three
+frontend   full     running  3/3       ./frontend
+backend    full     running  5/5       ./backend
+shared-db  default  stopped  0/2       ./shared-db
 ```
 
 ---
@@ -569,6 +582,11 @@ scind app show [flags]
 | `-a, --app` | Target application (or use context) |
 
 **Output**: Application configuration, exported services, current flavor, computed hostnames and ports.
+
+**Example**:
+```bash
+scind app show --app=backend
+```
 
 ---
 
@@ -723,6 +741,11 @@ scind app status [flags]
 | `-w, --workspace` | Target workspace (or use context) |
 | `-a, --app` | Target application (or use context) |
 
+**Example**:
+```bash
+scind app status --app=frontend
+```
+
 ---
 
 ## Flavor Commands
@@ -805,10 +828,10 @@ scind flavor set <flavor> [flags]
 **Example**:
 ```bash
 # Change flavor (regenerates config, warns if running)
-scind flavor set full --app=app-two
+scind flavor set full --app=backend
 
 # Apply to running application
-scind app restart --app=app-two
+scind app restart --app=backend
 ```
 
 ---
@@ -816,6 +839,8 @@ scind app restart --app=app-two
 ## Port Commands
 
 Manage host port assignments for `assigned`-type services.
+
+> **Port Types**: Services can expose `proxied` ports (through Traefik reverse proxy) or `assigned` ports (direct host binding). Port commands manage assigned ports only; proxied ports are handled automatically through the proxy. See [ADR-0007: Port Type System](../decisions/0007-port-type-system.md).
 
 ### `scind port list`
 
@@ -833,20 +858,20 @@ scind port list [flags]
 
 **Output**:
 ```
-PORT   WORKSPACE  APP      SERVICE  STATUS
-5432   dev        app-one  db       assigned
-5433   dev        app-two  db       assigned
-5434   review     app-one  db       assigned
-6379   dev        app-one  cache    assigned
+PORT   WORKSPACE  APP        SERVICE  STATUS
+5432   dev        shared-db  db       assigned
+6379   dev        shared-db  cache    assigned
+8080   dev        frontend   web      assigned
+3000   dev        backend    api      assigned
 ```
 
 With `--verbose`:
 ```
-PORT   WORKSPACE  APP      SERVICE  STATUS    BOUND
-5432   dev        app-one  db       assigned  yes
-5433   dev        app-two  db       assigned  yes
-5434   review     app-one  db       assigned  no
-6379   dev        app-one  cache    assigned  yes
+PORT   WORKSPACE  APP        SERVICE  STATUS    BOUND
+5432   dev        shared-db  db       assigned  yes
+6379   dev        shared-db  cache    assigned  yes
+8080   dev        frontend   web      assigned  yes
+3000   dev        backend    api      assigned  no
 ```
 
 ---
@@ -1186,9 +1211,9 @@ scind compose-prefix [flags]
 
 **Output**:
 ```bash
-$ cd ~/workspaces/dev/app-one
+$ cd ~/workspaces/dev/frontend
 $ scind compose-prefix
-docker compose -p dev-app-one -f '/home/user/workspaces/dev/app-one/docker-compose.yaml' -f '/home/user/workspaces/dev/.generated/app-one.override.yaml'
+docker compose -p dev-frontend -f '/home/user/workspaces/dev/frontend/docker-compose.yaml' -f '/home/user/workspaces/dev/.generated/frontend.override.yaml'
 ```
 
 **Error Handling**:
@@ -1236,16 +1261,16 @@ scind init-shell fish >> ~/.config/fish/conf.d/scind.fish
 **Example Usage** (after installation):
 ```bash
 # From within an application directory
-$ cd ~/workspaces/dev/app-one
-$ scind-compose exec php bash
+$ cd ~/workspaces/dev/frontend
+$ scind-compose exec node bash
 $ scind-compose logs -f
 
 # From workspace root with explicit app
 $ cd ~/workspaces/dev
-$ scind-compose -a app-two ps
+$ scind-compose -a backend ps
 
 # From anywhere with explicit workspace and app
-$ scind-compose -w dev -a app-one up -d
+$ scind-compose -w dev -a frontend up -d
 ```
 
 ---
@@ -1287,6 +1312,12 @@ scind validate [flags]
 - Verifies referenced files exist
 - Reports errors with file locations
 
+**Example**:
+```bash
+scind validate --workspace=dev
+scind validate --workspace=dev --app=frontend
+```
+
 ---
 
 ### `scind doctor`
@@ -1308,8 +1339,8 @@ Checking Scind environment...
 ✓ Config directory: ~/.config/scind
 ✓ Domain resolution: scind.test → 127.0.0.1
 ✓ Workspace domains:
-  - dev-app-one-web.scind.test → 127.0.0.1
-  - dev-app-two-api.scind.test → 127.0.0.1
+  - dev-frontend-web.scind.test → 127.0.0.1
+  - dev-backend-api.scind.test → 127.0.0.1
 
 All checks passed.
 ```
@@ -1364,9 +1395,9 @@ scind urls [flags]
 **Output**:
 ```
 APP        SERVICE  URL
-app-one    web      https://dev-app-one-web.scind.test
-app-two    web      https://dev-app-two-web.scind.test
-app-two    api      https://dev-app-two-api.scind.test
+frontend   web      https://dev-frontend-web.scind.test
+backend    web      https://dev-backend-web.scind.test
+backend    api      https://dev-backend-api.scind.test
 ```
 
 ---
@@ -1393,6 +1424,37 @@ $ scind workspace list --json
 $ scind workspace list --quiet
 dev
 review
+```
+
+---
+
+### `scind completion`
+
+Generate shell completion scripts.
+
+```bash
+scind completion {bash|zsh|fish}
+```
+
+**Subcommands**:
+
+| Command | Description |
+|---------|-------------|
+| `completion bash` | Generate Bash completion script |
+| `completion zsh` | Generate Zsh completion script |
+| `completion fish` | Generate Fish completion script |
+
+**Installation**:
+
+```bash
+# Bash
+scind completion bash > /etc/bash_completion.d/scind
+
+# Zsh
+scind completion zsh > "${fpath[1]}/_scind"
+
+# Fish
+scind completion fish > ~/.config/fish/completions/scind.fish
 ```
 
 ---
@@ -1456,6 +1518,7 @@ This provides:
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `SCIND_CONFIG` | Path to global config file | `~/.config/scind/proxy.yaml` |
+| `SCIND_STATE_DIR` | State file directory | `~/.config/scind` |
 | `SCIND_WORKSPACE` | Default workspace (overrides context detection) | — |
 | `NO_COLOR` | Disable colored output | — |
 | `SCIND_DEBUG` | Enable debug logging | — |
@@ -1527,8 +1590,8 @@ scind-compose logs -f       # Tail frontend logs (context detected)
 scind app restart           # Restart after changes
 
 # Direct Docker Compose interaction (uses scind-compose)
-scind-compose exec php bash          # Shell into container
-scind-compose exec php php artisan   # Run artisan command
+scind-compose exec node bash         # Shell into container
+scind-compose exec node npm run dev  # Run npm command
 
 # Check on another app
 scind app status -a backend
@@ -1543,19 +1606,19 @@ scind down
 
 ```bash
 # scind-compose provides context-aware docker compose access
-cd ~/workspaces/dev/app-one
+cd ~/workspaces/dev/frontend
 
 # These are equivalent:
-scind-compose exec php bash
+scind-compose exec node bash
 # ...to running:
-docker compose -p dev-app-one \
-  -f ~/workspaces/dev/app-one/docker-compose.yaml \
-  -f ~/workspaces/dev/.generated/app-one.override.yaml \
-  exec php bash
+docker compose -p dev-frontend \
+  -f ~/workspaces/dev/frontend/docker-compose.yaml \
+  -f ~/workspaces/dev/.generated/frontend.override.yaml \
+  exec node bash
 
 # Target different app from workspace root
 cd ~/workspaces/dev
-scind-compose -a app-two logs -f php
+scind-compose -a backend logs -f api
 
 # Full docker compose functionality with tab completion
 scind-compose build --no-cache php

@@ -1,7 +1,6 @@
-<!-- Migrated from specs/scind-go-stack.md:1-180 -->
-<!-- Extraction ID: impl-go-stack -->
-
 # Go Technology Stack
+
+> **Note**: Throughout this document and related implementation files, `yourorg` is used as a placeholder for the GitHub organization or username. Replace with your actual organization name when initializing the project (e.g., `github.com/mycompany/scind`).
 
 ## Stack Overview
 
@@ -67,6 +66,14 @@ github.com/compose-spec/compose-go/v2 v2.4.0
 |---------|---------|
 | **docker/docker** | Official Docker SDK—network creation/inspection, container listing with label filters, event streaming. This is the canonical SDK (same code as Docker CLI). |
 | **go-plugin** (future) | HashiCorp's gRPC-based plugin system for protocol handlers. Provides process isolation, crash recovery, and language-agnostic plugins. Battle-tested in Terraform, Vault, Packer. |
+
+### External Dependencies
+
+| Component | Version | Purpose | ADR |
+|-----------|---------|---------|-----|
+| **Docker** | >= 24.0 | Container runtime with Compose V2 | [ADR-0001](../decisions/0001-docker-compose-project-name-isolation.md) |
+| **Docker Compose** | >= 2.20 | Multi-container orchestration | [ADR-0003](../decisions/0003-pure-overlay-design.md) |
+| **Traefik** | v3.2.3 | Reverse proxy and TLS termination | [ADR-0008](../decisions/0008-traefik-reverse-proxy.md) |
 
 ### Intentionally Excluded
 
@@ -185,14 +192,14 @@ func TestGenerateOverrideFile(t *testing.T) {
     afero.WriteFile(fs, "/workspace/workspace.yaml", []byte(`...`), 0644)
 
     // Create test application.yaml
-    afero.WriteFile(fs, "/workspace/app-one/application.yaml", []byte(`...`), 0644)
+    afero.WriteFile(fs, "/workspace/frontend/application.yaml", []byte(`...`), 0644)
 
     // Run generator
     gen := generator.New(fs)
     err := gen.Generate("/workspace")
 
     // Assert override file was created correctly
-    content, _ := afero.ReadFile(fs, "/workspace/.generated/app-one.override.yaml")
+    content, _ := afero.ReadFile(fs, "/workspace/.generated/frontend.override.yaml")
     assert.Contains(t, string(content), "dev-internal")
 }
 ```
@@ -200,3 +207,29 @@ func TestGenerateOverrideFile(t *testing.T) {
 ### Integration Tests
 
 Use Docker-in-Docker or testcontainers for integration tests that verify actual Docker Compose behavior.
+
+## Version Constraints
+
+| Dependency | Minimum | Reason |
+|------------|---------|--------|
+| Go | 1.21 | Required for `log/slog` structured logging |
+| Docker | 24.0 | Compose V2 integration as `docker compose` subcommand |
+| Docker Compose | 2.20 | Required compose features (project isolation, label support) |
+| Traefik | 3.0 | V3 API and configuration format |
+
+## Version Handling
+
+Version information is injected at build time via ldflags:
+
+```bash
+go build -ldflags "-X main.version=1.0.0 -X main.commit=$(git rev-parse HEAD) -X main.date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" ./cmd/scind
+```
+
+The goreleaser configuration handles this automatically for releases. See [goreleaser.yaml](appendices/tech-stack/goreleaser.yaml) for the complete release configuration.
+
+## Related Documents
+
+- [CLI Scaffolding](cli-scaffolding.md) — Cobra command structure and scaffolding instructions
+- [Project Layout](project-layout.md) — Directory structure and file organization
+- [CLI Reference](../reference/cli.md) — Command documentation
+- [Configuration Reference](../reference/configuration.md) — Configuration options

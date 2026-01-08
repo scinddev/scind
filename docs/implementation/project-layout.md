@@ -54,6 +54,7 @@ scind/
 │   │
 │   ├── workspace/                  # Workspace operations
 │   │   ├── lifecycle.go            # up, down, restart logic
+│   │   ├── destroy.go              # workspace destroy implementation
 │   │   ├── status.go               # Status aggregation
 │   │   └── clone.go                # Git clone operations
 │   │

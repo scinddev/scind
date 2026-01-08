@@ -1,6 +1,3 @@
-<!-- Migrated from specs/scind-technical-spec.md:708-765 -->
-<!-- Extraction ID: spec-generated-manifest -->
-
 ## Generated Manifest
 
 **Location**: `{workspace}/.generated/manifest.yaml` (gitignored)
@@ -24,37 +21,41 @@ proxy:
   domain: scind.test
 
 applications:
-  app-one:
-    flavor: default
-    project: dev-app-one
+  frontend:
+    flavor: full
+    project: dev-frontend
     exported_services:
       web:
         service: web                      # Underlying Compose service
-        alias: app-one-web                # Internal network alias
+        alias: frontend-web               # Internal network alias
         ports:
           - type: proxied
             protocol: https
             container_port: 443
             visibility: public
-            hostname: dev-app-one-web.scind.test
+            hostname: dev-frontend-web.scind.test
         environment:
-          SCIND_APP_ONE_WEB_HOST: dev-app-one-web.scind.test
-          SCIND_APP_ONE_WEB_PORT: 443
-          SCIND_APP_ONE_WEB_SCHEME: https
-          SCIND_APP_ONE_WEB_URL: https://dev-app-one-web.scind.test
-          SCIND_APP_ONE_WEB_HTTPS_HOST: dev-app-one-web.scind.test
-          SCIND_APP_ONE_WEB_HTTPS_PORT: 443
-          SCIND_APP_ONE_WEB_HTTPS_URL: https://dev-app-one-web.scind.test
+          SCIND_FRONTEND_WEB_HOST: dev-frontend-web.scind.test
+          SCIND_FRONTEND_WEB_PORT: 443
+          SCIND_FRONTEND_WEB_SCHEME: https
+          SCIND_FRONTEND_WEB_URL: https://dev-frontend-web.scind.test
+          SCIND_FRONTEND_WEB_HTTPS_HOST: dev-frontend-web.scind.test
+          SCIND_FRONTEND_WEB_HTTPS_PORT: 443
+          SCIND_FRONTEND_WEB_HTTPS_URL: https://dev-frontend-web.scind.test
 
+  shared-db:
+    flavor: default
+    project: dev-shared-db
+    exported_services:
       db:
         service: postgres
-        alias: app-one-db
+        alias: shared-db-db
         ports:
           - type: assigned
             container_port: 5432
             host_port: 5432
             visibility: protected
         environment:
-          SCIND_APP_ONE_DB_HOST: app-one-db
-          SCIND_APP_ONE_DB_PORT: 5432
+          SCIND_SHARED_DB_DB_HOST: shared-db-db
+          SCIND_SHARED_DB_DB_PORT: 5432
 ```

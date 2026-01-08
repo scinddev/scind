@@ -1,6 +1,3 @@
-<!-- Migrated from specs/scind-prd.md:273-289 -->
-<!-- Extraction ID: adr-0009-flexible-tls-configuration -->
-
 # Flexible TLS Configuration
 
 **Status**: Accepted
@@ -24,3 +21,7 @@ Support three TLS modes via `proxy.yaml`:
 - `auto` provides zero-config HTTPS for most users with mkcert installed
 - `custom` supports enterprise environments where developers already have CA-signed certs
 - Avoids mandating a specific certificate tool while still enabling secure-by-default development
+
+## Related Decisions
+
+- [ADR-0008: Traefik for Reverse Proxy](0008-traefik-reverse-proxy.md) - Traefik performs TLS termination

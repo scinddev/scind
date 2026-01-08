@@ -64,6 +64,7 @@ brews:
     folder: Formula
     install: |
       bin.install "scind"
+      generate_completions_from_executable(bin/"scind", "completion")
     test: |
       system "#{bin}/scind", "--version"
 
@@ -94,6 +95,7 @@ release:
     ```bash
     brew install yourorg/tap/scind
     ```
+    Shell completions are installed automatically with Homebrew.
 
     ### Binary
     Download the appropriate binary for your platform from the assets below.
@@ -101,4 +103,19 @@ release:
     ### From Source
     ```bash
     go install github.com/yourorg/scind/cmd/scind@v{{ .Version }}
+    ```
+
+    ### Shell Completions
+
+    Generate shell completions after installation:
+
+    ```bash
+    # Bash
+    scind completion bash > ~/.local/share/bash-completion/completions/scind
+
+    # Zsh
+    scind completion zsh > "${fpath[1]}/_scind"
+
+    # Fish
+    scind completion fish > ~/.config/fish/completions/scind.fish
     ```

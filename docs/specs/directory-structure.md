@@ -1,6 +1,3 @@
-<!-- Migrated from specs/scind-technical-spec.md:137-214 -->
-<!-- Extraction ID: spec-directory-structure -->
-
 ## Directory Structure
 
 ### Standard Multi-Application Workspace
@@ -8,7 +5,8 @@
 ```
 ~/.config/scind/
 ├── proxy.yaml                        # Global proxy configuration
-└── state.yaml                        # Global port assignments and inventory
+├── state.yaml                        # Global port assignments and inventory
+└── workspaces.yaml                   # Workspace registry
 
 workspaces/
 ├── proxy/
@@ -20,26 +18,26 @@ workspaces/
 │   ├── workspace.yaml                # Workspace configuration (structure)
 │   │
 │   ├── overrides/                    # Manual overrides (optional, workspace-specific)
-│   │   └── app-two.yaml              # Merged after generated config
+│   │   └── backend.yaml              # Merged after generated config
 │   │
 │   ├── .generated/                   # Generated files (gitignored)
 │   │   ├── state.yaml                # Runtime state (active flavors)
 │   │   ├── manifest.yaml             # Computed values (read-only)
-│   │   ├── app-one.override.yaml     # Generated compose override
-│   │   ├── app-two.override.yaml
-│   │   └── app-three.override.yaml
+│   │   ├── frontend.override.yaml    # Generated compose override
+│   │   ├── backend.override.yaml
+│   │   └── shared-db.override.yaml
 │   │
-│   ├── app-one/                      # Cloned application repository
+│   ├── frontend/                     # Cloned application repository
 │   │   ├── docker-compose.yaml       # Application's compose file (app-owned)
 │   │   ├── application.yaml          # Service contract + flavors (app-owned)
 │   │   └── ...
-│   ├── app-two/
+│   ├── backend/
 │   │   ├── docker-compose.yaml
 │   │   ├── docker-compose.worker.yaml
 │   │   ├── docker-compose.extras.yaml
 │   │   ├── application.yaml
 │   │   └── ...
-│   └── app-three/
+│   └── shared-db/
 │       ├── docker-compose.yaml
 │       ├── application.yaml
 │       └── ...

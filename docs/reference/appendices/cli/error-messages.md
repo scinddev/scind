@@ -65,7 +65,7 @@ Either:
   1. Run from within an application directory
   2. Specify explicitly: scind app status --app=NAME
 
-Available apps in 'dev': app-one, app-two, app-three
+Available apps in 'dev': frontend, backend, shared-db
 ```
 
 ---
@@ -97,7 +97,7 @@ Error: Invalid configuration in ./application.yaml
 ```bash
 $ scind up
 Error: Flavor "full" references non-existent file: docker-compose.worker.yaml
-  Application: app-two
+  Application: backend
   Available compose files: docker-compose.yaml, docker-compose.dev.yaml
 ```
 
@@ -118,9 +118,9 @@ Error: Exported service "api" references non-existent Compose service: backend
 
 ```bash
 $ scind up
-Error: Port conflict detected for app-one
+Error: Port conflict detected for frontend
 
-Port 5432 is assigned to app-one/postgres but is no longer available.
+Port 5432 is assigned to frontend/postgres but is no longer available.
 Another process may be using this port.
 
 To resolve:
@@ -196,6 +196,37 @@ Available workspaces: scind workspace list
 | 3 | Configuration error |
 | 4 | Docker/Compose error |
 | 5 | Context detection failed (workspace/app not found) |
+
+### Exit Code Examples
+
+#### Exit Code 0: Success
+
+```bash
+$ scind workspace up
+Starting workspace 'dev'...
+All services started successfully.
+$ echo $?
+0
+```
+
+#### Exit Code 1: General Error
+
+```bash
+$ scind workspace up
+Error: workspace.yaml not found in current directory
+$ echo $?
+1
+```
+
+#### Exit Code 2: Usage Error
+
+```bash
+$ scind workspace --invalid-flag
+Error: unknown flag: --invalid-flag
+Usage: scind workspace [command]
+$ echo $?
+2
+```
 
 ---
 

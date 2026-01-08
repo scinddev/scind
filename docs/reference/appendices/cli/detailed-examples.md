@@ -109,16 +109,16 @@ scind down
 The `scind-compose` function provides context-aware Docker Compose access:
 
 ```bash
-cd ~/workspaces/dev/app-one
+cd ~/workspaces/dev/frontend
 
 # These are equivalent:
-scind-compose exec php bash
+scind-compose exec node bash
 
 # ...to running:
-docker compose -p dev-app-one \
-  -f ~/workspaces/dev/app-one/docker-compose.yaml \
-  -f ~/workspaces/dev/.generated/app-one.override.yaml \
-  exec php bash
+docker compose -p dev-frontend \
+  -f ~/workspaces/dev/frontend/docker-compose.yaml \
+  -f ~/workspaces/dev/.generated/frontend.override.yaml \
+  exec node bash
 ```
 
 ### Targeting Different Apps
@@ -128,7 +128,7 @@ docker compose -p dev-app-one \
 cd ~/workspaces/dev
 
 # Target specific app with -a flag
-scind-compose -a app-two logs -f php
+scind-compose -a backend logs -f api
 
 # Build without cache
 scind-compose build --no-cache php
@@ -178,21 +178,21 @@ scind app restart -a backend
 scind port list
 
 # Output:
-# PORT   WORKSPACE  APP      SERVICE  STATUS
-# 5432   dev        app-one  db       assigned
-# 5433   dev        app-two  db       assigned
-# 5434   review     app-one  db       assigned
-# 6379   dev        app-one  cache    assigned
+# PORT   WORKSPACE  APP        SERVICE  STATUS
+# 5432   dev        shared-db  db       assigned
+# 6379   dev        shared-db  cache    assigned
+# 8080   dev        frontend   web      assigned
+# 3000   dev        backend    api      assigned
 
 # With bind status check
 scind port list --verbose
 
 # Output:
-# PORT   WORKSPACE  APP      SERVICE  STATUS    BOUND
-# 5432   dev        app-one  db       assigned  yes
-# 5433   dev        app-two  db       assigned  yes
-# 5434   review     app-one  db       assigned  no
-# 6379   dev        app-one  cache    assigned  yes
+# PORT   WORKSPACE  APP        SERVICE  STATUS    BOUND
+# 5432   dev        shared-db  db       assigned  yes
+# 6379   dev        shared-db  cache    assigned  yes
+# 8080   dev        frontend   web      assigned  yes
+# 3000   dev        backend    api      assigned  no
 ```
 
 ### Cleaning Up Stale Ports
@@ -218,7 +218,7 @@ scind port release 5432
 scind port release 5432 --force
 
 # Manually assign a port (advanced)
-scind port assign 5432 dev/app-one/db
+scind port assign 5432 dev/shared-db/db
 ```
 
 ---
@@ -400,8 +400,8 @@ scind doctor
 # ✓ Config directory: ~/.config/scind
 # ✓ Domain resolution: scind.test -> 127.0.0.1
 # ✓ Workspace domains:
-#   - dev-app-one-web.scind.test -> 127.0.0.1
-#   - dev-app-two-api.scind.test -> 127.0.0.1
+#   - dev-frontend-web.scind.test -> 127.0.0.1
+#   - dev-backend-api.scind.test -> 127.0.0.1
 #
 # All checks passed.
 ```
@@ -430,9 +430,9 @@ scind urls
 
 # Output:
 # APP        SERVICE  URL
-# app-one    web      https://dev-app-one-web.scind.test
-# app-two    web      https://dev-app-two-web.scind.test
-# app-two    api      https://dev-app-two-api.scind.test
+# frontend   web      https://dev-frontend-web.scind.test
+# backend    web      https://dev-backend-web.scind.test
+# backend    api      https://dev-backend-api.scind.test
 ```
 
 ---
@@ -441,3 +441,4 @@ scind urls
 
 - [CLI Reference](../../cli.md)
 - [Error Messages](./error-messages.md)
+- [Shell Integration](../../../specs/shell-integration.md) - Shell-specific integration features

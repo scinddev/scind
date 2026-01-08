@@ -1,6 +1,3 @@
-<!-- Migrated from specs/scind-prd.md:171-179 -->
-<!-- Extraction ID: adr-0002-two-layer-networking -->
-
 # Two-Layer Networking
 
 **Status**: Accepted

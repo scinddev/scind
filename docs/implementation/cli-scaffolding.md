@@ -1,7 +1,6 @@
-<!-- Migrated from specs/scind-go-stack.md:269-1525 -->
-<!-- Extraction ID: impl-cobra-structure -->
-
 # CLI Scaffolding
+
+> **Note**: `yourorg` is used as a placeholder for the GitHub organization or username. Replace with your actual organization name when initializing the project. See [Go Technology Stack](tech-stack.md) for the authoritative dependency list.
 
 This document provides scaffolding instructions for the Cobra-based CLI structure.
 
@@ -19,6 +18,7 @@ go mod init github.com/yourorg/scind
 ```bash
 go get github.com/spf13/cobra@v1.10.2
 go get github.com/spf13/viper@v1.21.0
+go get github.com/spf13/pflag@v1.0.10
 go get github.com/spf13/afero@v1.15.0
 go get github.com/Masterminds/sprig/v3@v3.3.0
 go get github.com/go-playground/validator/v10@v10.29.0
@@ -72,6 +72,7 @@ go build -o scind ./cmd/scind
 | `scind workspace down` | `workspaceCmd` → `workspaceDownCmd` | |
 | `scind workspace restart` | `workspaceCmd` → `workspaceRestartCmd` | |
 | `scind workspace status` | `workspaceCmd` → `workspaceStatusCmd` | |
+| `scind workspace destroy` | `workspaceCmd` → `workspaceDestroyCmd` | Removes workspace, containers, networks, optionally volumes |
 | `scind app list` | `appCmd` → `appListCmd` | |
 | `scind app show` | `appCmd` → `appShowCmd` | |
 | `scind app init` | `appCmd` → `appInitCmd` | |
@@ -116,7 +117,7 @@ go build -o scind ./cmd/scind
 
 ### Phase 1: Core CLI Structure
 1. Root command with context detection
-2. Workspace commands (init, up, down, status)
+2. Workspace commands (init, up, down, destroy, status)
 3. App commands (init, up, down, status)
 4. Basic configuration loading
 
@@ -142,3 +143,10 @@ go build -o scind ./cmd/scind
 1. Define plugin interface in `pkg/plugin`
 2. Integrate go-plugin
 3. Extract protocol handlers to plugins
+
+## Related Documents
+
+- [Go Technology Stack](tech-stack.md) — Authoritative dependency list and architecture patterns
+- [Project Layout](project-layout.md) — Directory structure and file organization
+- [CLI Reference](../reference/cli.md) — Command documentation
+- [Shell Integration](../specs/shell-integration.md) — Shell function and completion specifications

@@ -72,7 +72,7 @@ type Flavor struct {
 // - If the Compose service has exactly one port, use that port
 // - If the Compose service has multiple ports, return a clear error:
 //   Error: Port must be specified for exported service "web"
-//     Application: app-one
+//     Application: frontend
 //     Compose service "web" has multiple ports: 80, 443, 9229
 //     Specify which port to use in application.yaml
 //
@@ -80,5 +80,5 @@ type Flavor struct {
 // - At generate time, validate that all files in Flavor.ComposeFiles exist on disk
 // - If a file is missing, return a clear error:
 //   Error: Flavor "full" references non-existent file: docker-compose.worker.yaml
-//     Application: app-two
+//     Application: backend
 //     Available compose files: docker-compose.yaml, docker-compose.dev.yaml

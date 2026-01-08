@@ -23,4 +23,6 @@ This directory contains detailed technical specifications for Scind features and
 
 ## Appendices
 
+- [Generated Override Files](./appendices/generated-override-files/) - Override file examples
+- [Proxy Infrastructure](./appendices/proxy-infrastructure/) - Traefik configuration files
 - [Shell Integration Scripts](./appendices/shell-integration/) - Bash, Zsh, and Fish setup scripts
