@@ -232,7 +232,7 @@ For each document, check:
 > | Document | Missing Link | Should Link To |
 > |----------|--------------|----------------|
 > | `specs/proxy-infrastructure.md` | No ADR reference | Should link to ADR-0008 (Traefik) |
-> | `features/workspace.feature` | No spec reference | Should reference `specs/workspace-lifecycle.md` |
+> | `behaviors/workspace/workspace.feature` | No spec reference | Should reference `specs/workspace-lifecycle.md` |
 > | `specs/port-types.md` | No appendix link | Should link to `appendices/port-types/examples.md` |
 
 #### 5c: Add Missing Links

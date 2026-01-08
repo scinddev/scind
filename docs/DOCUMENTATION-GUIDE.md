@@ -257,6 +257,10 @@ Is this implementation scaffolding (code templates, dependencies)?
 - User journey examples with expected outcomes
 - "This behavior must not regress..."
 
+**Signals that indicate other layers**:
+- "The algorithm works by..." → Specification
+- "Command options include..." → Reference
+
 ### Layer 7: Implementation
 
 **Signals to look for**:
@@ -266,6 +270,96 @@ Is this implementation scaffolding (code templates, dependencies)?
 - Code templates
 - "Install these dependencies..."
 - "The project structure is..."
+
+---
+
+## Layer 6: Behaviors (Detailed Guidance)
+
+### Purpose
+
+Define expected behaviors in a way that can be automatically verified. Tests that double as documentation — **living documentation** that can never become outdated.
+
+### Characteristics
+
+- **Executable**: Run as part of CI/CD
+- **Living**: Fail when behavior changes
+- **Example-driven**: Concrete scenarios, not abstract
+- **User-focused**: Written from user perspective
+
+### The Living Documentation Advantage
+
+Gherkin feature files serve triple duty:
+
+1. **Specification** — Defines expected behavior before implementation
+2. **Documentation** — Always accurate because it's tested
+3. **Tests** — Executable validation that prevents regression
+
+If a Gherkin test passes, the documentation is accurate. If behavior changes, the test fails, forcing documentation updates.
+
+### What Belongs Here
+
+- Critical user journeys
+- Integration scenarios
+- Edge case behaviors
+- Regression-prevention tests
+
+### When to Use
+
+Use executable specs for:
+- Behaviors that have historically broken
+- Complex multi-step workflows
+- Integration points between components
+- Behaviors described in specifications that must not regress
+
+### Directory Structure
+
+Feature files are organized by domain:
+
+```
+behaviors/
+├── README.md
+├── {domain}/                    # e.g., workspace/, proxy/
+│   ├── {feature}.feature
+│   └── {another}.feature
+└── support/                     # optional: step definitions
+    └── step_definitions/
+```
+
+Example paths:
+- `behaviors/workspace/workspace-lifecycle.feature`
+- `behaviors/proxy/proxy-routing.feature`
+
+### Template
+
+```gherkin
+Feature: [Feature Name]
+  As a [role]
+  I want [capability]
+  So that [benefit]
+
+  Background:
+    Given [common precondition]
+
+  Scenario: [Scenario Name]
+    Given [initial context]
+    When [action is taken]
+    Then [expected outcome]
+
+  # Link to specification
+  # See: ../specs/{feature}.md
+```
+
+### Linking to Specifications
+
+Every behavior file should reference the specification it verifies:
+
+```gherkin
+# This feature verifies behaviors from:
+# See: ../specs/workspace-lifecycle.md
+
+Feature: Workspace Lifecycle
+  ...
+```
 
 ---
 
@@ -401,6 +495,13 @@ docs/
 │   └── appendices/
 │       ├── cli/
 │       └── configuration/
+│
+├── behaviors/                   # Layer 6: Behaviors
+│   ├── README.md
+│   ├── {domain}/               # e.g., workspace/, proxy/
+│   │   └── {feature}.feature
+│   └── support/                # optional: step definitions
+│       └── step_definitions/
 │
 ├── implementation/              # Layer 7: Implementation
 │   ├── README.md

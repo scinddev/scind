@@ -28,7 +28,7 @@ Adopt the Layered Documentation System (LDS) with seven distinct layers, each se
 | 3. Architecture | `architecture/` | Show HOW components relate | Evolving |
 | 4. Specifications | `specs/` | Detail HOW features work | Living |
 | 5. Reference | `reference/` | Provide lookup tables | Generated/maintained |
-| 6. Behaviors | `features/` | Verify expected behaviors | Executable |
+| 6. Behaviors | `behaviors/` | Verify expected behaviors | Executable |
 | 7. Implementation | `implementation/` | Guide HOW to build | Short-lived |
 
 Key principles of the system:

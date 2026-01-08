@@ -74,7 +74,7 @@ List all potentially affected documents:
 > - `docs/specs/appendices/{feature}/{detail}.md`
 > - `docs/reference/cli.md`
 > - `docs/reference/appendices/cli/detailed-examples.md`
-> - `features/{feature}.feature`
+> - `behaviors/{domain}/{feature}.feature`
 > - ...
 
 ---
@@ -267,7 +267,7 @@ Present a summary of all updates:
 > |----------|--------------|-------------|
 > | `docs/specs/X.md` | Updated Y behavior | 0.5.2 |
 > | `docs/reference/cli.md` | Added Z option | — |
-> | `features/X.feature` | Updated scenario | — |
+> | `behaviors/{domain}/X.feature` | Updated scenario | — |
 >
 > **Cross-Links Verified**: Yes
 >

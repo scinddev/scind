@@ -110,7 +110,7 @@ Execute Gherkin specifications to verify they match implementation:
 # Run Cucumber/Gherkin tests
 npm test
 # or
-cucumber-js features/
+cucumber-js docs/behaviors/
 # or equivalent for your test framework
 ```
 
