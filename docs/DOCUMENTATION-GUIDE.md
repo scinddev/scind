@@ -407,28 +407,28 @@ When content appears in multiple places, this hierarchy determines the canonical
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      MOST AUTHORITATIVE                      │
+│                      MOST AUTHORITATIVE                     │
 ├─────────────────────────────────────────────────────────────┤
 │  ADRs (Architectural Decision Records)                      │
 │  - Decisions are immutable once accepted                    │
 │  - If anything conflicts with ADR, ADR wins                 │
 ├─────────────────────────────────────────────────────────────┤
-│  Gherkin Feature Files                                       │
-│  - Executable specifications                                 │
-│  - If test passes, documentation is accurate                 │
+│  Gherkin Feature Files                                      │
+│  - Executable specifications                                │
+│  - If test passes, documentation is accurate                │
 ├─────────────────────────────────────────────────────────────┤
-│  Vision (PRD)                                                │
+│  Vision (PRD)                                               │
 │  - High-level "what" and "why"                              │
 ├─────────────────────────────────────────────────────────────┤
-│  Technical Specification                                     │
-│  - Architecture and schemas                                  │
+│  Technical Specification                                    │
+│  - Architecture and schemas                                 │
 ├─────────────────────────────────────────────────────────────┤
-│  Reference Documentation (CLI, Config)                       │
-│  - Factual, complete, lookup-oriented                        │
+│  Reference Documentation (CLI, Config)                      │
+│  - Factual, complete, lookup-oriented                       │
 ├─────────────────────────────────────────────────────────────┤
-│  Implementation Guides (Tech Stack)                          │
-│  - How to build, patterns to follow                          │
-│                     LEAST AUTHORITATIVE                      │
+│  Implementation Guides (Tech Stack)                         │
+│  - How to build, patterns to follow                         │
+│                     LEAST AUTHORITATIVE                     │
 └─────────────────────────────────────────────────────────────┘
 ```
 

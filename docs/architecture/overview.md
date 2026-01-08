@@ -123,13 +123,13 @@ The `scind` CLI orchestrates all workspace operations.
 
 ```
 ┌─────────────────────────────────────────────────┐
-│                   scind CLI                      │
+│                   scind CLI                     │
 ├─────────────────────────────────────────────────┤
 │  Commands: proxy | workspace | version | help   │
-├──────────┬──────────┬──────────┬───────────────┤
-│ Config   │ State    │ Generate │ Docker        │
-│ Reader   │ Manager  │ Engine   │ Compose       │
-└──────────┴──────────┴──────────┴───────────────┘
+├──────────┬──────────┬──────────┬────────────────┤
+│ Config   │ State    │ Generate │ Docker         │
+│ Reader   │ Manager  │ Engine   │ Compose        │
+└──────────┴──────────┴──────────┴────────────────┘
       │          │          │           │
       ▼          ▼          ▼           ▼
   *.yaml     state.yaml  .generated/  docker-compose
@@ -150,17 +150,17 @@ Scind uses a three-schema configuration system (see [ADR-0006](../decisions/0006
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    Configuration Flow                        │
+│                    Configuration Flow                       │
 ├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│  ~/.config/scind/           workspace/              app/     │
+│                                                             │
+│  ~/.config/scind/           workspace/              app/    │
 │  ┌──────────────┐    ┌─────────────────┐    ┌─────────────┐ │
 │  │  proxy.yaml  │    │ workspace.yaml  │    │application. │ │
 │  │  (global)    │    │ (per-workspace) │    │   yaml      │ │
 │  └──────┬───────┘    └────────┬────────┘    └──────┬──────┘ │
-│         │                     │                     │        │
+│         │                     │                    │        │
 │         └──────────┬──────────┴──────────┬─────────┘        │
-│                    ▼                     ▼                   │
+│                    ▼                     ▼                  │
 │              ┌───────────┐        ┌──────────────┐          │
 │              │  Generate │───────>│ .generated/  │          │
 │              │  Engine   │        │ override.yaml│          │
@@ -181,16 +181,16 @@ Scind separates structure (configuration) from state (runtime). See [ADR-0005](.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      State Files                             │
+│                      State Files                            │
 ├─────────────────────────────────────────────────────────────┤
-│                                                              │
+│                                                             │
 │  Global State (~/.config/scind/)                            │
 │  ┌────────────────────┐  ┌────────────────────┐             │
 │  │   state.yaml       │  │  workspaces.yaml   │             │
 │  │ - port_inventory   │  │ - registered       │             │
 │  │ - assigned_ports   │  │   workspaces       │             │
 │  └────────────────────┘  └────────────────────┘             │
-│                                                              │
+│                                                             │
 │  Per-Workspace State (workspace/.generated/)                │
 │  ┌────────────────────┐  ┌────────────────────┐             │
 │  │   state.yaml       │  │   manifest.yaml    │             │
@@ -208,9 +208,9 @@ Services expose ports via two mechanisms (see [ADR-0007](../decisions/0007-port-
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                     Port Types                               │
+│                     Port Types                              │
 ├─────────────────────────────────────────────────────────────┤
-│                                                              │
+│                                                             │
 │  PROXIED (through Traefik)         ASSIGNED (direct bind)   │
 │  ┌──────────────────────┐          ┌──────────────────────┐ │
 │  │   Browser/Client     │          │   Browser/Client     │ │
@@ -228,7 +228,7 @@ Services expose ports via two mechanisms (see [ADR-0007](../decisions/0007-port-
 │  │  └─────────────┘     │          │  └─────────────┘     │ │
 │  │                      │          │  (host port 15432)   │ │
 │  └──────────────────────┘          └──────────────────────┘ │
-│                                                              │
+│                                                             │
 │  Use for: HTTP/HTTPS apps          Use for: Databases,      │
 │                                    debug ports, non-HTTP    │
 └─────────────────────────────────────────────────────────────┘
