@@ -36,6 +36,12 @@ Application developers should update `application.yaml` when:
 - **Internal aliases** (all types): `{application}-{exported_service}` (e.g., `frontend-web`, `shared-db-db`)
 - **Environment variables**: `SCIND_{APPLICATION}_{EXPORTED_SERVICE}_{SUFFIX}` in SCREAMING_SNAKE_CASE
 - **Traefik router names**: `{workspace}-{application}-{exported_service}-{protocol}` (e.g., `dev-frontend-web-https`)
+- **Apex hostnames** (proxied primary export): `{workspace}-{application}.{domain}` (e.g., `dev-frontend.scind.test`)
+- **Apex internal aliases** (all primary exports): `{application}` (e.g., `frontend`)
+- **Apex Traefik router names** (proxied primary export): `{workspace}-{application}-{protocol}` (e.g., `dev-frontend-https`)
+- **Apex environment variables** (proxied primary export): `SCIND_{APPLICATION}_APEX_{SUFFIX}` (e.g., `SCIND_FRONTEND_APEX_URL`)
+
+**Implicit primary**: If an application has exactly one exported service, it is implicitly primary — no annotation needed. Apex patterns are only generated for the primary exported service. See [ADR-0013](../decisions/0013-apex-url-primary-designation.md) for the design rationale.
 
 **Collision warning**: Docker Compose project names, Traefik router names, volume names, and network names are derived from the naming patterns above. Creative naming that produces identical project names could cause conflicts:
 - **Traefik routers**: Conflicting router names cause routing failures
@@ -72,3 +78,4 @@ app-*/
 - [Port Types](./port-types.md) - How port types affect naming
 - [Generated Override Files](./generated-override-files.md) - Naming in generated Docker labels
 - [Docker Labels](./docker-labels.md) - Label naming conventions
+- [ADR-0013: Apex URL Primary Designation](../decisions/0013-apex-url-primary-designation.md) - Why `primary: true` field

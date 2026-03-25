@@ -53,6 +53,26 @@ labels:
   - "scind.export.debug.port.9000.assigned=9003"
 ```
 
+### Apex Labels
+
+Applied to the container running the primary exported service, when that export is proxied. These labels provide apex (application-level) hostname discovery:
+
+```
+scind.apex.host={apex_hostname}
+scind.apex.proxy.{protocol}.url={apex_url}
+```
+
+**Example** — frontend with web as implicit primary:
+```yaml
+labels:
+  - "scind.apex.host=dev-frontend.scind.test"
+  - "scind.apex.proxy.https.url=https://dev-frontend.scind.test"
+```
+
+These labels only appear on proxied primary exports. Assigned-port primary exports receive the apex internal alias but no apex Docker labels (since there is no hostname to advertise).
+
+See [ADR-0013](../decisions/0013-apex-url-primary-designation.md) for primary designation rules.
+
 ### Proxy Container Labels
 
 Applied to the Scind-managed Traefik proxy container:
@@ -79,6 +99,10 @@ These labels are added to containers to configure Traefik routing. They are gene
 Router names follow the pattern: `{workspace}-{application}-{service}-{protocol}`
 
 Example: `dev-frontend-web-https`
+
+**Apex router names** omit the service segment: `{workspace}-{application}-{protocol}`
+
+Example: `dev-frontend-https`
 
 #### Example Labels
 
@@ -114,3 +138,4 @@ docker inspect --format '{{index .Config.Labels "scind.workspace.path"}}' $(dock
 
 - [Proxy Infrastructure](proxy-infrastructure.md) - Traefik configuration and routing
 - [Generated Override Files](generated-override-files.md) - How labels are generated
+- [ADR-0013: Apex URL Primary Designation](../decisions/0013-apex-url-primary-designation.md) - Primary designation design

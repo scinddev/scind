@@ -26,6 +26,8 @@ workspace:
     hostname: "%WORKSPACE_NAME%-%APPLICATION_NAME%-%EXPORTED_SERVICE%.%PROXY_DOMAIN%"
     alias: "%APPLICATION_NAME%-%EXPORTED_SERVICE%"
     project-name: "%WORKSPACE_NAME%-%APPLICATION_NAME%"
+    hostname-apex: "%WORKSPACE_NAME%-%APPLICATION_NAME%.%PROXY_DOMAIN%"
+    alias-apex: "%APPLICATION_NAME%"
 ```
 
 ### frontend/application.yaml
@@ -75,6 +77,7 @@ flavors:
 
 exported_services:
   api:
+    primary: true                     # Explicit primary — gets apex URL
     service: node                     # Maps to Compose service "node"
     ports:
       - type: proxied
@@ -92,6 +95,8 @@ exported_services:
 ```
 
 ### shared-db/application.yaml
+
+Multiple exports, no primary — no apex URL generated:
 
 ```yaml
 exported_services:
@@ -357,17 +362,24 @@ applications:
       web:
         service: web
         alias: frontend-web
+        primary: true                     # Implicit (single export)
+        apex_alias: frontend
         ports:
           - type: proxied
             protocol: https
             port: 443
             visibility: public
             hostname: dev-frontend-web.scind.test
+            apex_hostname: dev-frontend.scind.test
         environment:
           SCIND_FRONTEND_WEB_HOST: dev-frontend-web.scind.test
           SCIND_FRONTEND_WEB_PORT: 443
           SCIND_FRONTEND_WEB_SCHEME: https
           SCIND_FRONTEND_WEB_URL: https://dev-frontend-web.scind.test
+          SCIND_FRONTEND_APEX_HOST: dev-frontend.scind.test
+          SCIND_FRONTEND_APEX_PORT: 443
+          SCIND_FRONTEND_APEX_SCHEME: https
+          SCIND_FRONTEND_APEX_URL: https://dev-frontend.scind.test
 ```
 
 ---

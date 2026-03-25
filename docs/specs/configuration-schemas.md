@@ -125,6 +125,8 @@ To resolve:
 ## Template Resolution Behavior
 
 > For template variable definitions, see [Configuration Reference - Template Variables](../reference/configuration.md#template-variables).
+>
+> Apex templates (`hostname-apex`, `alias-apex`) are resolved using the same mechanism but intentionally exclude the `%EXPORTED_SERVICE%` variable. See [Configuration Reference - Default Templates](../reference/configuration.md#default-templates).
 
 ### Resolution Timing
 
@@ -179,6 +181,27 @@ Use the `service:` property when the exported name differs from the Compose serv
 - Each exported service may have **multiple `assigned`** ports
 - If an exported service needs more than one http or https proxy mapping, create separate exported services
 
+### Primary Export Designation
+
+An exported service can be marked as the application's primary export by adding `primary: true`:
+
+- **Type**: Boolean, optional, defaults to `false`
+- **At most one** exported service per application may be marked `primary: true`
+- **Implicit primary**: When an application has exactly one exported service, it is implicitly primary (no annotation needed)
+- **No primary**: When an application has multiple exported services and none is marked `primary: true`, no apex URL is generated
+- **Validation error**: If more than one exported service is marked `primary: true`, Scind emits a validation error at generation time
+
+The primary export receives:
+
+- An **apex hostname** (proxied types only): `{workspace}-{application}.{domain}`
+- An **apex internal alias** (all types): `{application}`
+- **Apex environment variables** (proxied types only): `SCIND_{APPLICATION}_APEX_*`
+- **Apex Docker labels** (proxied types only): `scind.apex.*`
+
+For assigned-port primary exports, only the apex internal alias is created (no hostname, no apex environment variables, no apex labels).
+
+See [ADR-0013](../decisions/0013-apex-url-primary-designation.md) for the design rationale.
+
 ### Port Inference Rules
 
 - If the Compose service has exactly one port in its `ports:` configuration, that port is used as the default
@@ -202,3 +225,4 @@ Use the `service:` property when the exported name differs from the Compose serv
 - [Port Types Spec](./port-types.md) - Detailed port type behaviors
 - [Generated Override Files Spec](./generated-override-files.md) - Override file generation rules
 - [ADR-0006: Three Configuration Schemas](../decisions/0006-three-configuration-schemas.md) - Design rationale
+- [ADR-0013: Apex URL Primary Designation](../decisions/0013-apex-url-primary-designation.md) - Primary designation design
