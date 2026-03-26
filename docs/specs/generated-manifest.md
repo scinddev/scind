@@ -30,7 +30,7 @@ applications:
         ports:
           - type: proxied
             protocol: https
-            container_port: 443
+            container_port: 80
             visibility: public
             hostname: dev-frontend-web.scind.test
             apex_hostname: dev-frontend.scind.test

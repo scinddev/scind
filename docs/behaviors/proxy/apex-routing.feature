@@ -12,7 +12,7 @@ Feature: Apex URL Routing
     Given a workspace named "dev" with domain "scind.test"
 
   Scenario: Single export gets implicit apex hostname
-    Given an application "frontend" with a single proxied export "web" on port 80
+    Given an application "frontend" with a single proxied HTTPS export "web" on port 80
     When the override file is generated
     Then the service has a Traefik router "dev-frontend-web-https" for "dev-frontend-web.scind.test"
     And the service has an apex Traefik router "dev-frontend-https" for "dev-frontend.scind.test"
