@@ -11,12 +11,9 @@ The manifest is a computed, read-only view of the workspace's current state. It 
 
 ```yaml
 # AUTO-GENERATED - Computed from configuration and state
-# Generated: 2024-12-27T10:30:00Z
-
 workspace:
   name: dev
   network: dev-internal
-
 proxy:
   domain: scind.test
 
@@ -26,24 +23,26 @@ applications:
     project: dev-frontend
     exported_services:
       web:
-        service: web                      # Underlying Compose service
-        alias: frontend-web               # Internal network alias
+        service: web
+        alias: frontend-web
+        primary: true                     # Implicit (single export)
+        apex_alias: frontend              # Apex internal alias
         ports:
           - type: proxied
             protocol: https
-            container_port: 443
+            container_port: 80
             visibility: public
             hostname: dev-frontend-web.scind.test
+            apex_hostname: dev-frontend.scind.test
         environment:
-          SCIND_FRONTEND_WEB_HOST: dev-frontend-web.scind.test
-          SCIND_FRONTEND_WEB_PORT: 443
-          SCIND_FRONTEND_WEB_SCHEME: https
           SCIND_FRONTEND_WEB_URL: https://dev-frontend-web.scind.test
-          SCIND_FRONTEND_WEB_HTTPS_HOST: dev-frontend-web.scind.test
-          SCIND_FRONTEND_WEB_HTTPS_PORT: 443
-          SCIND_FRONTEND_WEB_HTTPS_URL: https://dev-frontend-web.scind.test
+          # ... additional export variables ...
+          SCIND_FRONTEND_APEX_HOST: dev-frontend.scind.test
+          SCIND_FRONTEND_APEX_PORT: 443
+          SCIND_FRONTEND_APEX_SCHEME: https
+          SCIND_FRONTEND_APEX_URL: https://dev-frontend.scind.test
 
-  shared-db:
+  shared-db:                              # Multi-export, no primary — no apex
     flavor: default
     project: dev-shared-db
     exported_services:

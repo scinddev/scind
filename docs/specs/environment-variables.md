@@ -23,6 +23,16 @@ SCIND_{APPLICATION}_{EXPORTED_SERVICE}_{PROTOCOL}_PORT={port}
 SCIND_{APPLICATION}_{EXPORTED_SERVICE}_{PROTOCOL}_URL={url}
 ```
 
+**Apex variables** (generated only for proxied primary exports):
+```
+SCIND_{APPLICATION}_APEX_HOST={apex_hostname}
+SCIND_{APPLICATION}_APEX_PORT={port}
+SCIND_{APPLICATION}_APEX_SCHEME={scheme}
+SCIND_{APPLICATION}_APEX_URL={url}
+```
+
+Apex environment variables follow the pattern `SCIND_{APPLICATION}_APEX_{SUFFIX}` — the exported service name segment is omitted. These are only injected when the application has a primary export with proxied ports. Assigned-port primary exports do not generate apex environment variables (they have no hostname). See [ADR-0013](../decisions/0013-apex-url-primary-designation.md) for primary designation rules.
+
 ### Variable Generation Rules
 
 **For `proxied` type ports**:
@@ -43,6 +53,8 @@ SCIND_{APPLICATION}_{EXPORTED_SERVICE}_{PROTOCOL}_URL={url}
 | `proxied` | `http` | Proxied hostname | 80 | `http` | ✓ | `*_HTTP_*` |
 | `proxied` | both | Proxied hostname | 443 | `https` | ✓ | Both |
 | `assigned` | - | Internal alias | Assigned port | ✗ | ✗ | ✗ |
+| `proxied` (primary) | `https` | Apex hostname | 443 | `https` | ✓ | `*_APEX_*` |
+| `assigned` (primary) | - | *(no apex env vars)* | - | - | - | *(alias only)* |
 
 **HTTPS-default rationale**: When both HTTP and HTTPS are configured for an exported service, base variables (`*_PORT`, `*_SCHEME`, `*_URL`) default to HTTPS (port 443) following security-by-default principles. Applications should prefer HTTPS for service-to-service communication. Use protocol-specific variables (`*_HTTP_*`) when HTTP is explicitly required.
 
@@ -89,3 +101,4 @@ These can also be set in `proxy.yaml` configuration.
 
 - [Configuration Schemas](configuration-schemas.md) - Configuration file formats
 - [Generated Override Files](generated-override-files.md) - How variables are injected
+- [ADR-0013: Apex URL Primary Designation](../decisions/0013-apex-url-primary-designation.md) - Primary designation design

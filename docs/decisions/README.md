@@ -18,6 +18,7 @@ This directory contains Architecture Decision Records (ADRs) documenting signifi
 | [0010](./0010-up-down-command-semantics.md) | up/down Command Semantics | Accepted |
 | [0011](./0011-options-based-targeting.md) | Options-Based Targeting | Accepted |
 | [0012](./0012-layered-documentation-system.md) | Layered Documentation System | Accepted |
+| [0013](./0013-apex-url-primary-designation.md) | Apex URL Primary Designation | Accepted |
 
 ## ADR Format
 

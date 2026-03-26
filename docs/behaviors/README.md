@@ -6,8 +6,6 @@ Executable behavior specifications for Scind.
 
 This directory contains Gherkin feature files that verify expected system behaviors. These serve as **living documentation** — if the tests pass, the documentation is accurate.
 
-*No behavior specifications have been added yet.*
-
 ## Directory Structure
 
 Feature files are organized by domain:

@@ -343,6 +343,10 @@ workspace:
 
     # Docker Compose project name
     project-name: "%WORKSPACE_NAME%-%APPLICATION_NAME%"
+
+    # Apex templates (for primary exported service)
+    hostname-apex: "%WORKSPACE_NAME%-%APPLICATION_NAME%.%PROXY_DOMAIN%"
+    alias-apex: "%APPLICATION_NAME%"
 ```
 
 ### Available Variables
@@ -360,6 +364,8 @@ workspace:
 | `%SERVICE_PROTOCOL%` | Export | Protocol (for proxied) | `https` |
 
 **Note on `%SERVICE_PORT%`**: This variable provides the container's internal port number. While not used in the default templates, it's available for advanced customization such as adding debugging labels or custom routing rules that need to reference the original container port (e.g., `scind.debug.port=%SERVICE_PORT%`).
+
+**Apex template note**: The `hostname-apex` and `alias-apex` templates intentionally exclude `%EXPORTED_SERVICE%` — it is not available in apex template resolution context. Referencing it in an apex template will produce an empty string.
 
 ### Template Resolution
 
@@ -446,6 +452,35 @@ ports:
 - If the Compose service has exactly one port in its `ports:` configuration, that port is used as the default
 - If the Compose service has multiple ports, `port:` must be explicitly specified
 - For Compose port mappings like `"80:8080"`, the container port (`8080`) is used
+
+### Primary Export Designation
+
+The `primary` field designates which exported service receives the apex URL:
+
+```yaml
+exported_services:
+  web:
+    primary: true
+    ports:
+      - type: proxied
+        protocol: https
+        visibility: public
+```
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `primary` | boolean | `false` | Designates this export as the application's primary service |
+
+**Rules:**
+
+- Single exported service: implicitly primary (no annotation needed)
+- Multiple exports + one `primary: true`: that one gets apex
+- Multiple exports + none marked primary: no apex URL generated
+- Multiple exports + more than one primary: **validation error**
+
+The primary export receives additional apex hostname, alias, Traefik routing, Docker labels, and environment variables. For assigned-port primary exports, only the apex internal alias is created.
+
+See [ADR-0013](../decisions/0013-apex-url-primary-designation.md) for the design rationale.
 
 ### Application Configuration Examples
 
@@ -917,6 +952,9 @@ workspaces/
 - **Internal aliases**: `{application}-{exported_service}` (e.g., `frontend-web`)
 - **Environment variables**: `SCIND_{APPLICATION}_{EXPORTED_SERVICE}_{SUFFIX}` in SCREAMING_SNAKE_CASE
 - **Traefik router names**: `{workspace}-{application}-{exported_service}-{protocol}`
+- **Apex hostnames** (proxied primary): `{workspace}-{application}.{domain}`
+- **Apex internal aliases** (all primary): `{application}`
+- **Apex Traefik router names**: `{workspace}-{application}-{protocol}`
 
 **Collision warning**: Docker Compose project names, Traefik router names, volume names, and network names are derived from the naming patterns above. Avoid names that could produce ambiguous concatenations.
 
@@ -929,4 +967,5 @@ workspaces/
 - [Docker Labels Spec](../specs/docker-labels.md) - Label conventions
 - [CLI Reference](./cli.md) - Commands that use these configurations
 - [ADR-0006: Three Configuration Schemas](../decisions/0006-three-configuration-schemas.md) - Design rationale
+- [ADR-0013: Apex URL Primary Designation](../decisions/0013-apex-url-primary-designation.md) - Primary designation design
 

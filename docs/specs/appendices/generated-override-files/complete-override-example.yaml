@@ -11,6 +11,7 @@ services:
       dev-internal:
         aliases:
           - frontend-web
+          - frontend                    # Apex alias (implicit primary)
       scind-proxy: {}                   # Connected to proxy for Traefik routing
     labels:
       # Traefik HTTPS router
@@ -28,12 +29,25 @@ services:
       - "scind.export.web.host=dev-frontend-web.scind.test"
       - "scind.export.web.proxy.https.visibility=public"
       - "scind.export.web.proxy.https.url=https://dev-frontend-web.scind.test"
+      # Apex Traefik HTTPS router (implicit primary)
+      - "traefik.http.routers.dev-frontend-https.rule=Host(`dev-frontend.scind.test`)"
+      - "traefik.http.routers.dev-frontend-https.entrypoints=websecure"
+      - "traefik.http.routers.dev-frontend-https.tls=true"
+      - "traefik.http.services.dev-frontend-https.loadbalancer.server.port=80"
+      # Apex labels
+      - "scind.apex.host=dev-frontend.scind.test"
+      - "scind.apex.proxy.https.url=https://dev-frontend.scind.test"
     environment:
       - SCIND_WORKSPACE_NAME=dev
       - SCIND_FRONTEND_WEB_HOST=dev-frontend-web.scind.test
       - SCIND_FRONTEND_WEB_PORT=443
       - SCIND_FRONTEND_WEB_SCHEME=https
       - SCIND_FRONTEND_WEB_URL=https://dev-frontend-web.scind.test
+      # Apex environment variables (implicit primary)
+      - SCIND_FRONTEND_APEX_HOST=dev-frontend.scind.test
+      - SCIND_FRONTEND_APEX_PORT=443
+      - SCIND_FRONTEND_APEX_SCHEME=https
+      - SCIND_FRONTEND_APEX_URL=https://dev-frontend.scind.test
       # ... additional environment variables ...
 
 networks:
