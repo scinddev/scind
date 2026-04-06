@@ -20,6 +20,7 @@ This directory contains detailed technical specifications for Scind features and
 - [Workspace Lifecycle](./workspace-lifecycle.md) - Operations and sequences
 - [Naming Conventions](./naming-conventions.md) - Best practices and conventions
 - [Shell Integration](./shell-integration.md) - scind-compose function spec
+- [Host Gateway Resolution](./host-gateway-resolution.md) - `host.docker.internal` normalization across platforms
 
 ## Appendices
 
