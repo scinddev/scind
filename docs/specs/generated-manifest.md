@@ -9,6 +9,12 @@ The manifest is a computed, read-only view of the workspace's current state. It 
 - **Debugging**: Inspect computed hostnames and environment variables without reconstructing from templates
 - **Caching**: Scind can compare the manifest against configuration to determine if regeneration is needed
 
+**Cacheable vs. non-cacheable content**: Staleness/regeneration distinguishes **config-derived content** (hostnames, aliases, labels — a pure function of configuration and flavor state, and therefore cacheable) from **live-state-derived content** (assigned `host_port` values and the discovery environment variables that embed them — a function of machine-local runtime state, and therefore *not* cacheable). Live-state-derived fields are re-resolved on every generation even when the config-based staleness check reports up-to-date. See [Workspace Lifecycle: Config-Derived vs. Live-State-Derived Content](./workspace-lifecycle.md#config-derived-vs-live-state-derived-content) and [Port Types](./port-types.md) (assigned values are live-state-derived).
+
+**Freshness contract**: The manifest is consumed **directly** by external tools (dashboards, DNS updaters, service discovery). It must therefore be written **after** assigned-port allocation completes and must reflect the **post-allocation** `host_port` and discovery-variable values — never a pre-allocation placeholder. See [Generation Logic](./workspace-lifecycle.md#generation-logic-workspace-generate), where the allocation step precedes the manifest write.
+
+**Separate host and container ports**: For an `assigned` export, the manifest represents `container_port` (the in-network port the service listens on) and `host_port` (the allocated, host-published port) as **separate** fields. They are distinct values — the container port comes from configuration, the host port is allocated from live state — and consumers must not conflate them.
+
 ```yaml
 # AUTO-GENERATED - Computed from configuration and state
 workspace:
@@ -58,3 +64,15 @@ applications:
           SCIND_SHARED_DB_DB_HOST: shared-db-db
           SCIND_SHARED_DB_DB_PORT: 5432
 ```
+
+### Portable Resolved-Configuration Snapshot
+
+Beyond the manifest, Scind can emit a **fully-resolved, flattened Compose
+configuration** on demand — the merge of base compose files, the generated
+override, and any manual overrides, with all variables resolved (the
+`docker compose config` equivalent). This can be written to stdout or to an
+arbitrary file, producing a portable, self-contained snapshot for external
+consumers such as devcontainers or CI that need the effective configuration
+without access to Scind or its template inputs. Validated by the Xcind
+proof-of-concept. (The specific CLI surface for requesting this snapshot is
+defined in the CLI specification.)

@@ -189,6 +189,24 @@ $ scind version
 scind version 0.2.3
 ```
 
+**Build provenance**: Release builds append SemVer build metadata to the version string so bug reports identify exactly what is running, regardless of install channel:
+
+```bash
+$ scind --version
+scind version 0.2.3+brew.a1b9c3f.clean.20250114
+```
+
+The suffix follows the SemVer `+` build-metadata grammar, with dot-separated fields in a fixed order:
+
+| Field | Meaning | Example |
+|-------|---------|---------|
+| source | Install channel the binary came from | `brew`, `deb`, `go-install`, `source` |
+| rev | Short git revision the build was cut from | `a1b9c3f` |
+| dirty | Working-tree state at build time | `clean` or `dirty` |
+| date | Build date, `YYYYMMDD` (UTC) | `20250114` |
+
+Fields are populated at build time and are informational only—because SemVer ignores build metadata when ordering versions, they never affect version comparison. Development builds without injected metadata fall back to a bare version (optionally `+source.unknown`). Credit to the Xcind proof-of-concept, which established the `+source.rev.dirty.date` shape for cross-channel bug triage.
+
 ### Output Behavior
 
 **Progress output**: Multi-application operations show per-application progress by default:
@@ -277,6 +295,62 @@ scind workspace prune [flags]
 scind workspace prune
 # Removed: old-project (path /home/user/old-project no longer exists)
 # Registry: 3 workspaces remaining
+```
+
+---
+
+### `scind workspace register`
+
+Add an existing workspace directory to the registry without re-running `init`.
+
+```bash
+scind workspace register <path>
+```
+
+**Arguments**:
+| Argument | Description |
+|----------|-------------|
+| `path` | Path to a directory containing a `workspace.yaml` |
+
+**Behavior**:
+- Reads `workspace.name` from the `workspace.yaml` at `path` and adds a `name → path` entry to the registry (`~/.config/scind/workspaces.yaml`)
+- Intended for a workspace that was **cloned but never run**, so it carries no Docker labels yet and would not be recoverable by a label-based `--rebuild`
+- Does not generate overrides, create networks, or start anything—registration is a pure registry write
+- Fails if the name is already registered to a different path (same uniqueness rule as `init`)
+
+**Example**:
+```bash
+git clone git@github.com:org/dev-workspace.git ~/workspaces/dev
+scind workspace register ~/workspaces/dev
+# Registered "dev" -> ~/workspaces/dev
+```
+
+This complements `workspace init` (which both scaffolds *and* registers): use `register` when the directory already exists. See [State Management](../specs/state-management.md) for the registry format. Credit to the Xcind proof-of-concept for fine-grained registry operations.
+
+---
+
+### `scind workspace forget`
+
+Remove a single workspace entry from the registry by path.
+
+```bash
+scind workspace forget <path>
+```
+
+**Arguments**:
+| Argument | Description |
+|----------|-------------|
+| `path` | Registered workspace path to drop |
+
+**Behavior**:
+- Removes the registry entry whose path matches `path`, leaving all other entries untouched
+- For a workspace that was **moved or deleted** outside Scind, without touching any files on disk
+- Unlike `workspace prune` (which validates and drops *all* stale entries) this targets exactly one entry; unlike `workspace destroy` it removes nothing but the registry line
+
+**Example**:
+```bash
+scind workspace forget ~/workspaces/old-dev
+# Forgot "old-dev" (~/workspaces/old-dev)
 ```
 
 ---
@@ -581,12 +655,113 @@ scind app show [flags]
 | `-w, --workspace` | Target workspace (or use context) |
 | `-a, --app` | Target application (or use context) |
 
-**Output**: Application configuration, exported services, current flavor, computed hostnames and ports.
+**Output**: Application configuration, current flavor, and a **unified per-export view**. The application's **apex URL** (`https://{app}.{domain}`, the short address users type) headlines the report when the primary export is proxied; each export is then listed with its full descriptor—type, service, port, URL, TLS, and whether it is the apex—merging proxied and assigned exports by export name.
+
+```
+$ scind app show --app=backend
+Application: backend   (workspace: dev)
+Flavor:      full
+Apex URL:    https://dev-backend.scind.test   → api
+
+EXPORT  TYPE      SERVICE  PORT  TLS  URL
+api     proxied   api      —     yes  https://dev-backend-api.scind.test   (apex)
+web     proxied   web      —     yes  https://dev-backend-web.scind.test
+debug   assigned  api      9229  —    —
+```
+
+The per-export descriptor rendered here is defined once in the [Port Types Specification](../specs/port-types.md); its machine-readable form is the `proxiedExports`/`assignedExports` maps of the [JSON introspection contract](#json-introspection-contract), plus the additive `apex`/`apex_host` fields. Which export is the apex follows [ADR-0013](../decisions/0013-apex-url-primary-designation.md); reporting the apex URL prominently comes from the Xcind proof-of-concept.
 
 **Example**:
 ```bash
 scind app show --app=backend
 ```
+
+---
+
+### `scind app urls`
+
+Print the URLs for an application's proxied exports.
+
+```bash
+scind app urls [SERVICE] [flags]
+```
+
+**Arguments**:
+| Argument | Description |
+|----------|-------------|
+| `SERVICE` | Optional export name to filter to a single export |
+
+**Flags**:
+| Flag | Description |
+|------|-------------|
+| `-w, --workspace` | Target workspace (or use context) |
+| `-a, --app` | Target application (or use context) |
+| `-q, --quiet` | Emit the bare value(s) only, one per line—no headers |
+
+**Behavior**: Reads from persisted state only ([read-only and side-effect-free](#json-introspection-contract)). With no `SERVICE`, lists every proxied export; with a `SERVICE`, prints just that export's URL. When a single value results (a filtered `SERVICE`, or an app with one proxied export), `-q` prints a bare scalar suitable for scripting:
+
+```bash
+# Open the web export in a browser
+open "$(scind app urls web -q)"
+# https://dev-frontend-web.scind.test
+
+$ scind app urls
+EXPORT  URL
+web     https://dev-frontend-web.scind.test
+api     https://dev-frontend-api.scind.test
+```
+
+The `--json` form is the `proxiedExports` map of the [JSON introspection contract](#json-introspection-contract).
+
+---
+
+### `scind app ports`
+
+Print the host ports for an application's assigned exports.
+
+```bash
+scind app ports [SERVICE] [flags]
+```
+
+**Arguments**:
+| Argument | Description |
+|----------|-------------|
+| `SERVICE` | Optional export name to filter to a single export |
+
+**Flags**:
+| Flag | Description |
+|------|-------------|
+| `-w, --workspace` | Target workspace (or use context) |
+| `-a, --app` | Target application (or use context) |
+| `-q, --quiet` | Emit the bare value(s) only, one per line—no headers |
+
+**Behavior**: Read-only. Lists assigned host ports, or the single port for a named `SERVICE`. `-q` yields a bare scalar for scripting (e.g. `psql -p "$(scind app ports db -q)"`). The `--json` form is the `assignedExports` map of the [JSON introspection contract](#json-introspection-contract).
+
+---
+
+### `scind app exports`
+
+Show every export of an application in one unified view, merging proxied and assigned exports by export name.
+
+```bash
+scind app exports [SERVICE] [flags]
+```
+
+**Arguments**:
+| Argument | Description |
+|----------|-------------|
+| `SERVICE` | Optional export name to filter to a single export |
+
+**Flags**:
+| Flag | Description |
+|------|-------------|
+| `-w, --workspace` | Target workspace (or use context) |
+| `-a, --app` | Target application (or use context) |
+| `-q, --quiet` | Names only, one per line |
+
+**Behavior**: Read-only. Renders the full [per-export descriptor](../specs/port-types.md) (type, service, port, URL, TLS, apex) for each export—the same tabular view that headlines `scind app show`. The `--json` form is the combined `proxiedExports`/`assignedExports` maps of the [JSON introspection contract](#json-introspection-contract).
+
+Together, `app urls`, `app ports`, and `app exports` give per-app, scriptable introspection to complement the workspace-wide `scind urls`. Credit to the Xcind proof-of-concept for the per-app scalar introspection surface.
 
 ---
 
@@ -1233,6 +1408,37 @@ Available workspaces: scind workspace list
 
 ---
 
+### `scind compose-config`
+
+Output the fully-resolved, flattened Docker Compose configuration for an application to stdout or a file. This is `docker compose config` for the resolved Scind context: the active flavor's base compose files plus the generated override, merged and interpolated into a single canonical document.
+
+```bash
+scind compose-config [flags]
+```
+
+**Flags**:
+| Flag | Description |
+|------|-------------|
+| `-w, --workspace` | Target workspace (or use context) |
+| `-a, --app` | Target application (or use context) |
+| `-o, --output <path>` | Write to `path` instead of stdout |
+
+**Behavior**:
+- Resolves the active flavor's compose files and the `.generated/` override, then emits the merged, fully-interpolated result
+- **Distinct from `scind generate`**, which writes *override deltas* to a fixed `.generated/` path; `compose-config` produces the *complete resolved document* on demand, to stdout or an arbitrary location
+- Read-only with respect to Scind state (does not regenerate as a side effect)
+
+**Dev Container consumer path**: The primary use is baking a resolved configuration into a snapshot that a `devcontainer.json` references, so the container build sees one self-contained compose file with the project name and services already resolved:
+
+```bash
+scind compose-config -a backend -o .devcontainer/compose.snapshot.yaml
+# .devcontainer/devcontainer.json → "dockerComposeFile": "compose.snapshot.yaml"
+```
+
+Credit to the Xcind proof-of-concept (Xcind ADR-0012) for the resolved-config export and its Dev Container consumer path.
+
+---
+
 ### `scind init-shell`
 
 Output shell integration script for the specified shell. This script provides the `scind-compose` function and its completion.
@@ -1272,6 +1478,79 @@ $ scind-compose -a backend ps
 # From anywhere with explicit workspace and app
 $ scind-compose -w dev -a frontend up -d
 ```
+
+---
+
+### `scind generate-wrappers`
+
+Generate real, executable `docker` and `docker-compose` wrapper scripts for the current context.
+
+```bash
+scind generate-wrappers [flags]
+```
+
+**Flags**:
+| Flag | Description |
+|------|-------------|
+| `-w, --workspace` | Target workspace (or use context) |
+| `-a, --app` | Target application (or use context) |
+| `--dir <path>` | Directory to write the wrapper scripts into (default: `./.scind/bin`) |
+
+**Behavior**:
+- Writes two executable scripts—`docker` and `docker-compose`—into `--dir`, each embedding the **resolved project name and compose files** for the context (the same `-p`/`-f` set that `scind compose-prefix` emits)
+- Invoking a wrapper on PATH runs the corresponding Docker command with the Scind project name and `-f` files already injected, then passes the remaining arguments through
+- The scripts are real files on disk, so they work for tools that **exec a literal binary named `docker` or `docker-compose` on PATH** and cannot call a shell function
+
+**Use case**: The `scind-compose` shell function is unavailable to tools that don't run through the user's interactive shell—**JetBrains IDEs, CI runners, and other harnesses** that resolve `docker`/`docker-compose` from PATH. Point such a tool at the generated `--dir` (prepend it to PATH, or set the IDE's Docker executable path) and it becomes Scind-aware transparently.
+
+```bash
+$ scind generate-wrappers -a backend --dir .scind/bin
+Wrote .scind/bin/docker
+Wrote .scind/bin/docker-compose
+
+# Any tool that execs `docker-compose` from this PATH is now workspace-aware
+$ PATH=".scind/bin:$PATH" docker-compose ps
+```
+
+**This complements, not replaces, `scind-compose`.** Interactive shells should keep using the `scind-compose` function (nothing to regenerate when context changes); the wrapper scripts exist specifically for the exec-a-binary case. See the [Shell Integration Specification](../specs/shell-integration.md#docker-wrapper-scripts) for details. Credit to the Xcind proof-of-concept.
+
+---
+
+### `scind prompt`
+
+Render a context-aware prompt segment for the current workspace/app, and generate a ready-to-paste Starship snippet that calls it.
+
+```bash
+scind prompt [flags]
+scind prompt --generate starship [flags]
+```
+
+**Flags**:
+| Flag | Description |
+|------|-------------|
+| `--generate <shell-tool>` | Emit an integration snippet instead of rendering. Currently: `starship`. |
+| `--print <field>` | Print a single field only: `workspace`, `app`, `apex`, or `url` |
+| `--detect` | Availability probe: exit 0 if a Scind context is present, non-zero otherwise. Prints nothing. |
+| `-q, --quiet` | Suppress decoration; bare segment text only |
+
+**Behavior**:
+- Renders the current **workspace/app** plus a **clickable apex URL**, emitted as an [OSC 8 hyperlink](https://gist.github.com/egmontkob/eb114294efbcd5adb1944c9f3cb5feda) so terminals that support it make the URL clickable while others degrade to plain text
+- Uses a **fast context-only detection path**: it resolves workspace/app/apex from directory context and persisted state and **stops before any expensive Docker or introspection work** (no container queries, no proxy calls). This path targets **sub-500 ms** so it is safe to run on every prompt render.
+- `--detect` exposes just the context probe, so a prompt tool can decide whether to show the segment at all without paying for a render
+- `--print <field>` returns one value for scripting or hand-rolled prompt formats
+
+**Starship generation**:
+
+```bash
+$ scind prompt --generate starship
+# Add to ~/.config/starship.toml:
+[custom.scind]
+command = "scind prompt --quiet"
+when = "scind prompt --detect"
+format = "[$output]($style) "
+```
+
+The generated `custom` module gates on `scind prompt --detect` (cheap, no output) and renders with `scind prompt --quiet`, so the segment appears only inside a Scind context. See the [Shell Integration Specification](../specs/shell-integration.md#prompt-segment) for the detection-path contract. Credit to the Xcind proof-of-concept for the context-aware prompt segment.
 
 ---
 
@@ -1381,7 +1660,7 @@ scind open [flags]
 
 ### `scind urls`
 
-List all accessible URLs for a workspace.
+List accessible URLs for a workspace.
 
 ```bash
 scind urls [flags]
@@ -1391,14 +1670,36 @@ scind urls [flags]
 | Flag | Description |
 |------|-------------|
 | `-w, --workspace` | Target workspace (or use context) |
+| `-v, --verbose` | Expand to the full per-export URL list |
 
-**Output**:
+**Output**: For each application, the **apex URL**—the short `{app}.{domain}` address users actually type—is reported for the primary proxied export:
+
 ```
-APP        SERVICE  URL
-frontend   web      https://dev-frontend-web.scind.test
-backend    web      https://dev-backend-web.scind.test
-backend    api      https://dev-backend-api.scind.test
+APP        APEX URL                         EXPORTS
+frontend   https://dev-frontend.scind.test  web
+backend    https://dev-backend.scind.test   web, api
 ```
+
+Reporting prefers the apex URL because it is the address developers share and paste. The apex is shown only for applications whose primary export is proxied (assigned-port primaries have no advertised hostname). The full per-export URL list stays in the detailed view (`scind urls --verbose`, or `scind app urls` for a single app):
+
+```
+$ scind urls --verbose
+APP        EXPORT  URL
+frontend   web     https://dev-frontend-web.scind.test
+backend    web     https://dev-backend-web.scind.test
+backend    api     https://dev-backend-api.scind.test
+```
+
+Which export is primary is decided by the [apex selection rules in ADR-0013](../decisions/0013-apex-url-primary-designation.md); this command only chooses which URL to *display*.
+
+**JSON fields**: The [JSON introspection contract](#json-introspection-contract) is extended with two additive, per-application fields, derived from the same source as the `scind.apex.*` Docker labels:
+
+| Field | Description |
+|-------|-------------|
+| `apex` | Apex URL for the primary proxied export (`https://{app}.{domain}`), or `null` if the primary is assigned |
+| `apex_host` | Apex hostname (`{app}.{domain}`), or `null` |
+
+Credit to the Xcind proof-of-concept for preferring the apex URL in reporting.
 
 ---
 
@@ -1425,6 +1726,52 @@ $ scind workspace list --quiet
 dev
 review
 ```
+
+---
+
+### JSON Introspection Contract
+
+`--json` output is a **stable contract**, not a serialization of whatever the table happens to render. The structured data Scind uses to generate Traefik routing labels is the *same* data emitted by `--json` and consumed by read/show commands, so **reported values and generated routing cannot drift**—there is a single source of truth for both.
+
+For any command that reports exported services, the `--json` payload keys exports by export name under two maps:
+
+| Field | Description |
+|-------|-------------|
+| `proxiedExports` | Map of export name → proxied descriptor (hostname, proxy URL, protocol, TLS). Backs the `scind.*` Traefik routing labels. |
+| `assignedExports` | Map of export name → assigned descriptor (internal alias, assigned host port). |
+
+```json
+{
+  "workspace": "dev",
+  "app": "frontend",
+  "apex": "https://dev-frontend.scind.test",
+  "apex_host": "dev-frontend.scind.test",
+  "proxiedExports": {
+    "web": {
+      "type": "proxied",
+      "service": "web",
+      "host": "dev-frontend-web.scind.test",
+      "url": "https://dev-frontend-web.scind.test",
+      "protocol": "https",
+      "tls": true
+    }
+  },
+  "assignedExports": {
+    "debug": {
+      "type": "assigned",
+      "service": "web",
+      "host": "dev-frontend.scind.internal",
+      "port": 9229
+    }
+  }
+}
+```
+
+The per-export descriptor (the value of each map entry) is defined once in the [Port Types Specification](../specs/port-types.md); commands render subsets of it but never invent fields.
+
+**Read-only commands are side-effect-free.** `show`, `urls`, `ports`, and the per-app introspection commands resolve entirely from persisted state (`.generated/`, the workspace registry, global state) and configuration. They **must never** trigger override generation, certificate provisioning, or proxy/container startup as a side effect of being asked to report a value. If the underlying state has not been generated yet, a read-only command reports what is known and points the user to `scind generate` / `scind up` rather than performing that work implicitly.
+
+Credit to the Xcind proof-of-concept (Xcind ADR-0015) for the single-contract model that backs labels and introspection alike.
 
 ---
 

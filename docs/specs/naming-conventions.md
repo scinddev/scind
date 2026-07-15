@@ -31,6 +31,8 @@ Application developers should update `application.yaml` when:
 
 - **Workspace names**: Lowercase alphanumeric with hyphens (e.g., `dev`, `feature-x`, `pr-123`)
 - **Application names**: Lowercase alphanumeric with hyphens, inferred from directory name
+- **Compose project names**: `{workspace}-{application}` (e.g., `dev-frontend`), or `{workspace}-{instance}-{application}` when the per-instance token is non-empty
+- **Workspace-internal network**: `{workspace}-internal` (e.g., `dev-internal`), or `{workspace}-{instance}-internal` when the per-instance token is non-empty
 - **Exported service names**: The key in `exported_services`, may differ from the underlying Compose service name
 - **Proxied hostnames** (proxied type): `{workspace}-{application}-{exported_service}.{domain}` (e.g., `dev-frontend-web.scind.test`)
 - **Internal aliases** (all types): `{application}-{exported_service}` (e.g., `frontend-web`, `shared-db-db`)
@@ -43,12 +45,27 @@ Application developers should update `application.yaml` when:
 
 **Implicit primary**: If an application has exactly one exported service, it is implicitly primary — no annotation needed. Apex patterns are only generated for the primary exported service. See [ADR-0013](../decisions/0013-apex-url-primary-designation.md) for the design rationale.
 
+### Per-Instance Token
+
+The **per-instance disambiguation token** ([ADR-0016](../decisions/0016-per-instance-isolation.md)) folds into the compose project name and the workspace-internal network name so that multiple linked git worktrees of the same repository derive distinct Docker resources instead of colliding:
+
+- **Empty token** (default): names are exactly the base patterns above (`{workspace}-{application}`, `{workspace}-internal`) — fully backward compatible, no migration.
+- **Non-empty token**: the token is inserted, producing `{workspace}-{instance}-{application}` and `{workspace}-{instance}-internal`.
+
+**Resolution order** (first match wins):
+
+1. **Explicit value** — configured/passed by the user.
+2. **Opt-out** — an explicit request for the empty token (preserve legacy names).
+3. **Auto-detect** — a stable token derived from a linked git worktree when one is detected. Auto-detection keys on the worktree-directory identity, **not** the branch (branches move; the resource identity must stay pinned to the working copy).
+
 **Collision warning**: Docker Compose project names, Traefik router names, volume names, and network names are derived from the naming patterns above. Creative naming that produces identical project names could cause conflicts:
 - **Traefik routers**: Conflicting router names cause routing failures
 - **Docker volumes**: Conflicting volume names (e.g., `dev-frontend_postgres_data`) could cause data to be shared unexpectedly or overwritten
 - **Docker networks**: Conflicting network names could connect unrelated services
 
 Example collision: workspace `dev-front` with app `end` and workspace `dev` with app `frontend` both produce project name `dev-frontend`.
+
+**Multi-worktree collision**: The same repository checked out into multiple linked git worktrees derives the **same** workspace name — and therefore the same project name and `{workspace}-internal` network — in every worktree. Without a per-instance token this is a collision, not isolation: the second `up` attaches to or disrupts the first. Supplying a non-empty token per worktree (see resolution order above) restores isolation. See [ADR-0016](../decisions/0016-per-instance-isolation.md).
 
 Follow the lowercase-alphanumeric-with-hyphens convention and avoid names that could produce ambiguous concatenations.
 
@@ -79,3 +96,4 @@ app-*/
 - [Generated Override Files](./generated-override-files.md) - Naming in generated Docker labels
 - [Docker Labels](./docker-labels.md) - Label naming conventions
 - [ADR-0013: Apex URL Primary Designation](../decisions/0013-apex-url-primary-designation.md) - Why `primary: true` field
+- [ADR-0016: Per-Instance Isolation](../decisions/0016-per-instance-isolation.md) - Per-instance token in project and network names
