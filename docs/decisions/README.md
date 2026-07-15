@@ -20,6 +20,8 @@ This directory contains Architecture Decision Records (ADRs) documenting signifi
 | [0012](./0012-layered-documentation-system.md) | Layered Documentation System | Accepted |
 | [0013](./0013-apex-url-primary-designation.md) | Apex URL Primary Designation | Accepted |
 | [0014](./0014-host-docker-internal-normalization.md) | Automatic `host.docker.internal` Normalization | Accepted |
+| [0015](./0015-host-view-environment-symmetry.md) | Host-View Environment Symmetry | Accepted |
+| [0016](./0016-per-instance-isolation.md) | Per-Instance Isolation for Multiple Working Copies | Accepted |
 
 ## ADR Format
 

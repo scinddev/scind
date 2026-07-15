@@ -11,13 +11,13 @@ services:
       - "--api.dashboard=true"               # Set to false if dashboard.enabled: false
     ports:
       - "80:80"
-      - "443:443"
+      - "443:443"                            # Only included when tls.mode != disabled
       - "8080:8080"                          # Only included if dashboard.enabled: true (port from dashboard.port)
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik.yaml:/etc/traefik/traefik.yaml:ro
-      - ./dynamic:/etc/traefik/dynamic:ro
-      - ./certs:/etc/traefik/certs:ro
+      - ./dynamic:/etc/traefik/dynamic:ro    # Only included when tls.mode != disabled
+      - ./certs:/etc/traefik/certs:ro        # Only included when tls.mode != disabled
     networks:
       - scind-proxy
     restart: unless-stopped

@@ -37,6 +37,18 @@ This separation ensures configuration files are declarative and version-controll
 
 If a user manually edits the proxy configuration and breaks it, `proxy init --force` regenerates the default configuration.
 
+### Proxy Host Ports
+
+The shared proxy binds host ports for its HTTP, HTTPS, and dashboard entrypoints. These are configurable so the proxy can run on machines where `80`/`443` are already occupied — a common developer situation — without editing generated files:
+
+| Field (`proxy.yaml`) | Environment variable | Default |
+|----------------------|----------------------|---------|
+| `proxy.http_port` | `SCIND_PROXY_HTTP_PORT` | `80` |
+| `proxy.https_port` | `SCIND_PROXY_HTTPS_PORT` | `443` |
+| `proxy.dashboard.port` | `SCIND_PROXY_DASHBOARD_PORT` | `8080` |
+
+**Discovery interaction**: When an HTTP or HTTPS entrypoint runs on a **non-default** port, service-discovery values must reflect it — the proxied `_PORT` carries the non-default port and `_URL` includes it (e.g., `https://dev-frontend-web.scind.test:8443`). When the entrypoint runs on the standard port (`80`/`443`), the port is omitted from `_URL`. See [Environment Variables — Configurable Proxy Host Ports](./environment-variables.md#configurable-proxy-host-ports). The Traefik static-configuration side of this change is covered by the proxy infrastructure spec.
+
 ### TLS Mode Behavior
 
 | Mode | Behavior |
@@ -175,6 +187,20 @@ Each key in `exported_services` is the "exported service name" used for hostname
 
 Use the `service:` property when the exported name differs from the Compose service name.
 
+### Application Env File Injection
+
+Applications may declare dotenv files at the application level through two fields whose behaviors map to Docker Compose's two distinct env-file scopes. The distinction is a common source of confusion and is therefore modeled as two explicit fields rather than one:
+
+| Field | Compose mechanism | When applied | Reaches container processes? |
+|-------|-------------------|--------------|------------------------------|
+| `compose_env_files` | `--env-file` | While Compose parses the YAML | No — interpolation only |
+| `app_env_files` | `env_file:` on every generated service | Container runtime | Yes |
+
+- **`compose_env_files`** are passed to Compose as `--env-file` and drive `${VAR}` **interpolation of the Compose YAML**. They influence how the file is parsed; they do **not** inject variables into running containers.
+- **`app_env_files`** cause Scind to add an `env_file:` entry referencing each listed file to **every service** in the generated override, so the variables are present **inside running containers**.
+
+A value needed for both YAML interpolation and container runtime must appear in both lists. For field definitions see [Configuration Reference — Application Env Files](../reference/configuration.md#application-env-files). This two-field model was validated by the Xcind proof-of-concept.
+
 ### Port Type Constraints
 
 - Each exported service may have at most **one `http`** and **one `https`** proxied port
@@ -187,9 +213,15 @@ An exported service can be marked as the application's primary export by adding 
 
 - **Type**: Boolean, optional, defaults to `false`
 - **At most one** exported service per application may be marked `primary: true`
-- **Implicit primary**: When an application has exactly one exported service, it is implicitly primary (no annotation needed)
-- **No primary**: When an application has multiple exported services and none is marked `primary: true`, no apex URL is generated
-- **Validation error**: If more than one exported service is marked `primary: true`, Scind emits a validation error at generation time
+
+**Apex eligibility is scoped to proxied exports.** Apex hostnames only ever apply to proxied exports, so only proxied exports are candidates for implicit primary. Assigned exports do not count toward implicit-primary eligibility (they have no hostname):
+
+- **Implicit primary**: When an application has exactly **one proxied** exported service, it is implicitly primary and apex-eligible (no annotation needed). Assigned exports present alongside it do not disqualify this — a `web` (proxied) + `db` (assigned) application receives an apex with zero annotation.
+- **Hybrid selection when several proxied exports exist**: An explicit `primary: true` always wins. When multiple proxied exports exist and **none** is marked primary, Scind falls back to **positional** selection — the first-declared proxied export becomes primary and an apex is still generated. (Prior behavior generated no apex in this case; the hybrid rule always emits one.) Explicit `primary: true` is therefore required only to override the positional default when 2+ proxied exports compete.
+- **Assigned primary**: An assigned export may still be marked `primary: true` explicitly to receive the apex internal alias, but it is never implicitly primary and never yields an apex hostname.
+- **Validation error**: If more than one exported service is marked `primary: true`, Scind emits a validation error at generation time.
+
+**Ordering requirement**: Positional fallback requires `exported_services` to have a defined declaration order. If `exported_services` is modeled as an unordered YAML map, adopt a documented first-declared rule (or model it as a sequence) so that "first proxied export" is well-defined. See [ADR-0013](../decisions/0013-apex-url-primary-designation.md).
 
 The primary export receives:
 

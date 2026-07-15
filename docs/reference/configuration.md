@@ -90,9 +90,11 @@ Environment variables prefixed with `SCIND_` (e.g., `SCIND_FRONTEND_WEB_HOST`) a
 proxy:
   domain: scind.test                  # TLD for generated hostnames
   traefik_image: traefik:v3.2.3          # Traefik Docker image (defaults to pinned version)
+  http_port: 80                          # Host port for the HTTP entrypoint (default: 80)
+  https_port: 443                        # Host port for the HTTPS entrypoint (default: 443)
   dashboard:
     enabled: true                        # Enable/disable Traefik dashboard (default: true)
-    port: 8080                           # Dashboard port (default: 8080)
+    port: 8080                           # Dashboard host port (default: 8080)
     # Future: password support via environment variable
   tls:
     mode: auto                           # auto | custom | disabled
@@ -100,6 +102,12 @@ proxy:
     cert_file: ~/.config/scind/certs/wildcard.crt
     key_file: ~/.config/scind/certs/wildcard.key
 ```
+
+### Proxy Host Ports
+
+`http_port`, `https_port`, and `dashboard.port` set the **host** ports the shared proxy binds (defaults `80`/`443`/`8080`). These exist so the proxy can run on machines where `80`/`443` are already occupied (a common dev situation) without editing generated files. They are also settable via the environment variables `SCIND_PROXY_HTTP_PORT`, `SCIND_PROXY_HTTPS_PORT`, and `SCIND_PROXY_DASHBOARD_PORT`.
+
+When an entrypoint runs on a non-default port, service-discovery values reflect it: the proxied `_PORT` carries the non-default port and `_URL` includes it (e.g., `https://dev-frontend-web.scind.test:8443`). Standard ports (`80`/`443`) are omitted from `_URL` as usual. See [Environment Variables — Configurable Proxy Host Ports](../specs/environment-variables.md#configurable-proxy-host-ports).
 
 ### TLS Modes
 
@@ -453,6 +461,27 @@ ports:
 - If the Compose service has multiple ports, `port:` must be explicitly specified
 - For Compose port mappings like `"80:8080"`, the container port (`8080`) is used
 
+### Application Env Files
+
+Applications may declare dotenv files at the application level. Scind exposes **two distinct fields** because Docker Compose has two separate, easily-confused env-file scopes:
+
+```yaml
+# application.yaml
+compose_env_files:                      # Optional. Interpolation-only (--env-file)
+  - .env.compose
+app_env_files:                          # Optional. Injected into every container (env_file:)
+  - .env.app
+```
+
+| Field | Maps to | Scope | Effect |
+|-------|---------|-------|--------|
+| `compose_env_files` | Compose `--env-file` | Build/parse time | Provides values for `${VAR}` **interpolation of the Compose YAML only**. Does **not** enter running containers. |
+| `app_env_files` | `env_file:` on every generated service | Runtime | Generates an `env_file:` entry on **every service** in the generated override, making the variables available **inside running containers**. |
+
+**The two-scope distinction (common pitfall):** `--env-file` and `env_file:` sound interchangeable but are not. `--env-file` feeds Compose's own variable substitution when it reads the YAML — it never reaches container processes. `env_file:` is a per-service list of files whose contents Compose loads into that service's environment at runtime — it never affects YAML interpolation. A value needed for both purposes must be listed in both fields.
+
+Scind currently has no other application-level dotenv concept; these fields fill that gap. This split was validated by the Xcind proof-of-concept.
+
 ### Primary Export Designation
 
 The `primary` field designates which exported service receives the apex URL:
@@ -473,14 +502,16 @@ exported_services:
 
 **Rules:**
 
-- Single exported service: implicitly primary (no annotation needed)
-- Multiple exports + one `primary: true`: that one gets apex
-- Multiple exports + none marked primary: no apex URL generated
-- Multiple exports + more than one primary: **validation error**
+Apex hostnames only ever apply to **proxied** exports, so implicit-primary eligibility is scoped to proxied exports. Assigned exports never count toward apex eligibility (they have no hostname):
 
-The primary export receives additional apex hostname, alias, Traefik routing, Docker labels, and environment variables. For assigned-port primary exports, only the apex internal alias is created.
+- **Exactly one proxied export**: implicitly primary, apex-eligible (no annotation needed). Assigned exports alongside it are ignored for this determination — a `web` (proxied) + `db` (assigned) app gets an apex with zero annotation.
+- **Multiple proxied exports + one `primary: true`**: that export gets the apex.
+- **Multiple proxied exports + none marked primary**: fall back to **positional** selection — the first-declared proxied export gets the apex (an apex is still emitted). Explicit `primary: true` is required only to override this default when 2+ proxied exports compete.
+- **More than one `primary: true`**: **validation error**.
 
-See [ADR-0013](../decisions/0013-apex-url-primary-designation.md) for the design rationale.
+The primary export receives additional apex hostname, alias, Traefik routing, Docker labels, and environment variables. An assigned export may still be marked `primary: true` to receive the apex **internal alias** (only) — but it is never apex-*eligible* implicitly and never receives an apex hostname.
+
+See [ADR-0013](../decisions/0013-apex-url-primary-designation.md) for the hybrid (explicit-then-positional) selection rationale and the ordering requirement it implies for `exported_services`.
 
 ### Application Configuration Examples
 
@@ -624,8 +655,9 @@ applications:
             host_port: 5432
             visibility: protected
         environment:
-          SCIND_SHARED_DB_DB_HOST: shared-db-db
-          SCIND_SHARED_DB_DB_PORT: 5432
+          SCIND_SHARED_DB_DB_HOST: shared-db-db      # In-network alias
+          SCIND_SHARED_DB_DB_PORT: 5432              # Container port (pairs with _HOST)
+          SCIND_SHARED_DB_DB_HOST_PORT: 5432         # Host-published port (127.0.0.1 access)
 ```
 
 ---
@@ -715,12 +747,12 @@ docker compose -f base.yaml -f .generated/app.override.yaml -f overrides/app.yam
 | `proxied` | `https` | HTTPS proxy via Traefik | Yes (HTTPS router) | `*_HOST`, `*_PORT`, `*_SCHEME`, `*_URL` |
 | `proxied` | `http` | HTTP proxy via Traefik | Yes (HTTP router) | `*_HOST`, `*_PORT`, `*_SCHEME`, `*_URL` |
 | `proxied` | `tcp`, `postgresql`, etc. | SNI-based TCP proxy (future) | Yes (TCP router) | `*_HOST`, `*_PORT` |
-| `assigned` | - | Direct port binding, auto-assigned if unavailable | No | `*_HOST`, `*_PORT` |
+| `assigned` | - | Direct port binding, auto-assigned if unavailable | No | `*_HOST`, `*_PORT`, `*_HOST_PORT` |
 
 ### Type Descriptions
 
 - **proxied**: Traffic is routed through Traefik. The exported service gets a hostname (`{workspace}-{app}-{export}.{domain}`) and Traefik labels are generated. Environment variables contain the **proxy values** (hostname and proxy port 80/443), not the container port.
-- **assigned**: The port is bound directly to the host. If the specified port is unavailable (used by another workspace or external process), Scind increments until an available port is found and records the assignment in global state. Environment variables point to the internal alias and assigned host port.
+- **assigned**: The port is bound directly to the host. If the specified port is unavailable (used by another workspace or external process), Scind increments until an available port is found and records the assignment in global state. Environment variables expose three values: the internal alias (`_HOST`), the container port (`_PORT`, for in-network access), and the allocated host-published port (`_HOST_PORT`, for host / `host.docker.internal` access).
 
 ---
 
@@ -749,9 +781,12 @@ Environment variables use a `SCIND_` prefix to avoid conflicts. Hyphens in names
 ```
 SCIND_{APPLICATION}_{EXPORTED_SERVICE}_HOST={hostname_or_alias}
 SCIND_{APPLICATION}_{EXPORTED_SERVICE}_PORT={port}
+SCIND_{APPLICATION}_{EXPORTED_SERVICE}_HOST_PORT={host_port}  # Only for assigned types
 SCIND_{APPLICATION}_{EXPORTED_SERVICE}_SCHEME={scheme}    # Only for proxied types
 SCIND_{APPLICATION}_{EXPORTED_SERVICE}_URL={url}          # Only for proxied types
 ```
+
+Assigned exports carry **three** discovery values — `_HOST` (in-network alias), `_PORT` (container port), and `_HOST_PORT` (allocated host-published port) — because the host-published port routinely differs from the container port after a conflict reassignment. See [Environment Variables — Assigned-Export Discovery Contract](../specs/environment-variables.md#assigned-export-discovery-contract-three-values) for the full rationale (validated by Xcind ADR-0018).
 
 **Protocol-specific variables** (generated for each proxied protocol):
 ```
@@ -762,12 +797,12 @@ SCIND_{APPLICATION}_{EXPORTED_SERVICE}_{PROTOCOL}_URL={url}
 
 ### Variable Generation Rules
 
-| Type | Protocol | `*_HOST` | `*_PORT` | `*_SCHEME` | `*_URL` | Protocol Vars |
-|------|----------|----------|----------|------------|---------|---------------|
-| `proxied` | `https` | Proxied hostname | 443 | `https` | Yes | `*_HTTPS_*` |
-| `proxied` | `http` | Proxied hostname | 80 | `http` | Yes | `*_HTTP_*` |
-| `proxied` | both | Proxied hostname | 443 | `https` | Yes | Both |
-| `assigned` | - | Internal alias | Assigned port | No | No | No |
+| Type | Protocol | `*_HOST` | `*_PORT` | `*_HOST_PORT` | `*_SCHEME` | `*_URL` | Protocol Vars |
+|------|----------|----------|----------|---------------|------------|---------|---------------|
+| `proxied` | `https` | Proxied hostname | 443 | — | `https` | Yes | `*_HTTPS_*` |
+| `proxied` | `http` | Proxied hostname | 80 | — | `http` | Yes | `*_HTTP_*` |
+| `proxied` | both | Proxied hostname | 443 | — | `https` | Yes | Both |
+| `assigned` | - | Internal alias | Container port | Host-published port | No | No | No |
 
 **HTTPS-default rationale**: When both HTTP and HTTPS are configured, base variables default to HTTPS (port 443) following security-by-default principles.
 

@@ -247,6 +247,79 @@ php     nginx   postgres    worker
 
 ---
 
+## Prompt Segment
+
+Scind can render a context-aware prompt segment showing the current workspace/app and a clickable apex URL. It is surfaced by the `scind prompt` command (see the [CLI Reference](../reference/cli.md#scind-prompt)) and wired into a prompt framework via a generated snippet. This is a new capability contributed by the Xcind proof-of-concept—Scind previously had no prompt concept, only `scind-compose` and completion.
+
+### What it shows
+
+- The active **workspace** and **app** (from directory context)
+- The application's **apex URL**, emitted as an **OSC 8 hyperlink** so supporting terminals render it clickable and others fall back to plain text
+
+### Fast context-only detection path
+
+Because a prompt segment runs on *every* command, it must be cheap. `scind prompt` (and its `--detect` probe) use a **context-only path** that:
+
+- Resolves workspace/app/apex from directory context and persisted state (`.generated/`, the registry) only
+- **Stops before any Docker or live-introspection work**—it never queries containers, contacts the proxy, or performs generation
+- Targets a **sub-500 ms** budget so it is safe to invoke per-prompt
+
+This mirrors the read-only, side-effect-free contract for introspection commands described in the [CLI Reference](../reference/cli.md#json-introspection-contract).
+
+### Starship integration
+
+```bash
+scind prompt --generate starship
+```
+
+emits a ready-to-paste [`custom` module](https://starship.rs/config/#custom-commands) for `~/.config/starship.toml`:
+
+```toml
+[custom.scind]
+command = "scind prompt --quiet"
+when = "scind prompt --detect"
+format = "[$output]($style) "
+```
+
+`when = "scind prompt --detect"` gates the segment on the cheap availability probe (exit 0 inside a Scind context, non-zero outside, no output), so it only appears where relevant. For hand-rolled prompt formats, `--print <field>` returns a single value (`workspace`, `app`, `apex`, or `url`).
+
+---
+
+## Docker Wrapper Scripts
+
+The `scind-compose` function works only inside an interactive shell that has sourced Scind's integration. Some tools—**JetBrains IDEs, CI runners, and other harnesses**—instead exec a literal `docker` or `docker-compose` binary found on PATH and cannot call a shell function. For those, `scind generate-wrappers` (see the [CLI Reference](../reference/cli.md#scind-generate-wrappers)) writes **real executable wrapper scripts**. This capability comes from the Xcind proof-of-concept.
+
+### What is generated
+
+- Two executable files, `docker` and `docker-compose`, written into a target directory (default `./.scind/bin`)
+- Each embeds the **resolved project name and compose files** for the context—the same `-p`/`-f` set that `scind compose-prefix` produces
+- Invoking a wrapper injects those flags and passes the remaining arguments through to the real Docker binary
+
+### Using them
+
+Put the wrapper directory on PATH (or point the tool's Docker executable setting at it):
+
+```bash
+scind generate-wrappers -a backend --dir .scind/bin
+PATH=".scind/bin:$PATH" docker-compose ps   # workspace-aware
+```
+
+A JetBrains IDE, for example, can be configured to use `.scind/bin/docker-compose` as its Compose executable so its Docker integration operates on the correct project and files.
+
+### Relationship to `scind-compose`
+
+Wrapper scripts **complement**, and do not replace, the `scind-compose` function:
+
+| | `scind-compose` function | Generated wrapper scripts |
+|--|--------------------------|---------------------------|
+| Consumer | Interactive shell | Tools that exec a PATH binary |
+| Context | Resolved live per invocation | Baked in at generation time |
+| Regeneration | Never needed | Re-run if the context or compose files change |
+
+Prefer the function for day-to-day shell use; reach for wrappers only when a tool cannot call it.
+
+---
+
 ## Known Limitations
 
 ### All Shells

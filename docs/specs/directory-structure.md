@@ -1,5 +1,10 @@
 ## Directory Structure
 
+Applications are **derived, not tracked**: the set of applications in a workspace
+is resolved from the workspace directory's contents (the application
+subdirectories present on disk), with no separate application registry to keep in
+sync. The Xcind proof-of-concept validated this model end-to-end.
+
 ### Standard Multi-Application Workspace
 
 ```

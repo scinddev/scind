@@ -47,6 +47,13 @@ networks:
     external: true
 ```
 
+Both `{workspace}-internal` and `scind-proxy` are declared `external: true`.
+This means Docker Compose does **not** create them; it expects them to already
+exist and fails at container start if they are absent. Their creation is the
+responsibility of the startup sequence, which must surface a named diagnostic
+if creation fails rather than let Compose report an opaque "network not found"
+error. See [Workspace Lifecycle: Startup Sequence](./workspace-lifecycle.md#startup-sequence-workspace-up).
+
 For the complete unabridged example, see [complete-override-example.yaml](./appendices/generated-override-files/complete-override-example.yaml).
 
 ### Manual Override File

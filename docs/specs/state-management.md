@@ -10,6 +10,33 @@
 
 Scind separates structure (configuration) from state (runtime). State represents explicit choices made by the user and system-managed assignments, not computed values. This specification covers both workspace-level state and global state.
 
+**State is load-bearing.** The Xcind proof-of-concept attempted a leaner,
+stateless design and could not avoid either a **workspace registry** or a
+**sticky assigned-port inventory** — both proved necessary in practice. This
+confirms the structure-vs-state separation of [ADR-0005](../decisions/0005-structure-vs-state-separation.md):
+these are genuine state, not values that can be recomputed from configuration.
+
+**Cacheable vs. non-cacheable content.** For the purposes of staleness and
+regeneration, generated content divides into **config-derived** content
+(hostnames, aliases, labels — a pure function of configuration and flavor
+state, and therefore cacheable) and **live-state-derived** content (assigned
+host ports and the discovery environment variables that embed them — a function
+of the machine-local state described here, and therefore *not* cacheable and
+re-resolved on every generation). See
+[Workspace Lifecycle: Config-Derived vs. Live-State-Derived Content](./workspace-lifecycle.md#config-derived-vs-live-state-derived-content)
+and [Port Types](./port-types.md).
+
+**Machine-local state belongs under `$XDG_STATE_HOME`.** The ephemeral,
+machine-local artifacts described here — the assigned-port inventory, the
+workspace registry, and proxy runtime state — are *state*, not *configuration*,
+and per the [XDG Base Directory](https://specifications.freedesktop.org/basedir-spec/latest/)
+specification they belong under `$XDG_STATE_HOME` rather than being collapsed
+under the config home. This mirrors, at the storage layer, the structure-vs-state
+separation of [ADR-0005](../decisions/0005-structure-vs-state-separation.md).
+(The concrete environment-variable defaults are defined in the environment
+variables specification; the `~/.config/scind/...` paths shown below are
+illustrative.)
+
 ---
 
 ## Workspace State
@@ -86,6 +113,29 @@ port_inventory:
 
 ---
 
+## Workspace Registry
+
+**Location**: `~/.config/scind/workspaces.yaml` (global/per-user; see
+`$XDG_STATE_HOME` note in the Overview)
+
+The registry tracks known workspaces so that global operations (listing,
+port reconciliation) can find them without scanning the whole filesystem.
+Registry maintenance is not limited to init-time registration and
+whole-registry pruning; it also supports:
+
+- **Registering a cloned-but-never-run workspace**: a workspace that has been
+  cloned/initialized but never started — and therefore carries **no Docker
+  labels or containers yet** — can be added to the registry. Registration does
+  not depend on the presence of running resources.
+- **Dropping a single entry by path**: an individual workspace that has been
+  moved or deleted can be removed from the registry by its recorded path,
+  independently of a prune-all operation.
+
+Validated by the Xcind proof-of-concept. (The specific CLI verbs are defined in
+the CLI specification.)
+
+---
+
 ## Port Assignment Rules
 
 1. Try the port specified in `application.yaml`
@@ -98,7 +148,21 @@ port_inventory:
 
 ## Port Conflict at Startup
 
-If a previously assigned port has become unavailable (e.g., taken by an external process) when `workspace up` runs, Scind fails with a clear error:
+**Attribute before declaring a conflict.** The startup conflict check must first
+attribute any bound port to its owner via the port inventory, and must
+**exclude ports bound by the workspace's own already-running containers** before
+declaring a conflict. `workspace up` is idempotent — a re-up of a
+still-running workspace will legitimately find its own assigned ports bound. A
+bare bind-probe (attempting `net.Listen` on the port) cannot distinguish the
+workspace's own running container from a foreign process; treating any bound
+port as a conflict would raise **false conflicts** on the common re-up case.
+Only a port bound by a **foreign** process — one not attributable to this
+workspace's own containers in the inventory — is a real conflict. (Reverse
+learning from the Xcind proof-of-concept, which surfaced this false-positive.)
+
+If a previously assigned port has become unavailable because it is now held by a
+**foreign** process (not one of the workspace's own containers) when
+`workspace up` runs, Scind fails with a clear error:
 
 ```
 Error: Port conflict detected for frontend
@@ -135,6 +199,20 @@ To resolve:
 ## Port Availability Checking
 
 `scind port scan` and `scind port gc` check port availability by attempting to bind to each tracked port using `net.Listen("tcp", ":PORT")`. Ports that can be bound are marked as available; ports that fail with "address already in use" remain in their current state. This method is reliable across platforms and doesn't require parsing system-specific files like `/proc/net`.
+
+---
+
+## Port Garbage Collection
+
+The port-inventory maintenance commands (`scind port gc`, and any command that
+reconciles the assigned-port state) apply a **path-existence** GC rule: an
+assigned-port entry whose recorded application path no longer exists on disk is
+dropped and its port released. A deleted application directory would otherwise
+keep holding its port reservation indefinitely, silently shrinking the
+available range. Because the application model is derived from directory
+contents rather than a registry (see [Directory Structure](./directory-structure.md)),
+the presence of the recorded path is the authoritative signal that an
+assignment is still live. Validated by the Xcind proof-of-concept.
 
 ---
 

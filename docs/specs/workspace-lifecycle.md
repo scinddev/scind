@@ -50,6 +50,8 @@ Current state is determined by:
 
 State is not explicitly stored; it is inferred from the environment at runtime.
 
+The state table above is **descriptive**, not a stored artifact. The Xcind proof-of-concept confirmed that no persisted lifecycle-state record is needed to drive these transitions — status is inferred at runtime from Docker container status and the presence of generated files.
+
 ---
 
 ## Operations
@@ -67,6 +69,8 @@ State is not explicitly stored; it is inferred from the environment at runtime.
 - The `--remove-orphans` flag is always passed to `docker compose up`. This ensures that containers from services removed by flavor changes, manual compose file edits, or renamed services are automatically stopped and removed.
 - The workspace network is always created if it doesn't exist, even when starting a single application with `-a`. This ensures cross-application communication is available when other apps are started later.
 
+**Network and proxy creation failures**: Steps 1–2 create resources (the proxy, the workspace-internal network) that the generated overrides declare as `external: true` (see [Generated Override Files](./generated-override-files.md)). Because the override marks these networks external, Docker Compose will not create them itself and instead fails opaquely at container start if they are absent. Scind must therefore treat a failure to ensure the proxy or the workspace network as a first-class error: emit a diagnostic that names the specific resource (proxy, `{workspace}-internal` network) and includes the underlying Docker error, and **fail `up`** before invoking `docker compose` rather than letting compose surface an unattributable "network not found" error. Validated by the Xcind proof-of-concept.
+
 ### Staleness Detection
 
 Scind uses **mtime comparison** to determine if generated override files need to be regenerated. Override files are considered stale if any of the following source files have a newer modification time than the generated override:
@@ -75,6 +79,12 @@ Scind uses **mtime comparison** to determine if generated override files need to
 - `{app}/application.yaml`
 - `.generated/state.yaml` (active flavor may have changed)
 - Active flavor's compose files (e.g., `docker-compose.yaml`, `docker-compose.worker.yaml`)
+- Global assigned-ports state (`~/.config/scind/state.yaml`) — an assigned host port may have changed since the last generation (see [Port Assignment Rules](./state-management.md#port-assignment-rules))
+- The generator/schema version — upgrading the Scind binary to a version with a different override/manifest schema must force regeneration even when no source file's mtime changed
+
+**Additional staleness inputs**:
+- **Assigned-port revalidation**: before treating overrides as up-to-date, revalidate the assigned host ports recorded in global state. If a recorded port is no longer valid/available, the assigned content is stale regardless of source mtimes.
+- **Completeness**: an incomplete generation (missing files, missing completeness marker — see below) is treated as stale and regenerated.
 
 **Behavior**:
 - `workspace up` and `workspace generate` automatically regenerate stale overrides
@@ -82,6 +92,17 @@ Scind uses **mtime comparison** to determine if generated override files need to
 - Touch a file accidentally? Use `--force` to ensure clean state
 
 **Note**: mtime comparison is simple and fast but may trigger unnecessary regeneration if files are touched without content changes. The `--force` flag provides explicit control when needed.
+
+#### Config-Derived vs. Live-State-Derived Content
+
+Staleness distinguishes two classes of generated content:
+
+- **Config-derived (cacheable)**: hostnames, aliases, Traefik labels, and other values that are a pure function of `workspace.yaml`, `application.yaml`, and flavor state. The mtime check above fully governs these — if no source changed, they need not be rewritten.
+- **Live-state-derived (non-cacheable, "always-regenerate")**: values that depend on machine-local runtime state rather than config alone — chiefly **assigned host ports** and the **discovery environment variables** that embed them. These cannot be validated by a config-based staleness check, because the config that produced them is unchanged while the underlying state (port availability, prior assignments in global state) may have moved. Live-state-derived content must be refreshed — re-resolved against current global state — on every generation, even when the config-based staleness check reports "up-to-date." See [Port Types](./port-types.md) (assigned values are live-state-derived) and [State Management](./state-management.md#global-state).
+
+#### Atomicity and Completeness
+
+Generation must be **atomic**: write the full set of generated artifacts into a temporary directory, then rename it into place as a single step, so a reader never observes a half-written `.generated/`. A **completeness marker** (written last) records that the generation finished successfully and captures the generator/schema version it was produced with. Output lacking a valid, current-version marker is treated as stale and regenerated. A failed resolve step (the `docker compose config` equivalent — see Generation Logic) must **fail generation** and leave the previous good output in place, rather than persist a truncated or partial artifact. Validated by the Xcind proof-of-concept.
 
 ### Generation Logic (`workspace generate`)
 
@@ -101,10 +122,32 @@ Scind uses **mtime comparison** to determine if generated override files need to
    ```
 5. **Infer port values** for any exported services with omitted `port:` field (see Port Configuration)
 6. **Default service names** for any exported services with omitted `service:` field
-7. **Collect all exported services** across all applications in workspace
-8. **Generate override file** with networks, aliases, labels, and environment variables
-9. **Update state file** with resolved flavors
-10. **Update manifest** with computed values
+7. **Validate port values**: every resolved or inferred port must be an integer in the range 1–65535; protocol suffixes (e.g. `443/tcp`) are parsed and handled explicitly rather than passed through as opaque strings. An invalid value fails generation with an error that names the offending exported service:
+   ```
+   Error: Exported service "web" has an invalid port value: "https"
+     Application: frontend
+     Expected an integer in 1–65535 (optionally with a protocol suffix)
+   ```
+8. **Collect all exported services** across all applications in workspace
+9. **Allocate and validate assigned host ports**: for every `assigned`-type export, resolve the sticky host port from global state or allocate a new one (see [Port Assignment Rules](./state-management.md#port-assignment-rules)), and validate that each resolved host port is currently usable. This step **must precede** the override write and the manifest write (steps 10 and 12) so that both artifacts embed the same, freshly-allocated host ports and discovery environment variables. Because these are live-state-derived values, they are re-resolved on every generation (see Config-Derived vs. Live-State-Derived Content). Validated by the Xcind proof-of-concept.
+10. **Generate override file** with networks, aliases, labels, and environment variables (using the host ports allocated in step 9)
+11. **Update state file** with resolved flavors
+12. **Update manifest** with computed values (reflecting the post-allocation host ports and discovery variables from step 9)
+
+### Initialization and Config Writes (`workspace init`)
+
+Commands that write the primary config files — `workspace init` and any command
+that edits `workspace.yaml` or an application's `application.yaml` — perform
+**targeted field updates**, not whole-file rewrites. Re-running such a command
+adds or updates only the fields it owns and **preserves unrelated,
+user-authored fields** (comments, custom keys, hand-tuned values) already
+present in the file.
+
+This extends the preservation guarantee that already applies to the
+`overrides/` directory (see [Generated Override Files](./generated-override-files.md))
+to the primary config files themselves: re-initialization is idempotent for the
+fields Scind manages and non-destructive for everything else. Validated by the
+Xcind proof-of-concept.
 
 ### Shutdown Sequence (`workspace down`)
 

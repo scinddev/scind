@@ -13,7 +13,7 @@ api:
 entryPoints:
   web:
     address: ":80"
-  websecure:
+  websecure:                     # Only emitted when tls.mode != disabled
     address: ":443"
 
 providers:
@@ -21,8 +21,8 @@ providers:
     exposedByDefault: false
     network: scind-proxy
     watch: true
-  file:
-    directory: /etc/traefik/dynamic
+  file:                          # Only emitted when tls.mode != disabled
+    directory: /etc/traefik/dynamic  # (nothing to watch without TLS certs/middlewares)
     watch: true
 
 log:
