@@ -43,7 +43,7 @@ Reference documentation is often generated from code or should match code exactl
 
 #### 1a: CLI Reference Audit
 
-Compare `docs/reference/cli.md` and `docs/reference/appendices/cli/` against actual CLI:
+Compare `engineering/reference/cli.md` and `engineering/reference/appendices/cli/` against actual CLI:
 
 ```bash
 # Get actual CLI help
@@ -77,7 +77,7 @@ Record discrepancies:
 
 #### 1b: Configuration Reference Audit
 
-Compare `docs/reference/configuration.md` and `docs/reference/appendices/configuration/` against actual config handling:
+Compare `engineering/reference/configuration.md` and `engineering/reference/appendices/configuration/` against actual config handling:
 
 For main `configuration.md`:
 - All config sections listed
@@ -94,7 +94,7 @@ Record discrepancies similarly.
 
 #### 1c: API Reference Audit (if applicable)
 
-If API documentation exists (`docs/reference/api.md` and `appendices/api/`):
+If API documentation exists (`engineering/reference/api.md` and `appendices/api/`):
 - Compare against OpenAPI spec (if generated)
 - Verify all endpoints are documented in main doc or appendices
 - Check request/response schemas in appendices for accuracy
@@ -110,7 +110,7 @@ Execute Gherkin specifications to verify they match implementation:
 # Run Cucumber/Gherkin tests
 npm test
 # or
-cucumber-js docs/behaviors/
+cucumber-js engineering/behaviors/
 # or equivalent for your test framework
 ```
 
@@ -167,11 +167,11 @@ Record broken links:
 
 ### Step 4: Check Specifications Against Implementation
 
-For each specification in `docs/specs/` (main `.md` files and `appendices/`):
+For each specification in `engineering/specs/` (main `.md` files and `appendices/`):
 
 #### 4a: Read the Specification
 
-Read both `docs/specs/{topic}.md` and any `appendices/{topic}/` files.
+Read both `engineering/specs/{topic}.md` and any `appendices/{topic}/` files.
 
 Identify key behavioral claims:
 - "When X happens, Y occurs"
@@ -201,7 +201,7 @@ Note the file path precisely (main doc vs. appendix):
 
 ### Step 5: Review ADR Currency
 
-For each ADR in `docs/decisions/` (ADRs are simple single files, no appendices):
+For each ADR in `engineering/decisions/` (ADRs are simple single files, no appendices):
 
 #### 5a: Check Status
 
@@ -286,7 +286,7 @@ Create issues/tickets for implementation fixes:
 ```markdown
 ## Bug: [Title]
 
-**Spec Reference**: docs/specs/{file}.md
+**Spec Reference**: engineering/specs/{file}.md
 
 **Expected Behavior** (per spec):
 {quote from specification}
@@ -338,9 +338,9 @@ Create an audit report:
 >
 > | Document | Changes | New Version |
 > |----------|---------|-------------|
-> | `docs/reference/cli.md` | Added 3 options, fixed 2 defaults | — |
-> | `docs/reference/appendices/cli/workspace-commands.md` | Updated examples | — |
-> | `docs/specs/port-assignment.md` | Corrected default port | 0.5.2 |
+> | `engineering/reference/cli.md` | Added 3 options, fixed 2 defaults | — |
+> | `engineering/reference/appendices/cli/workspace-commands.md` | Updated examples | — |
+> | `engineering/specs/port-assignment.md` | Corrected default port | 0.5.2 |
 >
 > ## Bugs Filed
 >
@@ -391,7 +391,7 @@ Create an audit report:
 When auditing, check both main documents and appendices:
 
 ```
-docs/
+engineering/
 ├── decisions/NNNN-{topic}.md   # Check status, implementation (simple files)
 ├── specs/
 │   ├── {feature}.md            # Check behavior claims
