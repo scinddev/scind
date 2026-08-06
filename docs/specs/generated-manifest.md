@@ -33,7 +33,7 @@ applications:
       web:
         service: web
         alias: frontend-web
-        primary: true                     # Implicit (single export)
+        primary: true                     # Implicit (single proxied export)
         apex_alias: frontend              # Apex internal alias
         ports:
           - type: proxied
@@ -50,7 +50,7 @@ applications:
           SCIND_FRONTEND_APEX_SCHEME: https
           SCIND_FRONTEND_APEX_URL: https://dev-frontend.scind.test
 
-  shared-db:                              # Multi-export, no primary — no apex
+  shared-db:                              # No proxied export — not apex-eligible, no apex
     flavor: default
     project: dev-shared-db
     exported_services:

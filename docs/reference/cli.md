@@ -954,7 +954,7 @@ scind app diagnose [flags]
 
 **Behavior**: `diagnose` is a [read-only, side-effect-free](#json-introspection-contract) command. It reports what the current state *is* — it never generates overrides, allocates ports, provisions certificates, or starts containers to answer the question. When something has not been generated yet, it says so and names the command that would do it, rather than doing it.
 
-**`--json` output**: `diagnose --json` is **not** part of the stable [JSON Introspection Contract](#json-introspection-contract), which covers the per-export `proxiedExports`/`assignedExports` maps and the `apex`/`apex_host` fields only. `diagnose` reports the full resolution chain, so its JSON shape is **provisional** — it carries one object per section listed in the Reported table above, keyed by section name, with the same fields the text form renders. It will be pinned to a stable contract in a later revision once the section shapes see real use. Tools may consume it for debugging, but should not depend on field stability across versions yet.
+**`--json` output**: the [JSON Introspection Contract](#json-introspection-contract) makes two separate promises, and `diagnose` is covered by one of them, not both. It **is** bound by the contract's read-only, side-effect-free guarantee. It is **not** covered by the contract's field-stability guarantee, which extends to the per-export `proxiedExports`/`assignedExports` maps and the `apex`/`apex_host` fields only. `diagnose` reports the full resolution chain, so its JSON shape is **provisional** — it carries one object per section listed in the Reported table above, keyed by section name, with the same fields the text form renders. It will be pinned to a stable contract in a later revision once the section shapes see real use. Tools may consume it for debugging, but should not depend on field stability across versions yet.
 
 **Example**:
 ```bash
@@ -1827,6 +1827,8 @@ For any command that reports exported services, the `--json` payload keys export
 ```
 
 The per-export descriptor (the value of each map entry) is defined once in the [Port Types Specification](../specs/port-types.md); commands render subsets of it but never invent fields.
+
+This contract makes two distinct promises: the **field stability** of the payload described above, and the **read-only guarantee** below. They have different scopes — `diagnose` is bound by the read-only guarantee but its payload is [provisional](#scind-app-diagnose), outside the field-stability promise.
 
 **Read-only commands are side-effect-free.** `show`, `urls`, `ports`, `diagnose`, and the per-app introspection commands resolve entirely from persisted state (`.generated/`, the workspace registry, global state) and configuration. They **must never** trigger override generation, certificate provisioning, or proxy/container startup as a side effect of being asked to report a value. If the underlying state has not been generated yet, a read-only command reports what is known and points the user to `scind generate` / `scind up` rather than performing that work implicitly.
 

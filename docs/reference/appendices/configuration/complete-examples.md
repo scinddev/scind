@@ -362,7 +362,7 @@ applications:
       web:
         service: web
         alias: frontend-web
-        primary: true                     # Resolved primary designation
+        primary: true                     # Implicit (single proxied export)
         apex_alias: frontend
         ports:
           - type: proxied

@@ -521,7 +521,18 @@ The default env file is `.env`, also existence-filtered, applied as `compose_env
 
 This mirrors what `docker compose` itself does with no `-f` flag, so the behavior an application already has under plain Compose is the behavior it keeps under Scind. Requiring a declaration that only restates the platform convention is ceremony, not safety.
 
-**The default applies only in the absence of any declaration.** The moment `flavors` or `compose_files` appears, it governs completely — there is no merging of defaults into a declared list, and no per-flavor fallback. A flavor that declares an empty or wrong list fails as it does today. A non-`default` active flavor with no declaration (for example, `default_flavor: full` with no `flavors:` block) **fails** rather than falling back to convention defaults — `full` references no declared files, so generation reports the missing-file error the way any other empty flavor list would.
+**The default applies only in the absence of any declaration.** The moment `flavors` or `compose_files` appears, it governs completely — there is no merging of defaults into a declared list, and no per-flavor fallback. A flavor that declares an empty or wrong list fails as it does today. A non-`default` active flavor with no declaration (for example, `default_flavor: full` with no `flavors:` block) **fails** rather than falling back to convention defaults. The failure is its own error — the flavor was never declared, so there is no file list to report as missing:
+
+```
+Error: Application "backend" has no flavor named "full"
+  Application: backend
+  Active flavor "full" came from: default_flavor in application.yaml
+  Declared flavors: none
+  Declare the flavor in application.yaml, or remove default_flavor to use
+  the conventional compose files (compose.yaml, docker-compose.yaml, …).
+```
+
+The active flavor can arrive from `--flavor`, `.generated/state.yaml`, or `default_flavor`, so the error names its source — the fix differs for each. See [CLI Error Messages — Active Flavor Not Declared](appendices/cli/error-messages.md#active-flavor-not-declared).
 
 **No candidate exists**: if an application declares nothing and none of the four candidate files is present, generation **fails** with an error naming the convention:
 

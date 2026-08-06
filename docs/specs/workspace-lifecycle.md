@@ -124,31 +124,41 @@ Generation must be **atomic**: write the full set of generated artifacts into a 
 
 1. **Resolve flavor** for each application (CLI → state → default_flavor → "default")
 2. **Get compose files** from the resolved flavor's `compose_files` list, or — when the application declares no `flavors` and no `compose_files` — from the existence-filtered convention defaults (`compose.yaml`, `compose.yml`, `docker-compose.yaml`, `docker-compose.yml`; env default `.env`). See [Default Compose File Resolution](./configuration-schemas.md#default-compose-file-resolution).
-3. **Validate compose files exist** on disk; if any are missing, report error with available alternatives:
+3. **Validate the active flavor is resolvable.** The convention defaults in step 2 apply only to the literal `default` flavor. If the active flavor is anything else and the application declares no matching flavor, generation fails — there is no file list to fall back to, and the convention defaults are not a substitute for a flavor the application never declared:
+   ```
+   Error: Application "backend" has no flavor named "full"
+     Application: backend
+     Active flavor "full" came from: default_flavor in application.yaml
+     Declared flavors: none
+     Declare the flavor in application.yaml, or remove default_flavor to use
+     the conventional compose files (compose.yaml, docker-compose.yaml, …).
+   ```
+   Naming where the active flavor came from matters: it may arrive from `--flavor`, `.generated/state.yaml`, or `default_flavor`, and the fix differs for each.
+4. **Validate compose files exist** on disk; if any are missing, report error with available alternatives:
    ```
    Error: Flavor "full" references non-existent file: docker-compose.worker.yaml
      Application: backend
      Available compose files: docker-compose.yaml, docker-compose.dev.yaml
    ```
-4. **Validate service references** in `exported_services` point to actual Compose services:
+5. **Validate service references** in `exported_services` point to actual Compose services:
    ```
    Error: Exported service "api" references non-existent Compose service: backend
      Application: my-app
      Available services in docker-compose.yaml: web, db, redis
    ```
-5. **Infer port values** for any exported services with omitted `port:` field (see Port Configuration)
-6. **Default service names** for any exported services with omitted `service:` field
-7. **Validate port values**: every resolved or inferred port must be an integer in the range 1–65535; protocol suffixes (e.g. `443/tcp`) are parsed and handled explicitly rather than passed through as opaque strings. An invalid value fails generation with an error that names the offending exported service:
+6. **Infer port values** for any exported services with omitted `port:` field (see Port Configuration)
+7. **Default service names** for any exported services with omitted `service:` field
+8. **Validate port values**: every resolved or inferred port must be an integer in the range 1–65535; protocol suffixes (e.g. `443/tcp`) are parsed and handled explicitly rather than passed through as opaque strings. An invalid value fails generation with an error that names the offending exported service:
    ```
    Error: Exported service "web" has an invalid port value: "https"
      Application: frontend
      Expected an integer in 1–65535 (optionally with a protocol suffix)
    ```
-8. **Collect all exported services** across all applications in workspace
-9. **Allocate and validate assigned host ports**: for every `assigned`-type export, resolve the sticky host port from global state or allocate a new one (see [Port Assignment Rules](./state-management.md#port-assignment-rules)), and validate that each resolved host port is currently usable. This step **must precede** the override write and the manifest write (steps 10 and 12) so that both artifacts embed the same, freshly-allocated host ports and discovery environment variables. Because these are live-state-derived values, they are re-resolved on every generation (see Config-Derived vs. Live-State-Derived Content). Validated by the Xcind proof-of-concept.
-10. **Generate override file** with networks, aliases, labels, and environment variables (using the host ports allocated in step 9)
-11. **Update state file** with resolved flavors
-12. **Update manifest** with computed values (reflecting the post-allocation host ports and discovery variables from step 9)
+9. **Collect all exported services** across all applications in workspace
+10. **Allocate and validate assigned host ports**: for every `assigned`-type export, resolve the sticky host port from global state or allocate a new one (see [Port Assignment Rules](./state-management.md#port-assignment-rules)), and validate that each resolved host port is currently usable. This step **must precede** the override write and the manifest write (steps 11 and 13) so that both artifacts embed the same, freshly-allocated host ports and discovery environment variables. Because these are live-state-derived values, they are re-resolved on every generation (see Config-Derived vs. Live-State-Derived Content). Validated by the Xcind proof-of-concept.
+11. **Generate override file** with networks, aliases, labels, and environment variables (using the host ports allocated in step 10)
+12. **Update state file** with resolved flavors
+13. **Update manifest** with computed values (reflecting the post-allocation host ports and discovery variables from step 10)
 
 ### Initialization and Config Writes (`workspace init`)
 
