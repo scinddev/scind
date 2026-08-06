@@ -276,6 +276,33 @@ See [ADR-0013](../decisions/0013-apex-url-primary-designation.md) for the design
 3. Application's `default_flavor`
 4. `"default"`
 
+### Resolution Validity
+
+The order above selects a flavor **name**. That name must then resolve to a
+declared flavor. Every source can name one the application does not declare:
+`--flavor` by typo, `default_flavor` by naming a missing `flavors:` entry, and
+the state file by holding a flavor that a later `application.yaml` edit removed.
+
+**The literal `default` is the one name that may resolve without a declaration.**
+When an application declares no `flavors` and no `compose_files`, `default`
+resolves to the convention-based compose files (see [Default Compose File
+Resolution](#default-compose-file-resolution)). Every other name must be declared.
+
+**An unresolvable active flavor fails generation.** It does not fall back to
+`default`, to the convention defaults, or to any other declared flavor. Falling
+back would run the application under a compose file set the user did not ask
+for: they request `full` and silently get `lite`'s services. Stopping is the
+lesser harm. [Generation Logic](./workspace-lifecycle.md#generation-logic-workspace-generate)
+step 3 performs the check, and the error names which source supplied the name,
+because the fix differs for each.
+
+**`flavor set` validates before writing.** `scind flavor set X` rejects an
+undeclared `X` rather than recording it and failing at the regeneration that
+follows — otherwise a rejected name is left in `.generated/state.yaml`, where it
+breaks every later command until it is edited out by hand. The write-time check
+does not replace the read-time one: state written by an older binary, or a
+flavor removed after it was recorded, still reaches generation undeclared.
+
 ---
 
 ## Related Documentation

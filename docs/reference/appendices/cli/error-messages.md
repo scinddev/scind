@@ -108,6 +108,20 @@ Error: Application "backend" has no flavor named "full"
 
 The error names **where the active flavor came from** — `--flavor`, `.generated/state.yaml`, or `default_flavor` — because the fix differs for each. See [Default Compose File Resolution](../../configuration.md#default-compose-file-resolution).
 
+`scind flavor set` emits the same error, at write time, and leaves
+`.generated/state.yaml` unchanged:
+
+```bash
+$ scind flavor set full --app=backend
+Error: Application "backend" has no flavor named "full"
+  Application: backend
+  Active flavor "full" came from: --flavor argument to 'flavor set'
+  Declared flavors: lite, debug
+  No changes written to .generated/state.yaml.
+```
+
+See [Resolution Validity](../../../specs/configuration-schemas.md#resolution-validity) for the full rule.
+
 ### Flavor References Non-Existent File
 
 ```bash

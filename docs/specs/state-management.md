@@ -61,6 +61,12 @@ applications:
 3. Application's `default_flavor`
 4. `"default"`
 
+The resolved name must be a **declared** flavor — the literal `default` is the
+only name that may resolve without a declaration, and an unresolvable active
+flavor fails generation rather than falling back. A flavor recorded here can
+become undeclared later, when an `application.yaml` edit removes it. See
+[Configuration Schemas — Resolution Validity](./configuration-schemas.md#resolution-validity).
+
 ---
 
 ## Global State

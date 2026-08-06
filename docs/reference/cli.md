@@ -1044,6 +1044,7 @@ scind flavor set <flavor> [flags]
 | `-a, --app` | Target application (or use context) |
 
 **Behavior**:
+- **Validates that the application declares the named flavor, before writing anything.** An undeclared flavor is rejected with [`Active Flavor Not Declared`](appendices/cli/error-messages.md#active-flavor-not-declared) and `state.yaml` is left untouched — recording it first would leave a value that breaks every later command until it is edited out by hand. See [Resolution Validity](../specs/configuration-schemas.md#resolution-validity).
 - Updates `.generated/state.yaml` with the new flavor
 - Immediately regenerates the affected application's override file
 - If the application is running, displays a warning with restart guidance
