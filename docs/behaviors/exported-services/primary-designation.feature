@@ -31,13 +31,40 @@ Feature: Primary Export Designation
     Then "web" is the primary export
     And apex environment variables reference the "web" service
 
-  Scenario: No primary designation for multi-export
+  Scenario: No primary designation among multiple proxied exports falls back to position
+    Given an application "frontend" with proxied exports "web" and "api"
+    And "web" is declared before "api"
+    And neither export is marked primary
+    When configuration is validated
+    Then "web" is the primary export
+    And apex hostname "dev-frontend.scind.test" is generated
+    And apex environment variables reference the "web" service
+
+  Scenario: No proxied export means no apex hostname
     Given an application "shared-db" with exports "db" and "cache"
+    And both exports are of type "assigned"
     And neither export is marked primary
     When configuration is validated
     Then no apex hostname is generated
     And no apex environment variables are generated
     And no apex Docker labels are generated
+
+  Scenario: Application opts out of the apex
+    Given an application "frontend" with a single proxied export "web"
+    And the application sets "apex: false"
+    When configuration is validated
+    Then no apex hostname is generated
+    And no apex internal alias is created
+    And no apex environment variables are generated
+    And no apex Docker labels are generated
+
+  Scenario: Opting out alongside an explicit primary is not an error
+    Given an application "frontend" with proxied exports "web" and "api"
+    And export "web" has "primary: true"
+    And the application sets "apex: false"
+    When configuration is validated
+    Then no validation error is emitted
+    And no apex hostname is generated
 
   Scenario: Validation error for multiple primaries
     Given an application "frontend" with exports "web" and "api"

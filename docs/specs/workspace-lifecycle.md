@@ -58,7 +58,7 @@ The state table above is **descriptive**, not a stored artifact. The Xcind proof
 
 ### Startup Sequence (`workspace up`)
 
-1. Ensure proxy is running
+1. Ensure the proxy network exists; start the proxy when it is needed (see Proxy Start Conditions)
 2. Create workspace network if it doesn't exist
 3. Check if override files are stale; regenerate if needed (see Staleness Detection)
 4. For each application (or specified apps if `-a` flag used):
@@ -69,7 +69,23 @@ The state table above is **descriptive**, not a stored artifact. The Xcind proof
 - The `--remove-orphans` flag is always passed to `docker compose up`. This ensures that containers from services removed by flavor changes, manual compose file edits, or renamed services are automatically stopped and removed.
 - The workspace network is always created if it doesn't exist, even when starting a single application with `-a`. This ensures cross-application communication is available when other apps are started later.
 
-**Network and proxy creation failures**: Steps 1–2 create resources (the proxy, the workspace-internal network) that the generated overrides declare as `external: true` (see [Generated Override Files](./generated-override-files.md)). Because the override marks these networks external, Docker Compose will not create them itself and instead fails opaquely at container start if they are absent. Scind must therefore treat a failure to ensure the proxy or the workspace network as a first-class error: emit a diagnostic that names the specific resource (proxy, `{workspace}-internal` network) and includes the underlying Docker error, and **fail `up`** before invoking `docker compose` rather than letting compose surface an unattributable "network not found" error. Validated by the Xcind proof-of-concept.
+#### Proxy Start Conditions
+
+Step 1 has two parts, and only the second is conditional.
+
+**Always**: ensure the shared proxy **network** exists. Generated overrides declare it `external: true`, so every application attaches to it whether or not Traefik itself runs. Creating the network is cheap and unconditional.
+
+**Conditionally**: start the proxy container. Scind starts it when **at least one application being brought up declares a proxied export**. An `up` that brings up only assigned-port applications starts no proxy — running a reverse proxy for traffic that never reaches it is waste, and on a machine where ports `80`/`443` are contested it is waste that costs something. The condition is evaluated over the apps in this invocation, so `workspace up -a db` may skip the proxy in a workspace whose full `up` would start it. Validated by the Xcind proof-of-concept.
+
+**Opt-out**: `proxy.auto_start: false` in `proxy.yaml` (default `true`) tells Scind never to start the proxy as a side effect of `up`. This serves the externally-managed-proxy case — a Traefik the developer runs themselves, or one supplied by another tool. Under the opt-out:
+
+- the proxy network is still ensured, unconditionally, exactly as above;
+- if applications being brought up declare proxied exports and the proxy is not running, Scind emits a **warning** naming the affected exports and the `proxy.auto_start` setting, and **continues** — it does not fail `up`;
+- the hard-fail gate below still applies to the network, and to the proxy whenever Scind did attempt to start it.
+
+The warning-not-failure choice is deliberate: with `auto_start: false` the user has said they own proxy lifecycle, so an unstarted proxy is their state to manage, not a Scind error. That is the one case the fail-fast gate yields to.
+
+**Network and proxy creation failures**: Steps 1–2 create resources (the proxy, the workspace-internal network) that the generated overrides declare as `external: true` (see [Generated Override Files](./generated-override-files.md)). Because the override marks these networks external, Docker Compose will not create them itself and instead fails opaquely at container start if they are absent. Scind must therefore treat a failure to ensure the proxy or the workspace network as a first-class error: emit a diagnostic that names the specific resource (proxy, `{workspace}-internal` network) and includes the underlying Docker error, and **fail `up`** before invoking `docker compose` rather than letting compose surface an unattributable "network not found" error. Validated by the Xcind proof-of-concept. The single exception is the `proxy.auto_start: false` case described above, where a proxy Scind never tried to start warns instead of failing; a failure to ensure either **network** always fails `up`.
 
 ### Staleness Detection
 
@@ -107,7 +123,7 @@ Generation must be **atomic**: write the full set of generated artifacts into a 
 ### Generation Logic (`workspace generate`)
 
 1. **Resolve flavor** for each application (CLI → state → default_flavor → "default")
-2. **Get compose files** from resolved flavor's `compose_files` list
+2. **Get compose files** from the resolved flavor's `compose_files` list, or — when the application declares no `flavors` and no `compose_files` — from the existence-filtered convention defaults (`compose.yaml`, `compose.yml`, `docker-compose.yaml`, `docker-compose.yml`; env default `.env`). See [Default Compose File Resolution](./configuration-schemas.md#default-compose-file-resolution).
 3. **Validate compose files exist** on disk; if any are missing, report error with available alternatives:
    ```
    Error: Flavor "full" references non-existent file: docker-compose.worker.yaml

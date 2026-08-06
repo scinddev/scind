@@ -21,9 +21,9 @@ Applied to containers with exported services. Labels are keyed by export name fo
 ```
 scind.export.{name}.host={hostname}
 scind.export.{name}.url={preferred-url}
-scind.export.{name}.proxy.http.visibility={public|protected|private}
+scind.export.{name}.proxy.http.visibility={public|protected}
 scind.export.{name}.proxy.http.url={url}
-scind.export.{name}.proxy.https.visibility={public|protected|private}
+scind.export.{name}.proxy.https.visibility={public|protected}
 scind.export.{name}.proxy.https.url={url}
 ```
 
@@ -34,7 +34,7 @@ The `scind.export.{name}.url` label is the **canonical preferred-scheme URL** fo
 **Assigned port exports** (direct port mapping):
 ```
 scind.export.{name}.host={hostname}
-scind.export.{name}.port.{internal-port}.visibility={public|protected|private}
+scind.export.{name}.port.{internal-port}.visibility={public|protected}
 scind.export.{name}.port.{internal-port}.assigned={external-port}
 ```
 
@@ -74,12 +74,13 @@ As with exports, `scind.apex.url` is the canonical preferred-scheme apex URL (HT
 ```yaml
 labels:
   - "scind.apex.host=dev-frontend.scind.test"
+  - "scind.apex.url=https://dev-frontend.scind.test"
   - "scind.apex.proxy.https.url=https://dev-frontend.scind.test"
 ```
 
-These labels only appear on proxied primary exports. Assigned-port primary exports receive the apex internal alias but no apex Docker labels (since there is no hostname to advertise).
+These labels only appear on proxied primary exports. Assigned-port primary exports receive the apex internal alias but no apex Docker labels (since there is no hostname to advertise). An application that sets `apex: false` emits no `scind.apex.*` labels at all.
 
-See [ADR-0013](../decisions/0013-apex-url-primary-designation.md) for primary designation rules.
+See [ADR-0013](../decisions/0013-apex-url-primary-designation.md) for primary designation and opt-out rules.
 
 ### Proxy Container Labels
 

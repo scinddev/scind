@@ -81,3 +81,26 @@ workspace:
     my-project:
       path: .                         # Application is in workspace root
 ```
+
+### External Applications
+
+An application directory does not have to sit inside the workspace tree. `applications.{name}.path` may be **absolute, or relative and pointing outside the workspace**, so a repository that already lives elsewhere on disk can join a workspace without moving:
+
+```yaml
+workspace:
+  name: dev
+  applications:
+    frontend: {}                      # ./frontend — conventional, inside the tree
+    shared-db:
+      path: ~/src/shared-db           # Outside the workspace tree
+```
+
+This does not invert the ownership direction. The workspace still enumerates its applications, so the roster stays authoritative and enumerable for `workspace up`, the generated manifest, and validation — the application says nothing about its own membership. What changes is only where the directory sits.
+
+**Detection does not follow the path outward.** [Context detection](./context-detection.md) never traverses above the workspace root, so running Scind from inside an external application's directory detects neither the workspace nor the application. Target external applications explicitly with `-w`/`-a` ([ADR-0011](../decisions/0011-options-based-targeting.md)):
+
+```bash
+scind app up --workspace=dev --app=shared-db
+```
+
+Relative paths resolve from the workspace root and `~` expands to the user's home directory. A path that leaves the workspace tree is machine-specific, which makes that `workspace.yaml` less portable than the conventional `./{app}` form — a real cost, and the reason the conventional form stays the default.

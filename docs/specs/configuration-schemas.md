@@ -31,7 +31,21 @@ This separation ensures configuration files are declarative and version-controll
 - `proxy init`: Creates the directory structure and configuration files
 - `proxy up`: Starts the Traefik container (creates `scind-proxy` network if needed)
 - `proxy down`: Stops the Traefik container
-- `workspace up`: Automatically runs `proxy up` if proxy is not running
+- `workspace up`: Ensures the `scind-proxy` network always, and runs `proxy up` when the applications being brought up declare at least one proxied export (see Auto-Start below)
+
+### Proxy Auto-Start
+
+| Field (`proxy.yaml`) | Type | Default |
+|----------------------|------|---------|
+| `proxy.auto_start` | boolean | `true` |
+
+`workspace up` (and therefore `app up`) starts the shared proxy only when it is needed:
+
+- The `scind-proxy` **network** is ensured **unconditionally** — generated overrides declare it `external: true`, so applications need it whether or not Traefik runs.
+- The proxy **container** starts only when at least one application in this invocation declares a **proxied** export. An assigned-ports-only `up` starts no proxy.
+- `auto_start: false` disables the side-effect start entirely, for users who run their own proxy. The network is still ensured. If proxied exports are present and the proxy is not running, Scind **warns** and continues rather than failing `up` — with `auto_start: false` the user owns proxy lifecycle. This is the sole exception to the fail-fast proxy/network gate.
+
+See [Workspace Lifecycle — Proxy Start Conditions](./workspace-lifecycle.md#proxy-start-conditions). Both refinements come from the Xcind proof-of-concept.
 
 ### Recovery
 
@@ -201,6 +215,16 @@ Applications may declare dotenv files at the application level through two field
 
 A value needed for both YAML interpolation and container runtime must appear in both lists. For field definitions see [Configuration Reference — Application Env Files](../reference/configuration.md#application-env-files). This two-field model was validated by the Xcind proof-of-concept.
 
+### Default Compose File Resolution
+
+`flavors` and `compose_files` are optional. When an application declares neither, the `default` flavor resolves to the existence-filtered candidate list `compose.yaml`, `compose.yml`, `docker-compose.yaml`, `docker-compose.yml`, and the env-file default `.env` (applied to `compose_env_files`, the interpolation scope). This mirrors Docker Compose's own default file discovery, so an application behaves under Scind the way it already behaves under plain `docker compose`.
+
+- The default applies **only when nothing is declared**. Any `flavors` or `compose_files` declaration governs completely; defaults are never merged into a declared list.
+- If nothing is declared and **no** candidate file exists, generation fails with an error naming the four candidates and the directory searched.
+- Reporting commands (`app show`, `app diagnose`) render the resolved list and mark it convention-derived, so the application still describes itself.
+
+See [Configuration Reference — Default Compose File Resolution](../reference/configuration.md#default-compose-file-resolution). Adopted from the Xcind proof-of-concept.
+
 ### Port Type Constraints
 
 - Each exported service may have at most **one `http`** and **one `https`** proxied port
@@ -231,6 +255,8 @@ The primary export receives:
 - **Apex Docker labels** (proxied types only): `scind.apex.*`
 
 For assigned-port primary exports, only the apex internal alias is created (no hostname, no apex environment variables, no apex labels).
+
+**Apex opt-out**: An application-level `apex` boolean in `application.yaml` (default `true`) declines the apex entirely. With `apex: false`, Scind generates no apex hostname, no apex internal alias, no apex Traefik router, no `scind.apex.*` labels, and no `SCIND_{APPLICATION}_APEX_*` environment variables; `apex` and `apex_host` report `null` in the [JSON introspection contract](../reference/cli.md#json-introspection-contract). The opt-out is application-level because there is exactly one apex per application. It does **not** conflict with `primary: true` — an export may still be marked primary, and the designation simply yields nothing apex-related — so this combination is not a validation error.
 
 See [ADR-0013](../decisions/0013-apex-url-primary-designation.md) for the design rationale.
 

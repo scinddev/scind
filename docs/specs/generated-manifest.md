@@ -7,7 +7,9 @@ The manifest is a computed, read-only view of the workspace's current state. It 
 - **Discoverability**: Humans and tools can inspect one file to understand the workspace topology
 - **Tool integration**: Dashboards, DNS updaters, or service discovery tools can consume this structured data
 - **Debugging**: Inspect computed hostnames and environment variables without reconstructing from templates
-- **Caching**: Scind can compare the manifest against configuration to determine if regeneration is needed
+- **At-rest integration**: The manifest is the one topology surface readable **without Docker running** and without invoking Scind — a file another process can watch or read directly, which Docker labels (running containers only) and `--json` (invoke the binary in context) cannot provide
+
+**The manifest is an output, never a staleness input.** Regeneration is decided by [mtime comparison](./workspace-lifecycle.md#staleness-detection) against the source files, plus the revalidation and completeness checks recorded there. Scind does not compare the manifest against configuration to decide whether to regenerate; the manifest records what the last generation produced.
 
 **Cacheable vs. non-cacheable content**: Staleness/regeneration distinguishes **config-derived content** (hostnames, aliases, labels — a pure function of configuration and flavor state, and therefore cacheable) from **live-state-derived content** (assigned `host_port` values and the discovery environment variables that embed them — a function of machine-local runtime state, and therefore *not* cacheable). Live-state-derived fields are re-resolved on every generation even when the config-based staleness check reports up-to-date. See [Workspace Lifecycle: Config-Derived vs. Live-State-Derived Content](./workspace-lifecycle.md#config-derived-vs-live-state-derived-content) and [Port Types](./port-types.md) (assigned values are live-state-derived).
 
