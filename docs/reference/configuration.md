@@ -116,6 +116,8 @@ Even with `auto_start: true`, the proxy container starts only when at least one 
 
 Set `auto_start: false` when you run Traefik yourself. Scind then ensures the network, never starts the container, and — if proxied exports are present with no proxy running — warns and continues instead of failing `up`. Start the proxy explicitly with `scind proxy up`.
 
+`auto_start` lives in `proxy.yaml`, which is a global (per-user) file, so it applies uniformly across every workspace on the machine — there is no per-workspace override. A user who wants the auto-start behavior in one workspace but not another sets `auto_start: false` globally and runs `scind proxy up` by hand in the workspace that wants it, rather than toggling the field per workspace.
+
 See [Workspace Lifecycle — Proxy Start Conditions](../specs/workspace-lifecycle.md#proxy-start-conditions).
 
 ### Proxy Host Ports
@@ -508,7 +510,7 @@ ports:
 
 ### Default Compose File Resolution
 
-`flavors` and `compose_files` are optional. When an `application.yaml` declares **neither**, the `default` flavor resolves to the conventional Compose file names, filtered to those that exist, in this order:
+`flavors` and `compose_files` are optional. When an `application.yaml` declares **neither** and the active flavor is the literal `default` (i.e., `default_flavor` is unset or set to `default`), that flavor resolves to the conventional Compose file names, filtered to those that exist, in this order:
 
 1. `compose.yaml`
 2. `compose.yml`
@@ -519,7 +521,7 @@ The default env file is `.env`, also existence-filtered, applied as `compose_env
 
 This mirrors what `docker compose` itself does with no `-f` flag, so the behavior an application already has under plain Compose is the behavior it keeps under Scind. Requiring a declaration that only restates the platform convention is ceremony, not safety.
 
-**The default applies only in the absence of any declaration.** The moment `flavors` or `compose_files` appears, it governs completely — there is no merging of defaults into a declared list, and no per-flavor fallback. A flavor that declares an empty or wrong list fails as it does today.
+**The default applies only in the absence of any declaration.** The moment `flavors` or `compose_files` appears, it governs completely — there is no merging of defaults into a declared list, and no per-flavor fallback. A flavor that declares an empty or wrong list fails as it does today. A non-`default` active flavor with no declaration (for example, `default_flavor: full` with no `flavors:` block) **fails** rather than falling back to convention defaults — `full` references no declared files, so generation reports the missing-file error the way any other empty flavor list would.
 
 **No candidate exists**: if an application declares nothing and none of the four candidate files is present, generation **fails** with an error naming the convention:
 
@@ -596,7 +598,7 @@ apex: false                             # Optional. Default: true
 |-------|------|---------|-------------|
 | `apex` | boolean | `true` | When `false`, the application produces no apex at all |
 
-With `apex: false` Scind generates no apex hostname, no apex internal alias, no apex Traefik router, no `scind.apex.*` labels, and no `SCIND_{APP}_APEX_*` variables; `apex` and `apex_host` are `null` in `--json` output and `scind urls` shows no apex URL for the application. The field is application-level because an application has exactly one apex. Combining `apex: false` with an export marked `primary: true` is allowed, not an error — the opt-out wins and the designation produces nothing.
+With `apex: false` Scind generates no apex hostname, no apex internal alias, no apex Traefik router, no `scind.apex.*` labels, and no `SCIND_{APP}_APEX_*` variables; `apex` and `apex_host` are `null` in `--json` output and `scind urls` shows no apex URL for the application. The field is application-level because an application has exactly one apex. Combining `apex: false` with an export marked `primary: true` is allowed, not an error — the opt-out wins and the designation produces nothing apex-related; under `apex: false` the `primary: true` designation has no observable effect.
 
 See [ADR-0013](../decisions/0013-apex-url-primary-designation.md) for the hybrid (explicit-then-positional) selection rationale, the ordering requirement it implies for `exported_services`, and the opt-out rationale.
 

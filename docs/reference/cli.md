@@ -500,9 +500,9 @@ scind workspace up [flags]
 
 **Behavior**:
 1. Detect or require workspace context
-2. Check if override files are stale; regenerate if needed
+2. Ensure the `scind-proxy` network exists; start the proxy when an application in this invocation has a proxied export and `proxy.auto_start` is `true` (its default) (see [Proxy Start Conditions](../specs/workspace-lifecycle.md#proxy-start-conditions))
 3. Ensure workspace network (`{workspace}-internal`) exists
-4. Ensure `scind-proxy` network exists; start the proxy when an application in this invocation has a proxied export and `proxy.auto_start` is not `false` (see [Proxy Start Conditions](../specs/workspace-lifecycle.md#proxy-start-conditions))
+4. Check if override files are stale; regenerate if needed (see Staleness Detection)
 5. For each application (or specified apps):
    - Resolve active flavor
    - Execute `docker compose up -d` with appropriate files
@@ -953,6 +953,8 @@ scind app diagnose [flags]
 | Generated artifacts | Which files exist under `.generated/`, whether the completeness marker is present and current, and the **staleness verdict** with the input that caused it |
 
 **Behavior**: `diagnose` is a [read-only, side-effect-free](#json-introspection-contract) command. It reports what the current state *is* — it never generates overrides, allocates ports, provisions certificates, or starts containers to answer the question. When something has not been generated yet, it says so and names the command that would do it, rather than doing it.
+
+**`--json` output**: `diagnose --json` is **not** part of the stable [JSON Introspection Contract](#json-introspection-contract), which covers the per-export `proxiedExports`/`assignedExports` maps and the `apex`/`apex_host` fields only. `diagnose` reports the full resolution chain, so its JSON shape is **provisional** — it carries one object per section listed in the Reported table above, keyed by section name, with the same fields the text form renders. It will be pinned to a stable contract in a later revision once the section shapes see real use. Tools may consume it for debugging, but should not depend on field stability across versions yet.
 
 **Example**:
 ```bash

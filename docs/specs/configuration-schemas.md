@@ -44,6 +44,7 @@ This separation ensures configuration files are declarative and version-controll
 - The `scind-proxy` **network** is ensured **unconditionally** — generated overrides declare it `external: true`, so applications need it whether or not Traefik runs.
 - The proxy **container** starts only when at least one application in this invocation declares a **proxied** export. An assigned-ports-only `up` starts no proxy.
 - `auto_start: false` disables the side-effect start entirely, for users who run their own proxy. The network is still ensured. If proxied exports are present and the proxy is not running, Scind **warns** and continues rather than failing `up` — with `auto_start: false` the user owns proxy lifecycle. This is the sole exception to the fail-fast proxy/network gate.
+- `auto_start` lives in `proxy.yaml`, a global (per-user) file, so it applies uniformly across every workspace on the machine — there is no per-workspace override.
 
 See [Workspace Lifecycle — Proxy Start Conditions](./workspace-lifecycle.md#proxy-start-conditions). Both refinements come from the Xcind proof-of-concept.
 
@@ -217,9 +218,9 @@ A value needed for both YAML interpolation and container runtime must appear in 
 
 ### Default Compose File Resolution
 
-`flavors` and `compose_files` are optional. When an application declares neither, the `default` flavor resolves to the existence-filtered candidate list `compose.yaml`, `compose.yml`, `docker-compose.yaml`, `docker-compose.yml`, and the env-file default `.env` (applied to `compose_env_files`, the interpolation scope). This mirrors Docker Compose's own default file discovery, so an application behaves under Scind the way it already behaves under plain `docker compose`.
+`flavors` and `compose_files` are optional. When an application declares neither and the active flavor is the literal `default` (i.e., `default_flavor` is unset or set to `default`), that flavor resolves to the existence-filtered candidate list `compose.yaml`, `compose.yml`, `docker-compose.yaml`, `docker-compose.yml`, and the env-file default `.env` (applied to `compose_env_files`, the interpolation scope). This mirrors Docker Compose's own default file discovery, so an application behaves under Scind the way it already behaves under plain `docker compose`.
 
-- The default applies **only when nothing is declared**. Any `flavors` or `compose_files` declaration governs completely; defaults are never merged into a declared list.
+- The default applies **only when nothing is declared and the active flavor is `default`**. Any `flavors` or `compose_files` declaration governs completely; defaults are never merged into a declared list. A non-`default` active flavor with no declaration (for example, `default_flavor: full` with no `flavors:` block) **fails** rather than falling back to convention defaults.
 - If nothing is declared and **no** candidate file exists, generation fails with an error naming the four candidates and the directory searched.
 - Reporting commands (`app show`, `app diagnose`) render the resolved list and mark it convention-derived, so the application still describes itself.
 

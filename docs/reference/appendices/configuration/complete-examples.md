@@ -96,7 +96,7 @@ exported_services:
 
 ### shared-db/application.yaml
 
-Multiple exports, no primary — no apex URL generated:
+No proxied export — no apex URL generated (both exports are `assigned`, so neither is apex-eligible, and no fallback applies):
 
 ```yaml
 exported_services:
@@ -362,7 +362,7 @@ applications:
       web:
         service: web
         alias: frontend-web
-        primary: true                     # Implicit (single export)
+        primary: true                     # Resolved primary designation
         apex_alias: frontend
         ports:
           - type: proxied

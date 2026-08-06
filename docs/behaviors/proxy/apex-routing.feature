@@ -40,6 +40,7 @@ Feature: Apex URL Routing
     Then no service has an apex Traefik router
     And no service has apex Docker labels
     And no service has an apex network alias
+    And no apex hostname is generated
 
   Scenario: Apex internal alias on workspace network
     Given an application "frontend" with a single proxied export "web" on port 80
