@@ -89,6 +89,7 @@ Environment variables prefixed with `SCIND_` (e.g., `SCIND_FRONTEND_WEB_HOST`) a
 ```yaml
 proxy:
   domain: scind.test                  # TLD for generated hostnames
+  auto_start: true                       # Start the proxy on `up` when needed (default: true)
   traefik_image: traefik:v3.2.3          # Traefik Docker image (defaults to pinned version)
   http_port: 80                          # Host port for the HTTP entrypoint (default: 80)
   https_port: 443                        # Host port for the HTTPS entrypoint (default: 443)
@@ -102,6 +103,22 @@ proxy:
     cert_file: ~/.config/scind/certs/wildcard.crt
     key_file: ~/.config/scind/certs/wildcard.key
 ```
+
+### Proxy Auto-Start
+
+`auto_start` controls whether `scind up` starts the shared proxy as a side effect. It defaults to `true`.
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `proxy.auto_start` | boolean | `true` | Start the proxy container during `up` when a proxied export needs it |
+
+Even with `auto_start: true`, the proxy container starts only when at least one application in the invocation declares a **proxied** export — an assigned-ports-only `up` starts nothing. The `scind-proxy` **network** is ensured in every case, because generated overrides declare it `external: true`.
+
+Set `auto_start: false` when you run Traefik yourself. Scind then ensures the network, never starts the container, and — if proxied exports are present with no proxy running — warns and continues instead of failing `up`. Start the proxy explicitly with `scind proxy up`.
+
+`auto_start` lives in `proxy.yaml`, which is a global (per-user) file, so it applies uniformly across every workspace on the machine — there is no per-workspace override. A user who wants the auto-start behavior in one workspace but not another sets `auto_start: false` globally and runs `scind proxy up` by hand in the workspace that wants it, rather than toggling the field per workspace.
+
+See [Workspace Lifecycle — Proxy Start Conditions](../specs/workspace-lifecycle.md#proxy-start-conditions).
 
 ### Proxy Host Ports
 
@@ -309,7 +326,8 @@ workspace:
       repository: git@github.com:company/backend.git
     shared-db:
       repository: git@github.com:company/shared-db.git
-      path: ./database                # Optional. Defaults to ./{app-name}
+      path: ./database                # Optional. Defaults to ./{app-name}; may also be
+                                      # absolute or point outside the workspace tree
 ```
 
 ### Single-Application Workspace
@@ -321,6 +339,34 @@ workspace:
     myapp:
       path: .                         # Application in workspace root directory
 ```
+
+### External Applications
+
+`applications.{name}.path` MAY be **absolute, or relative and pointing outside the workspace tree**. This lets a repository that already lives elsewhere on disk join a workspace without being moved or symlinked into it:
+
+```yaml
+workspace:
+  name: dev
+  applications:
+    frontend: {}                        # ./frontend — the conventional case
+    shared-db:
+      path: ~/src/shared-db             # Absolute: application lives outside the workspace
+    legacy:
+      path: ../legacy-api               # Relative, resolved from the workspace root
+```
+
+Membership still runs one direction: the workspace enumerates its applications. An external application is a member because `workspace.yaml` lists it, not because it declares anything about itself, so `workspace up`, the generated manifest, and roster validation all keep a complete and authoritative roster.
+
+**Targeting external applications**: [Context detection](../specs/context-detection.md) never traverses above the workspace root, so standing in an external application's directory does **not** detect the workspace or the application. Target them explicitly instead:
+
+```bash
+scind app up --workspace=dev --app=shared-db
+```
+
+The `-w`/`-a` flags of [ADR-0011](../decisions/0011-options-based-targeting.md) already cover every command, so no new mechanism is needed. Two consequences follow from the path leaving the workspace tree:
+
+- **Path resolution**: relative paths resolve from the workspace root; `~` expands to the user's home directory. Scind records the resolved absolute path in the `scind.app.path` Docker label as usual.
+- **Portability**: an absolute or outside-the-tree path is machine-specific, so a `workspace.yaml` that uses one is not portable between machines the way a conventional `./{app}` path is. Prefer the conventional form unless the application genuinely cannot live in the workspace directory.
 
 ### Conventions
 
@@ -391,6 +437,7 @@ This file defines the application's exported services and flavors. The applicati
 
 ```yaml
 default_flavor: full                    # Optional. Defaults to "default" if not specified
+apex: true                              # Optional. Defaults to true; false disables the apex entirely
 
 flavors:
   lite:
@@ -461,6 +508,46 @@ ports:
 - If the Compose service has multiple ports, `port:` must be explicitly specified
 - For Compose port mappings like `"80:8080"`, the container port (`8080`) is used
 
+### Default Compose File Resolution
+
+`flavors` and `compose_files` are optional. When an `application.yaml` declares **neither** and the active flavor is the literal `default` (i.e., `default_flavor` is unset or set to `default`), that flavor resolves to the conventional Compose file names, filtered to those that exist, in this order:
+
+1. `compose.yaml`
+2. `compose.yml`
+3. `docker-compose.yaml`
+4. `docker-compose.yml`
+
+The default env file is `.env`, also existence-filtered, applied as `compose_env_files` (interpolation scope — the same scope `docker compose` gives `.env`).
+
+This mirrors what `docker compose` itself does with no `-f` flag, so the behavior an application already has under plain Compose is the behavior it keeps under Scind. Requiring a declaration that only restates the platform convention is ceremony, not safety.
+
+**The default applies only in the absence of any declaration.** The moment `flavors` or `compose_files` appears, it governs completely — there is no merging of defaults into a declared list, and no per-flavor fallback. A flavor that declares an empty or wrong list fails as it does today. A non-`default` active flavor with no declaration (for example, `default_flavor: full` with no `flavors:` block) **fails** rather than falling back to convention defaults. The failure is its own error — the flavor was never declared, so there is no file list to report as missing:
+
+```
+Error: Application "backend" has no flavor named "full"
+  Application: backend
+  Active flavor "full" came from: default_flavor in application.yaml
+  Declared flavors: none
+  Declare the flavor in application.yaml, or remove default_flavor to use
+  the conventional compose files (compose.yaml, docker-compose.yaml, …).
+```
+
+The active flavor can arrive from `--flavor`, `.generated/state.yaml`, or `default_flavor`, so the error names its source — the fix differs for each. See [CLI Error Messages — Active Flavor Not Declared](appendices/cli/error-messages.md#active-flavor-not-declared).
+
+**No candidate exists**: if an application declares nothing and none of the four candidate files is present, generation **fails** with an error naming the convention:
+
+```
+Error: No compose file found for application "frontend"
+  Application declares no flavors or compose_files, so Scind looked for:
+    compose.yaml, compose.yml, docker-compose.yaml, docker-compose.yml
+  None exist in /Users/beau/workspaces/dev/frontend
+  Declare compose_files in application.yaml, or add one of the files above.
+```
+
+`scind app show` and `scind app diagnose` report the **resolved** compose file list and mark it as convention-derived, so an application that declares nothing still describes itself when asked.
+
+Adopted from the Xcind proof-of-concept, which specifies the same candidate set and override behavior.
+
 ### Application Env Files
 
 Applications may declare dotenv files at the application level. Scind exposes **two distinct fields** because Docker Compose has two separate, easily-confused env-file scopes:
@@ -511,7 +598,20 @@ Apex hostnames only ever apply to **proxied** exports, so implicit-primary eligi
 
 The primary export receives additional apex hostname, alias, Traefik routing, Docker labels, and environment variables. An assigned export may still be marked `primary: true` to receive the apex **internal alias** (only) — but it is never apex-*eligible* implicitly and never receives an apex hostname.
 
-See [ADR-0013](../decisions/0013-apex-url-primary-designation.md) for the hybrid (explicit-then-positional) selection rationale and the ordering requirement it implies for `exported_services`.
+**Opting out of the apex**: The application-level `apex` field turns apex generation off for the whole application:
+
+```yaml
+# application.yaml
+apex: false                             # Optional. Default: true
+```
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `apex` | boolean | `true` | When `false`, the application produces no apex at all |
+
+With `apex: false` Scind generates no apex hostname, no apex internal alias, no apex Traefik router, no `scind.apex.*` labels, and no `SCIND_{APP}_APEX_*` variables; `apex` and `apex_host` are `null` in `--json` output and `scind urls` shows no apex URL for the application. The field is application-level because an application has exactly one apex. Combining `apex: false` with an export marked `primary: true` is allowed, not an error — the opt-out wins and the designation produces nothing apex-related; under `apex: false` the `primary: true` designation has no observable effect.
+
+See [ADR-0013](../decisions/0013-apex-url-primary-designation.md) for the hybrid (explicit-then-positional) selection rationale, the ordering requirement it implies for `exported_services`, and the opt-out rationale.
 
 ### Application Configuration Examples
 
@@ -606,7 +706,9 @@ The manifest is a computed, read-only view of the workspace's current state. It 
 - **Discoverability**: Humans and tools can inspect one file to understand the workspace topology
 - **Tool integration**: Dashboards, DNS updaters, or service discovery tools can consume this structured data
 - **Debugging**: Inspect computed hostnames and environment variables without reconstructing from templates
-- **Caching**: Scind can compare the manifest against configuration to determine if regeneration is needed
+- **At-rest integration**: The manifest is the one topology surface readable without Docker running and without invoking Scind
+
+The manifest is an **output**, never a staleness input — regeneration is decided by [mtime comparison](../specs/workspace-lifecycle.md#staleness-detection) against source files, not by comparing the manifest against configuration.
 
 ```yaml
 # AUTO-GENERATED - Computed from configuration and state
@@ -758,14 +860,16 @@ docker compose -f base.yaml -f .generated/app.override.yaml -f overrides/app.yam
 
 ## Visibility
 
-Each port can have a `visibility` of `public` or `protected` (defaults to `protected` if not specified). This is primarily **documentation** to communicate intent:
+Each port can have a `visibility` of `public` or `protected` (defaults to `protected` if not specified). Visibility is **advisory display metadata**, not access control — Scind enforces nothing on it, and neither value changes who can reach the port:
 
 - **public**: This port is intended for external/production use
 - **protected** (default): This port exists for development/debugging but should not be depended on in production
 
 Visibility does not change Scind's core behavior—all exported services receive internal network aliases and environment variables regardless of visibility. Both public and protected proxied services route through Traefik.
 
-**Docker label exposure**: Visibility is included in the generated Docker labels (`scind.export.<name>.proxy.<protocol>.visibility`), enabling external tools to distinguish between public and protected services.
+`private` is not a visibility value: a service is private by being absent from `exported_services`.
+
+**Docker label exposure**: Visibility is included in the generated Docker labels (`scind.export.<name>.proxy.<protocol>.visibility`), enabling external tools to distinguish between public and protected services for display or filtering.
 
 ---
 

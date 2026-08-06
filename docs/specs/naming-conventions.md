@@ -43,7 +43,7 @@ Application developers should update `application.yaml` when:
 - **Apex Traefik router names** (proxied primary export): `{workspace}-{application}-{protocol}` (e.g., `dev-frontend-https`)
 - **Apex environment variables** (proxied primary export): `SCIND_{APPLICATION}_APEX_{SUFFIX}` (e.g., `SCIND_FRONTEND_APEX_URL`)
 
-**Implicit primary**: If an application has exactly one exported service, it is implicitly primary — no annotation needed. Apex patterns are only generated for the primary exported service. See [ADR-0013](../decisions/0013-apex-url-primary-designation.md) for the design rationale.
+**Which export gets the apex**: Apex eligibility is scoped to **proxied** exports. An application with exactly one proxied export gets an apex with no annotation, even when assigned exports sit alongside it. When several proxied exports compete, an explicit `primary: true` wins; when none is marked, the first-declared proxied export becomes primary and an apex is still generated. Apex patterns are only generated for the primary exported service, and an application that sets `apex: false` generates none of them. See [ADR-0013](../decisions/0013-apex-url-primary-designation.md) for the design rationale.
 
 ### Per-Instance Token
 

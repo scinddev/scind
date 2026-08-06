@@ -49,14 +49,16 @@ The per-export `tls` attribute is scoped below the workspace-level `tls.mode` (s
 
 ### Visibility
 
-Each port can have a `visibility` of `public` or `protected` (defaults to `protected` if not specified). This is primarily **documentation** to communicate intent to collaborators:
+Each port can have a `visibility` of `public` or `protected` (defaults to `protected` if not specified). Visibility is **advisory display metadata** — it communicates intent to collaborators and to tools that render service lists. It is **not** access control: Scind enforces nothing on the basis of it, and neither value restricts who can reach the port.
 
 - **public**: This port is intended for external/production use
 - **protected** (default): This port exists for development/debugging but should not be depended on in production
 
 Visibility does not change Scind's core behavior—all exported services receive internal network aliases and environment variables regardless of visibility. Both public and protected proxied services route through Traefik.
 
-**Docker label exposure**: Visibility is included in the generated Docker labels (`workspace.visibility=public` or `workspace.visibility=protected`), enabling external tools (such as Servlo) to distinguish between public and protected services for display or filtering purposes.
+`private` is **not** a visibility value. A service is private by being absent from `exported_services` (see below), which is a different mechanism at a different level; there is nothing to label, because no labels are generated for it.
+
+**Docker label exposure**: Visibility is emitted on the generated Docker labels — `scind.export.{name}.proxy.{protocol}.visibility` for proxied exports and `scind.export.{name}.port.{internal-port}.visibility` for assigned exports (see [Docker Labels](./docker-labels.md#export-labels)). External tools such as Servlo read these to distinguish public from protected services when displaying or filtering them.
 
 ### Private Services
 

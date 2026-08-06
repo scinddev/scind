@@ -500,9 +500,9 @@ scind workspace up [flags]
 
 **Behavior**:
 1. Detect or require workspace context
-2. Check if override files are stale; regenerate if needed
+2. Ensure the `scind-proxy` network exists; start the proxy when an application in this invocation has a proxied export and `proxy.auto_start` is `true` (its default) (see [Proxy Start Conditions](../specs/workspace-lifecycle.md#proxy-start-conditions))
 3. Ensure workspace network (`{workspace}-internal`) exists
-4. Ensure `scind-proxy` network exists and proxy is running
+4. Check if override files are stale; regenerate if needed (see Staleness Detection)
 5. For each application (or specified apps):
    - Resolve active flavor
    - Execute `docker compose up -d` with appropriate files
@@ -781,7 +781,7 @@ scind app init [flags]
 **Behavior**:
 - Creates `application.yaml` in current directory
 - Scans for existing `docker-compose.yaml` to suggest exported services
-- Sets up default flavor pointing to existing compose file(s)
+- Scaffolds a default flavor pointing at the existing compose file(s) **only when they do not already match the conventional names** — a project using `compose.yaml` or `docker-compose.yaml` resolves those by [convention](configuration.md#default-compose-file-resolution), so `app init` leaves the declaration out rather than restating the default
 
 **Use case**: Promoting an existing Docker Compose project to a Scind application.
 
@@ -807,12 +807,13 @@ scind app add [flags]
 | `-w, --workspace` | Target workspace (or use context) |
 | `-a, --app` | Application name (required) |
 | `--repo` | Git repository URL to clone |
-| `--path` | Custom path relative to workspace (default: `./{app}`) |
+| `--path` | Custom application path (default: `./{app}`). Relative paths resolve from the workspace root; absolute paths and paths outside the workspace tree are allowed |
 
 **Behavior**:
 - Adds application entry to `workspace.yaml`
 - If `--repo` provided, clones repository to path
 - If `--path=.`, configures app to use workspace root (single-app workspace)
+- If the path resolves outside the workspace tree, the application is still a full member of the roster, but context detection cannot reach it — target it with `-w`/`-a`. See [Configuration Reference — External Applications](configuration.md#external-applications).
 
 **Single-app workspace naming**: The workspace name and app name are independent. You can have workspace `dev` with app `myapi`, or create multiple workspaces (`dev`, `review`, `feature-x`) each containing the same app name (`myapi`). The app name comes from `--app`; the workspace name comes from `workspace init --workspace`.
 
@@ -923,6 +924,62 @@ scind app status --app=frontend
 
 ---
 
+### `scind app diagnose`
+
+Explain how one application's configuration resolved into generated artifacts and routing.
+
+```bash
+scind app diagnose [flags]
+```
+
+**Flags**:
+| Flag | Description |
+|------|-------------|
+| `-w, --workspace` | Target workspace (or use context) |
+| `-a, --app` | Target application (or use context) |
+| `--json` | Machine-readable output |
+
+**Purpose**: `diagnose` answers "**why did routing or generation not come out the way I expected for this app?**" — a question `scind doctor` cannot answer, because `doctor` checks **host** health (Docker, Compose, the proxy, DNS) and never looks at a single application's resolution. The two are deliberately separate: `doctor` is host-scoped, `diagnose` is app-scoped. This capability comes from the Xcind proof-of-concept, where it was built because users had no other way to see why a proxied export failed to produce routing.
+
+**Reported**: the resolution chain, in the order Scind computed it.
+
+| Section | Content |
+|---------|---------|
+| Configuration inputs | Which files resolved and were read (`workspace.yaml`, `application.yaml`, env files), with their absolute paths |
+| Flavor | The active flavor and which resolution step selected it (CLI flag, state file, `default_flavor`, or the `"default"` fallback) |
+| Compose files | The resolved compose file list, whether each exists, and whether the list came from a declaration or from [convention defaults](configuration.md#default-compose-file-resolution) |
+| Exports | Each entry of `exported_services` as parsed: type, protocol, resolved container port and how it was inferred, TLS mode, visibility, and whether the entry is the apex-bearing export (or why it is not) |
+| Assigned ports | The recorded assignment for each assigned export, the requested port, and the allocated host port |
+| Generated artifacts | Which files exist under `.generated/`, whether the completeness marker is present and current, and the **staleness verdict** with the input that caused it |
+
+**Behavior**: `diagnose` is a [read-only, side-effect-free](#json-introspection-contract) command. It reports what the current state *is* — it never generates overrides, allocates ports, provisions certificates, or starts containers to answer the question. When something has not been generated yet, it says so and names the command that would do it, rather than doing it.
+
+**`--json` output**: the [JSON Introspection Contract](#json-introspection-contract) makes two separate promises, and `diagnose` is covered by one of them, not both. It **is** bound by the contract's read-only, side-effect-free guarantee. It is **not** covered by the contract's field-stability guarantee, which extends to the per-export `proxiedExports`/`assignedExports` maps and the `apex`/`apex_host` fields only. `diagnose` reports the full resolution chain, so its JSON shape is **provisional** — it carries one object per section listed in the Reported table above, keyed by section name, with the same fields the text form renders. It will be pinned to a stable contract in a later revision once the section shapes see real use. Tools may consume it for debugging, but should not depend on field stability across versions yet.
+
+**Example**:
+```bash
+$ scind app diagnose --app=frontend
+Application: frontend (workspace: dev)
+
+Configuration
+  workspace.yaml     /Users/beau/workspaces/dev/workspace.yaml
+  application.yaml   /Users/beau/workspaces/dev/frontend/application.yaml
+  flavor             full  (from .generated/state.yaml)
+  compose files      docker-compose.yaml ✓, docker-compose.worker.yaml ✓  (declared)
+
+Exports
+  web    proxied  https  port 3000 (inferred from compose)  tls=auto   apex ✓
+  debug  assigned port 9229                                  host 9231
+
+Generated
+  frontend.override.yaml   present
+  completeness marker      present (schema v3, current)
+  staleness                STALE — application.yaml is newer than the override
+                           run 'scind generate' or 'scind up'
+```
+
+---
+
 ## Flavor Commands
 
 Manage application flavors (named configurations).
@@ -987,6 +1044,7 @@ scind flavor set <flavor> [flags]
 | `-a, --app` | Target application (or use context) |
 
 **Behavior**:
+- **Validates that the application declares the named flavor, before writing anything.** An undeclared flavor is rejected with [`Active Flavor Not Declared`](appendices/cli/error-messages.md#active-flavor-not-declared) and `state.yaml` is left untouched — recording it first would leave a value that breaks every later command until it is edited out by hand. See [Resolution Validity](../specs/configuration-schemas.md#resolution-validity).
 - Updates `.generated/state.yaml` with the new flavor
 - Immediately regenerates the affected application's override file
 - If the application is running, displays a warning with restart guidance
@@ -1222,7 +1280,7 @@ Warning: Network 'scind-proxy' exists but may not have been created by Scind.
 Use 'scind proxy up --recreate' to recreate the network.
 ```
 
-**Note**: Users rarely need to call this directly. `workspace up` automatically starts the proxy if it's not running.
+**Note**: Users rarely need to call this directly. `workspace up` starts the proxy on its own when an application it is bringing up declares a proxied export. Call `proxy up` explicitly when you have set `proxy.auto_start: false`, or when you want the proxy running ahead of any application.
 
 ---
 
@@ -1607,6 +1665,8 @@ Check system health and requirements.
 scind doctor
 ```
 
+**Scope**: `doctor` is **host-scoped** — it checks Docker, Compose, the proxy, and DNS, the things shared by every workspace on the machine. It does not explain a single application's configuration or routing; use [`scind app diagnose`](#scind-app-diagnose) for that.
+
 **Output**:
 ```
 Checking Scind environment...
@@ -1696,8 +1756,8 @@ Which export is primary is decided by the [apex selection rules in ADR-0013](../
 
 | Field | Description |
 |-------|-------------|
-| `apex` | Apex URL for the primary proxied export (`https://{app}.{domain}`), or `null` if the primary is assigned |
-| `apex_host` | Apex hostname (`{app}.{domain}`), or `null` |
+| `apex` | Apex URL for the primary proxied export (`https://{app}.{domain}`), or `null` if the primary is assigned or the application sets `apex: false` |
+| `apex_host` | Apex hostname (`{app}.{domain}`), or `null` under the same two conditions |
 
 Credit to the Xcind proof-of-concept for preferring the apex URL in reporting.
 
@@ -1769,7 +1829,9 @@ For any command that reports exported services, the `--json` payload keys export
 
 The per-export descriptor (the value of each map entry) is defined once in the [Port Types Specification](../specs/port-types.md); commands render subsets of it but never invent fields.
 
-**Read-only commands are side-effect-free.** `show`, `urls`, `ports`, and the per-app introspection commands resolve entirely from persisted state (`.generated/`, the workspace registry, global state) and configuration. They **must never** trigger override generation, certificate provisioning, or proxy/container startup as a side effect of being asked to report a value. If the underlying state has not been generated yet, a read-only command reports what is known and points the user to `scind generate` / `scind up` rather than performing that work implicitly.
+This contract makes two distinct promises: the **field stability** of the payload described above, and the **read-only guarantee** below. They have different scopes — `diagnose` is bound by the read-only guarantee but its payload is [provisional](#scind-app-diagnose), outside the field-stability promise.
+
+**Read-only commands are side-effect-free.** `show`, `urls`, `ports`, `diagnose`, and the per-app introspection commands resolve entirely from persisted state (`.generated/`, the workspace registry, global state) and configuration. They **must never** trigger override generation, certificate provisioning, or proxy/container startup as a side effect of being asked to report a value. If the underlying state has not been generated yet, a read-only command reports what is known and points the user to `scind generate` / `scind up` rather than performing that work implicitly.
 
 Credit to the Xcind proof-of-concept (Xcind ADR-0015) for the single-contract model that backs labels and introspection alike.
 

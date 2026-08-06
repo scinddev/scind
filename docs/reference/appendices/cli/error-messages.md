@@ -92,6 +92,36 @@ Error: Invalid configuration in ./application.yaml
   Line 15: missing required field "type" in ports configuration
 ```
 
+### Active Flavor Not Declared
+
+The convention-based compose defaults apply only to the literal `default` flavor. When the active flavor is anything else and the application declares no matching flavor, generation fails rather than falling back to those defaults:
+
+```bash
+$ scind up
+Error: Application "backend" has no flavor named "full"
+  Application: backend
+  Active flavor "full" came from: default_flavor in application.yaml
+  Declared flavors: none
+  Declare the flavor in application.yaml, or remove default_flavor to use
+  the conventional compose files (compose.yaml, docker-compose.yaml, …).
+```
+
+The error names **where the active flavor came from** — `--flavor`, `.generated/state.yaml`, or `default_flavor` — because the fix differs for each. See [Default Compose File Resolution](../../configuration.md#default-compose-file-resolution).
+
+`scind flavor set` emits the same error, at write time, and leaves
+`.generated/state.yaml` unchanged:
+
+```bash
+$ scind flavor set full --app=backend
+Error: Application "backend" has no flavor named "full"
+  Application: backend
+  Active flavor "full" came from: --flavor argument to 'flavor set'
+  Declared flavors: lite, debug
+  No changes written to .generated/state.yaml.
+```
+
+See [Resolution Validity](../../../specs/configuration-schemas.md#resolution-validity) for the full rule.
+
 ### Flavor References Non-Existent File
 
 ```bash
