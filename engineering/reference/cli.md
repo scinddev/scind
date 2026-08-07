@@ -612,6 +612,8 @@ scind workspace destroy [flags]
 
 **Warning**: This is destructive. Without `--force` or `--keep-apps`, prompts for confirmation showing what will be removed.
 
+**Failure semantics**: if any application's teardown in step 1 fails, `destroy` **aborts before** removing `.generated/`, `workspace.yaml`, port assignments, or the registry entry. Applications that were already stopped stay stopped, but nothing describing the workspace is discarded while resources it owns may still exist — so the operator can retry `destroy`, or investigate the failing application first, with the workspace still fully described. (Validated by the Xcind proof-of-concept, PR #86.)
+
 ---
 
 ## Application Commands
@@ -762,6 +764,63 @@ scind app exports [SERVICE] [flags]
 **Behavior**: Read-only. Renders the full [per-export descriptor](../specs/port-types.md) (type, service, port, URL, TLS, apex) for each export—the same tabular view that headlines `scind app show`. The `--json` form is the combined `proxiedExports`/`assignedExports` maps of the [JSON introspection contract](#json-introspection-contract).
 
 Together, `app urls`, `app ports`, and `app exports` give per-app, scriptable introspection to complement the workspace-wide `scind urls`. Credit to the Xcind proof-of-concept for the per-app scalar introspection surface.
+
+---
+
+### `scind app get`
+
+Read a **single value** out of an application's resolved configuration.
+
+```bash
+scind app get <path> [flags]
+```
+
+**Arguments**:
+| Argument | Description |
+|----------|-------------|
+| `path` | Dotted path into the resolved configuration |
+
+**Flags**:
+| Flag | Description |
+|------|-------------|
+| `-w, --workspace` | Target workspace (or use context) |
+| `-a, --app` | Target application (or use context) |
+
+**Behavior**: Read-only. `app get` draws from the **same single source of truth** as `--json` and [`scind compose-config`](#scind-compose-config) — the application metadata plus the resolved Compose document — so a value read here is the value that generated the routing labels. It is a scalar accessor for scripts, not a second resolution path.
+
+**Path grammar**: a path is one or more segments separated by dots. A segment is a bare key or a **quoted** key, optionally followed by array indices:
+
+```
+path    := segment ( "." segment )*
+segment := ( bare | quoted ) index*
+bare    := [A-Za-z_][A-Za-z0-9_-]*
+quoted  := '"' ( any character, with \" and \\ escaped ) '"'
+index   := "[" [0-9]+ "]"
+```
+
+Quote a key that itself contains a dot — Compose labels being the common case:
+
+```bash
+scind app get 'compose.services.web.labels."traefik.http.routers.dev-frontend-web-https.rule"'
+scind app get proxiedExports.web.url
+scind app get 'compose.services.web.ports[0]'
+```
+
+**Output**: scalars print raw (no quoting, no trailing structure), so a value can be captured directly into a shell variable. Objects and arrays print as **compact JSON**.
+
+**Exit codes**:
+| Code | Meaning |
+|------|---------|
+| 0 | The path holds a non-null value (printed) |
+| 1 | The path is absent, `null`, or blocked by a scalar — a general error, per the [Exit Codes](#exit-codes) table |
+| 2 | Malformed path — invalid arguments, per the [Exit Codes](#exit-codes) table |
+| 3 | Resolved state is unavailable (nothing generated yet) — a configuration error |
+
+An absent path is silent. A path that runs *through* a scalar (`metadata.app.nested` where `metadata.app` is a string) writes a "path is not traversable" line to stderr and still exits 1, so callers that must distinguish the two can read stderr.
+
+Being read-only, `app get` never generates overrides or starts anything to answer a question; when resolved state does not exist it reports so and points at `scind generate`.
+
+*Credit to the Xcind proof-of-concept for the single-value resolved-config lookup pattern (Xcind PR #85).*
 
 ---
 
@@ -1199,6 +1258,23 @@ scind port scan
 
 Manage the Traefik reverse proxy. The proxy is a shared instance that serves all workspaces on the host.
 
+### Command behavior under `mode: external`
+
+When `proxy.mode` is `external` ([ADR-0017](../decisions/0017-external-proxy-mode.md)), Scind does not own a proxy, and the proxy verbs change accordingly:
+
+| Command | Behavior | Exit |
+|---------|----------|------|
+| `proxy init` | Writes config, removes stale managed artifacts, verifies/creates the configured network | 0 |
+| `proxy up` | Verifies the network, reports a detected proxy-like container, starts nothing | 0 |
+| `proxy up --force` / `--recreate` | Refuses — would remove a network shared with the external proxy | 1 |
+| `proxy down` | Refuses, except the migration escape hatch documented under [`scind proxy down`](#scind-proxy-down) | 1 / 0 |
+| `proxy restart` | Refuses — there is no Scind-owned proxy to restart | 1 |
+| `proxy logs` | Refuses, with a `docker logs {container}` hint | 1 |
+| `proxy status` | External-specific report | 0 |
+| `proxy destroy` | Runs, but never removes the configured shared network | 0 |
+
+**Why refuse instead of no-op**: these verbs promise actions Scind cannot perform on a proxy it does not own. Exiting 0 having done nothing would report success for a request that was never carried out; a refusal tells the truth and names the mode that caused it.
+
 ### `scind proxy init`
 
 Bootstrap the proxy configuration. This creates the Traefik Docker Compose project at `~/.config/scind/proxy/`.
@@ -1219,7 +1295,7 @@ scind proxy init [flags]
    - If exists and no `--force`: error with message
    - If exists and `--force`: backup existing config and overwrite
 2. Create proxy directory structure (`docker-compose.yaml`, `traefik.yaml`, `dynamic/`, `certs/`)
-3. Create `scind-proxy` Docker network if it doesn't exist
+3. Create the configured proxy Docker network (`proxy.network`, default `scind-proxy`) if it doesn't exist
 4. Output next steps (DNS setup, starting proxy)
 
 **Example**:
@@ -1249,6 +1325,22 @@ Created proxy configuration at ~/.config/scind/proxy/
 Domain set to: mydev.local
 ```
 
+**Under `mode: external`**: generation steps are skipped entirely — no compose file, no static configuration, no `dynamic/tls.yaml`, no certificate provisioning. `init` instead removes the stale managed static configuration and `dynamic/tls.yaml`, **leaves `certs/` in place** (harmless, and it preserves a user-supplied wildcard across mode flip-flops), and removes the generated compose file **only when no container labeled `scind.component=proxy` is running** — while one exists that file is the only handle for stopping it, so `init` retains it and warns. It then verifies the configured shared network, creating it if absent. See [Proxy Infrastructure — External Proxy Mode](../specs/proxy-infrastructure.md#external-proxy-mode).
+
+**Coolify-style external setup**:
+```bash
+$ scind config set proxy.mode external
+$ scind config set proxy.network coolify
+$ scind config set proxy.http_entrypoint http
+$ scind config set proxy.https_entrypoint https
+$ scind config set proxy.certresolver letsencrypt
+$ scind config set proxy.domain apps.example.com
+$ scind proxy init
+Proxy mode: external — Scind will not start or configure a proxy.
+Network 'coolify' exists.
+Applications will emit routers on entrypoints http/https with certresolver 'letsencrypt'.
+```
+
 ---
 
 ### `scind proxy up`
@@ -1265,10 +1357,12 @@ scind proxy up [flags]
 | `--recreate` | Recreate the proxy network even if it exists |
 
 **Behavior**:
-- Creates `scind-proxy` network if it doesn't exist
+- Creates the configured proxy network (`proxy.network`, default `scind-proxy`) if it doesn't exist
 - Validates existing network configuration matches expected settings
 - Starts Traefik container from proxy configuration
 - If proxy configuration doesn't exist, runs `proxy init` first
+
+**Under `mode: external`**: `up` keeps its "make the proxy layer ready" contract by verifying the shared network and reporting any detected proxy-like container; it starts nothing and exits 0. `--recreate` (and `--force`) **refuse** with exit 1, since recreating a network shared with the external proxy would disconnect that proxy and any unrelated workloads on it.
 
 **Network conflict handling**:
 If the `scind-proxy` network exists but was created by a different tool or has incompatible settings, `proxy up` will warn:
@@ -1292,6 +1386,15 @@ Stop the Traefik proxy.
 scind proxy down
 ```
 
+**Under `mode: external`**: `down` **refuses** with exit 1 — stopping a proxy Scind does not own is not Scind's to do.
+
+The sole exception is the **managed→external migration escape hatch**. When **both** of the following hold, `down` stops that Scind-managed proxy via its compose file and exits 0:
+
+1. a container labeled `scind.component=proxy` is running, **and**
+2. the previously generated managed compose file still exists.
+
+Both predicates are required. The label alone could match a proxy the user ran by hand, which Scind has no mandate to stop; the compose file alone could be stale, describing a proxy that no longer exists. Either one on its own leaves the refusal in place. Together they identify a proxy Scind itself started and still knows how to stop — exactly the case of a host that has just switched from `managed` to `external`.
+
 ---
 
 ### `scind proxy restart`
@@ -1301,6 +1404,8 @@ Restart the Traefik proxy.
 ```bash
 scind proxy restart
 ```
+
+**Under `mode: external`**: refuses with exit 1. There is no Scind-owned proxy to restart, and the escape hatch that `down` offers has no restart counterpart — Scind would not know how to bring the foreign proxy back.
 
 ---
 
@@ -1314,6 +1419,7 @@ scind proxy status
 
 **Output** (dashboard enabled):
 ```
+Mode: managed
 Proxy: running
 Network: scind-proxy (created)
 Dashboard: http://localhost:8080
@@ -1324,6 +1430,7 @@ Entrypoints:
 
 **Output** (dashboard disabled):
 ```
+Mode: managed
 Proxy: running
 Network: scind-proxy (created)
 Dashboard: disabled
@@ -1332,7 +1439,49 @@ Entrypoints:
   - websecure: :443
 ```
 
+**Output** (`mode: external`):
+```
+Mode: external
+Network: coolify (present)
+Entrypoints:
+  - http (HTTP)
+  - https (HTTPS)
+Certresolver: letsencrypt
+Detected proxy container: coolify-proxy (running)
+```
+
+The external report omits Traefik container state and the dashboard URL entirely — Scind neither runs that container nor knows whether a dashboard is exposed. The detected-proxy line is **best-effort**: it reports a proxy-like container found on the configured network, and its absence is informational, not an error.
+
 **Note**: The dashboard URL reflects the configured port from `proxy.yaml` (`dashboard.port`, default 8080). If `dashboard.enabled` is false, the dashboard line shows "disabled".
+
+**Machine-readable output**: `--json` carries a `mode` field in **both** modes, so a consumer never has to infer the mode from which other fields happen to be present. The managed payload additionally carries container state and dashboard URL; the external payload carries network presence, entrypoint names, certresolver, and the detected container.
+
+---
+
+### `scind proxy destroy`
+
+Remove the Scind-managed proxy and its generated state.
+
+```bash
+scind proxy destroy [--purge] [--force]
+```
+
+**Flags**:
+| Flag | Description |
+|------|-------------|
+| `--purge` | Also remove the proxy configuration directory (`~/.config/scind/proxy/`) |
+| `--force` | Skip the confirmation prompt |
+
+**Behavior**:
+1. Stop the managed proxy container.
+2. Remove the generated Traefik project and its state directory.
+3. Remove `~/.config/scind/proxy/` **only** with `--purge`. By default the configuration survives, so a later `scind proxy init` recovers the user's settings rather than starting from defaults.
+
+**Port assignments are lost.** The generated proxy state holds the assigned-port inventory. Destroying it therefore forgets **every workspace's** port assignments at once — each one receives new host ports on the next `up`. The confirmation prompt counts the bindings it is about to forget; `--force` skips that prompt, so scripted destruction drops them silently. See [State Management — Port Status Transitions](../specs/state-management.md#port-status-transitions).
+
+**Under `mode: external`**: `destroy` still runs, because it targets Scind's own generated state, which exists in external mode too. It stops a **retained Scind-managed proxy** via the previously generated compose file — leaving generated state intact for a retry if that teardown fails, since the compose file is the only handle for stopping that container — and then removes the generated state. It **must not** remove the configured shared network: that network is owned by the external proxy and may carry unrelated workloads.
+
+*Credit to the Xcind proof-of-concept for the proxy-disposal semantics, including the config-survives-by-default split and the external-mode retention rule (Xcind PR #86).*
 
 ---
 
@@ -1700,6 +1849,7 @@ Checking Scind environment...
 
 ✓ Docker: running (version 24.0.7)
 ✓ Docker Compose: available (version 2.23.0)
+✓ Proxy mode: managed
 ✓ Proxy network: created
 ✓ Traefik: running
 ✓ Config directory: ~/.config/scind
@@ -1709,6 +1859,14 @@ Checking Scind environment...
   - dev-backend-api.scind.test → 127.0.0.1
 
 All checks passed.
+```
+
+**Under `mode: external`**: the proxy-mode line reports `external`, and the `Traefik: running` check is **replaced** by a hard `Proxy network: present` diagnostic — generated overlays declare that network `external: true` and fail to start without it, so its absence is a real failure, not a warning. A best-effort informational line reports any detected proxy-like container on that network; not finding one is not a failure, since Scind cannot know how the host proxy is labeled.
+
+```
+✓ Proxy mode: external
+✓ Proxy network: coolify (present)
+ℹ Detected proxy container: coolify-proxy (running)
 ```
 
 **DNS checking behavior**:
@@ -1855,6 +2013,8 @@ For any command that reports exported services, the `--json` payload keys export
 ```
 
 The per-export descriptor (the value of each map entry) is defined once in the [Port Types Specification](../specs/port-types.md); commands render subsets of it but never invent fields.
+
+[`scind app get`](#scind-app-get) is the single-value getter over this same payload, and is bound by both of the promises below: the fields it addresses are the field-stable ones described here, and reading one is side-effect-free.
 
 This contract makes two distinct promises: the **field stability** of the payload described above, and the **read-only guarantee** below. They have different scopes — `diagnose` is bound by the read-only guarantee but its payload is [provisional](#scind-app-diagnose), outside the field-stability promise.
 

@@ -33,6 +33,20 @@ This separation ensures configuration files are declarative and version-controll
 - `proxy down`: Stops the Traefik container
 - `workspace up`: Ensures the `scind-proxy` network always, and runs `proxy up` when the applications being brought up declare at least one proxied export (see Auto-Start below)
 
+### Proxy Mode
+
+| Field (`proxy.yaml`) | Type | Default |
+|----------------------|------|---------|
+| `proxy.mode` | string | `managed` (`managed` \| `external`) |
+
+`mode: external` declares that a proxy Scind does not manage already owns routing (see [ADR-0017: External Proxy Mode](../decisions/0017-external-proxy-mode.md)). It **supersedes `auto_start`** rather than coexisting with it:
+
+- External mode **short-circuits before `auto_start` is consulted**, so the two settings can never conflict. Setting `auto_start: true` under `mode: external` starts nothing.
+- The observable effect resembles the `auto_start: false` opt-out — the shared network is ensured, no container is started — but **only the shared network is ensured**, and nothing else in the proxy layer is touched.
+- Error handling differs, and deliberately. The `auto_start: false` opt-out warns and continues when the proxy layer is not ready. External mode treats a failure to ensure the configured shared network as a **hard error**, because in external mode that network is the *entire* integration surface: without it no application container can reach the foreign proxy, and there is no second mechanism that might still make routing work.
+
+The remaining external-mode behavior — network topology, TLS division of labor, and per-command semantics — is specified in [Proxy Infrastructure — External Proxy Mode](./proxy-infrastructure.md#external-proxy-mode).
+
 ### Proxy Auto-Start
 
 | Field (`proxy.yaml`) | Type | Default |
@@ -71,6 +85,7 @@ The shared proxy binds host ports for its HTTP, HTTPS, and dashboard entrypoints
 | `auto` | Uses mkcert if available to generate locally-trusted certificates; falls back to Traefik's default self-signed certificate (browser warnings) |
 | `custom` | Uses user-provided certificate and key files (for enterprise CA or manually generated certs) |
 | `disabled` | HTTP only, no HTTPS entrypoint (not recommended for production-like testing) |
+| `custom` + `proxy.mode: external` | **Rejected** at config validation / proxy init — `custom` names certificate files that would never be installed anywhere, because an external proxy terminates TLS itself |
 
 **Certificate Setup by Mode**:
 
@@ -128,6 +143,7 @@ To resolve:
 
 - `unavailable` → `assigned`: Port became free, Scind claimed it
 - `assigned` → `released`: Workspace/app removed, port freed
+- `assigned` → `released`: Proxy destroyed — `scind proxy destroy` removes the generated proxy state holding the assigned-port inventory (see [State Management — Port Status Transitions](./state-management.md#port-status-transitions))
 - `unavailable` → `released`: External process stopped, `scind port gc` cleaned it up
 
 ### Availability Checking

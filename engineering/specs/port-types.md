@@ -29,8 +29,8 @@ If an exported service needs more than one HTTP or HTTPS proxy mapping, create s
 
 When `type: proxied`, the `protocol` field is **required** and specifies how Traefik routes the traffic:
 
-- **https**: Routes through Traefik's `websecure` entrypoint (port 443) with TLS termination
-- **http**: Routes through Traefik's `web` entrypoint (port 80)
+- **https**: Routes through Traefik's HTTPS entrypoint (`proxy.https_entrypoint`, default `websecure`, port 443) with TLS termination
+- **http**: Routes through Traefik's HTTP entrypoint (`proxy.http_entrypoint`, default `web`, port 80)
 - **tcp**, **postgresql**, **mysql**, etc. (future): SNI-based TCP routing for database connections. Plugins will handle generating appropriate Traefik TCP router configuration.
 
 ### Per-Export TLS

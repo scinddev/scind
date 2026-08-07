@@ -85,6 +85,13 @@ Step 1 has two parts, and only the second is conditional.
 
 The warning-not-failure choice is deliberate: with `auto_start: false` the user has said they own proxy lifecycle, so an unstarted proxy is their state to manage, not a Scind error. That is the one case the fail-fast gate yields to.
 
+**Opt-out vs. external mode**: `proxy.auto_start: false` and `proxy.mode: external` both stop Scind from starting a proxy, but they answer different questions and must not be read as synonyms:
+
+- `auto_start: false` — *you run the proxy yourself, Scind's routing values still apply.* The network, entrypoint names, and certresolver Scind emits are unchanged; the proxy you start is expected to consume them as Scind's managed Traefik would.
+- `mode: external` — *a foreign proxy owns routing, Scind's label values are retargeted at it.* The proxy layer reduces to ensuring the network named by `proxy.network`, and generated labels name that proxy's entrypoints and certresolver.
+
+External mode short-circuits before `auto_start` is read, and unlike the opt-out it treats a failure to ensure the shared network as a hard error. See [ADR-0017: External Proxy Mode](../decisions/0017-external-proxy-mode.md) and [Configuration Schemas — Proxy Mode](./configuration-schemas.md#proxy-mode).
+
 **Network and proxy creation failures**: Steps 1–2 create resources (the proxy, the workspace-internal network) that the generated overrides declare as `external: true` (see [Generated Override Files](./generated-override-files.md)). Because the override marks these networks external, Docker Compose will not create them itself and instead fails opaquely at container start if they are absent. Scind must therefore treat a failure to ensure the proxy or the workspace network as a first-class error: emit a diagnostic that names the specific resource (proxy, `{workspace}-internal` network) and includes the underlying Docker error, and **fail `up`** before invoking `docker compose` rather than letting compose surface an unattributable "network not found" error. Validated by the Xcind proof-of-concept. The single exception is the `proxy.auto_start: false` case described above, where a proxy Scind never tried to start warns instead of failing; a failure to ensure either **network** always fails `up`.
 
 ### Staleness Detection
@@ -155,7 +162,7 @@ Generation must be **atomic**: write the full set of generated artifacts into a 
      Expected an integer in 1–65535 (optionally with a protocol suffix)
    ```
 9. **Collect all exported services** across all applications in workspace
-10. **Allocate and validate assigned host ports**: for every `assigned`-type export, resolve the sticky host port from global state or allocate a new one (see [Port Assignment Rules](./state-management.md#port-assignment-rules)), and validate that each resolved host port is currently usable. This step **must precede** the override write and the manifest write (steps 11 and 13) so that both artifacts embed the same, freshly-allocated host ports and discovery environment variables. Because these are live-state-derived values, they are re-resolved on every generation (see Config-Derived vs. Live-State-Derived Content). Validated by the Xcind proof-of-concept.
+10. **Allocate and validate assigned host ports**: for every `assigned`-type export, resolve the sticky host port from global state or allocate a new one (see [Port Assignment Rules](./state-management.md#port-assignment-rules)), and validate that each resolved host port is currently usable. This step **must precede** the override write and the manifest write (steps 11 and 13) so that both artifacts embed the same, freshly-allocated host ports and discovery environment variables. Because these are live-state-derived values, they are re-resolved on every generation (see Config-Derived vs. Live-State-Derived Content). Validated by the Xcind proof-of-concept — twice independently: once by the ordering constraint itself, and again by a resolved-config cache-refresh bug in which stale cached resolution was served ahead of the refresh (Xcind PR #88).
 11. **Generate override file** with networks, aliases, labels, and environment variables (using the host ports allocated in step 10)
 12. **Update state file** with resolved flavors
 13. **Update manifest** with computed values (reflecting the post-allocation host ports and discovery variables from step 10)
@@ -198,6 +205,8 @@ Completely removes a workspace and optionally its application directories:
 **Flags**:
 - `--force`: Skip confirmation prompts and remove application directories
 - `--keep-apps`: Preserve application directories without prompting
+
+**Failure semantics**: if any application's teardown in step 1 fails, `destroy` **aborts before** removing `.generated/`, `workspace.yaml`, port assignments, or the registry entry. Applications that were already stopped remain stopped — the partial teardown is not rolled back — but nothing that describes the workspace is discarded while containers or volumes it owns may still exist. The operator can retry `destroy` once the failing application is dealt with, or investigate it first; either way the workspace is still fully described on disk and in the registry. (Validated by the Xcind proof-of-concept, PR #86.)
 
 ### Viewing Logs
 

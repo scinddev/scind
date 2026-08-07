@@ -89,7 +89,12 @@ Environment variables prefixed with `SCIND_` (e.g., `SCIND_FRONTEND_WEB_HOST`) a
 ```yaml
 proxy:
   domain: scind.test                  # TLD for generated hostnames
+  mode: managed                          # managed | external (default: managed)
   auto_start: true                       # Start the proxy on `up` when needed (default: true)
+  network: scind-proxy                   # Shared Docker network apps join (default: scind-proxy)
+  http_entrypoint: web                   # Traefik entrypoint name for HTTP (default: web)
+  https_entrypoint: websecure            # Traefik entrypoint name for HTTPS (default: websecure)
+  certresolver: ""                       # ACME resolver named on HTTPS routers (default: empty)
   traefik_image: traefik:v3.2.3          # Traefik Docker image (defaults to pinned version)
   http_port: 80                          # Host port for the HTTP entrypoint (default: 80)
   https_port: 443                        # Host port for the HTTPS entrypoint (default: 443)
@@ -104,6 +109,33 @@ proxy:
     key_file: ~/.config/scind/certs/wildcard.key
 ```
 
+### Proxy Mode
+
+`mode` selects who owns the proxy. It defaults to `managed`, which is the behavior described throughout this document.
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `proxy.mode` | string | `managed` | Proxy ownership: `managed` (Scind runs Traefik) or `external` (a foreign proxy already owns `80`/`443`) |
+
+Under `mode: external`, Scind never starts, stops, or configures a proxy. Applications join the network named by `proxy.network` and emit router labels tuned for the host proxy through `proxy.http_entrypoint`, `proxy.https_entrypoint`, and `proxy.certresolver`. See [ADR-0017: External Proxy Mode](../decisions/0017-external-proxy-mode.md) and [Proxy Infrastructure — External Proxy Mode](../specs/proxy-infrastructure.md#external-proxy-mode).
+
+```bash
+scind config set proxy.mode external
+```
+
+### Proxy Label Surface
+
+These fields determine the network Scind attaches applications to and the values it writes into generated Traefik labels. They are meaningful in **both** modes — the managed defaults reproduce Scind's historical output exactly — and they are the entire configuration surface for making a foreign Traefik a drop-in consumer.
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `proxy.network` | string | `scind-proxy` | Shared Docker network that exported containers join, and the value of `traefik.docker.network` |
+| `proxy.http_entrypoint` | string | `web` | Traefik entrypoint **name** used by HTTP routers |
+| `proxy.https_entrypoint` | string | `websecure` | Traefik entrypoint **name** used by HTTPS routers |
+| `proxy.certresolver` | string | (empty) | When set, `traefik.http.routers.{name}.tls.certresolver={value}` is appended to every HTTPS router (per-export and apex), regardless of proxy mode |
+
+Under `mode: external`, `proxy.network` points at the network the host proxy already lives on, and the entrypoint names must match the ones that proxy defines.
+
 ### Proxy Auto-Start
 
 `auto_start` controls whether `scind up` starts the shared proxy as a side effect. It defaults to `true`.
@@ -114,7 +146,7 @@ proxy:
 
 Even with `auto_start: true`, the proxy container starts only when at least one application in the invocation declares a **proxied** export — an assigned-ports-only `up` starts nothing. The `scind-proxy` **network** is ensured in every case, because generated overrides declare it `external: true`.
 
-Set `auto_start: false` when you run Traefik yourself. Scind then ensures the network, never starts the container, and — if proxied exports are present with no proxy running — warns and continues instead of failing `up`. Start the proxy explicitly with `scind proxy up`.
+Set `auto_start: false` when you run Traefik yourself. Scind then ensures the network, never starts the container, and — if proxied exports are present with no proxy running — warns and continues instead of failing `up`. Start the proxy explicitly with `scind proxy up`. This is distinct from `mode: external`: `auto_start: false` means "you run the proxy yourself, Scind's routing values still apply", while `mode: external` means "a foreign proxy owns routing, Scind's label values are retargeted at it".
 
 `auto_start` lives in `proxy.yaml`, which is a global (per-user) file, so it applies uniformly across every workspace on the machine — there is no per-workspace override. A user who wants the auto-start behavior in one workspace but not another sets `auto_start: false` globally and runs `scind proxy up` by hand in the workspace that wants it, rather than toggling the field per workspace.
 
@@ -173,8 +205,8 @@ services:
       - "--configFile=/etc/traefik/traefik.yaml"
       - "--api.dashboard=true"               # Set to false if dashboard.enabled: false
     ports:
-      - "80:80"
-      - "443:443"
+      - "80:80"                              # Host port from proxy.http_port
+      - "443:443"                            # Host port from proxy.https_port
       - "8080:8080"                          # Only included if dashboard.enabled: true (port from dashboard.port)
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -182,14 +214,14 @@ services:
       - ./dynamic:/etc/traefik/dynamic:ro
       - ./certs:/etc/traefik/certs:ro
     networks:
-      - scind-proxy
+      - scind-proxy                          # from proxy.network
     restart: unless-stopped
     labels:
       - "scind.managed=true"
       - "scind.component=proxy"
 
 networks:
-  scind-proxy:
+  scind-proxy:                               # from proxy.network
     external: true
 ```
 
@@ -198,25 +230,28 @@ networks:
 ```yaml
 api:
   dashboard: true                          # Set based on proxy.yaml dashboard.enabled (default: true)
+  insecure: true                           # Dashboard rides Traefik's built-in insecure-API listener
 
 entryPoints:
-  web:
-    address: ":80"
-  websecure:
-    address: ":443"
+  web:                                     # name from proxy.http_entrypoint
+    address: ":80"                         # port from proxy.http_port
+  websecure:                               # name from proxy.https_entrypoint
+    address: ":443"                        # port from proxy.https_port
 
 providers:
   docker:
     exposedByDefault: false
-    network: scind-proxy
+    network: scind-proxy                   # from proxy.network
   file:
     directory: /etc/traefik/dynamic
     watch: true
 ```
 
+The dashboard has **no entrypoint of its own** — enabling it adds the `api` block above, the `--api.dashboard=true` command flag, and a host publish of `proxy.dashboard.port`. Both generated files are produced only under `mode: managed`; under `mode: external` none of the settings that shape them (image, host ports, dashboard, entrypoint addresses) have any effect.
+
 ### Proxy Lifecycle
 
-Commands: `proxy init`, `proxy up`, `proxy down`. The proxy starts automatically with `workspace up` if needed.
+Commands: `proxy init`, `proxy up`, `proxy down`, `proxy destroy`. The proxy starts automatically with `workspace up` if needed.
 
 See [Configuration Schemas - Proxy Behavior](../specs/configuration-schemas.md#proxy-behavior) for lifecycle details and recovery procedures.
 

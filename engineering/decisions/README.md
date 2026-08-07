@@ -22,6 +22,7 @@ This directory contains Architecture Decision Records (ADRs) documenting signifi
 | [0014](./0014-host-docker-internal-normalization.md) | Automatic `host.docker.internal` Normalization | Accepted |
 | [0015](./0015-host-view-environment-symmetry.md) | Host-View Environment Symmetry | Accepted |
 | [0016](./0016-per-instance-isolation.md) | Per-Instance Isolation for Multiple Working Copies | Accepted |
+| [0017](./0017-external-proxy-mode.md) | External Proxy Mode | Accepted |
 
 ## ADR Format
 
