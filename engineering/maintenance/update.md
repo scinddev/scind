@@ -70,10 +70,10 @@ List all potentially affected documents:
 > **Potentially Affected Documents**
 >
 > Based on the change, these documents may need updating:
-> - `docs/specs/{feature}.md`
-> - `docs/specs/appendices/{feature}/{detail}.md`
-> - `docs/reference/cli.md`
-> - `docs/reference/appendices/cli/detailed-examples.md`
+> - `engineering/specs/{feature}.md`
+> - `engineering/specs/appendices/{feature}/{detail}.md`
+> - `engineering/reference/cli.md`
+> - `engineering/reference/appendices/cli/detailed-examples.md`
 > - `behaviors/{domain}/{feature}.feature`
 > - ...
 
@@ -132,8 +132,8 @@ Update the authoritative source document first.
 
 #### For Specification Updates
 
-1. Read the current specification (`docs/specs/{feature}.md`)
-2. Also read any appendices in `docs/specs/appendices/{feature}/`
+1. Read the current specification (`engineering/specs/{feature}.md`)
+2. Also read any appendices in `engineering/specs/appendices/{feature}/`
 3. Locate the section(s) that describe the changed behavior
 4. Update the behavior description to match new implementation
 5. Update any examples that are now incorrect
@@ -148,8 +148,8 @@ Update the authoritative source document first.
 
 #### For Reference Updates
 
-1. Read the current reference document (`docs/reference/{topic}.md`)
-2. Also read any appendices in `docs/reference/appendices/{topic}/`
+1. Read the current reference document (`engineering/reference/{topic}.md`)
+2. Also read any appendices in `engineering/reference/appendices/{topic}/`
 3. Locate the section(s) for the changed command/option
 4. Update syntax, options, defaults as needed
 5. Update examples in main doc (brief) and appendices (detailed)
@@ -265,8 +265,8 @@ Present a summary of all updates:
 > **Documents Updated**:
 > | Document | Changes Made | New Version |
 > |----------|--------------|-------------|
-> | `docs/specs/X.md` | Updated Y behavior | 0.5.2 |
-> | `docs/reference/cli.md` | Added Z option | — |
+> | `engineering/specs/X.md` | Updated Y behavior | 0.5.2 |
+> | `engineering/reference/cli.md` | Added Z option | — |
 > | `behaviors/{domain}/X.feature` | Updated scenario | — |
 >
 > **Cross-Links Verified**: Yes

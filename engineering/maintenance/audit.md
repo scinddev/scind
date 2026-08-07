@@ -8,7 +8,7 @@
 
 ## Audit Configuration
 
-- **Documentation Root** (`DOCS_DIR`): `docs/`
+- **Documentation Root** (`DOCS_DIR`): `engineering/`
 - **Legacy Documentation** (`LEGACY_DOCS_DIR`): `specs/`
 - **Install Type**: Migration
 - **Install Date**: 2026-01-06
@@ -60,16 +60,16 @@ LEGACY_INVENTORY = {
 
 ### Step 2: Inventory Migrated Documentation
 
-Read ALL Markdown files in the documentation root (`docs/`):
+Read ALL Markdown files in the documentation root (`engineering/`):
 
 ```
 MIGRATED_INVENTORY = {
   total_files: N,
   total_lines: N,
   files: [
-    { path: "docs/decisions/0001-example.md", lines: N },
-    { path: "docs/specs/feature.md", lines: N },
-    { path: "docs/specs/appendices/feature/details.md", lines: N },
+    { path: "engineering/decisions/0001-example.md", lines: N },
+    { path: "engineering/specs/feature.md", lines: N },
+    { path: "engineering/specs/appendices/feature/details.md", lines: N },
     ...
   ]
 }
@@ -152,7 +152,7 @@ Execute the common audit process for full content inventory.
 
 **Date**: {timestamp}
 **Legacy Documentation** (`LEGACY_DOCS_DIR`): specs/
-**Documentation Root** (`DOCS_DIR`): docs/
+**Documentation Root** (`DOCS_DIR`): engineering/
 
 ---
 
@@ -182,9 +182,9 @@ Execute the common audit process for full content inventory.
 
 | File | Lines |
 |------|-------|
-| docs/decisions/0001-example.md | {N} |
-| docs/specs/feature.md | {N} |
-| docs/specs/appendices/feature/details.md | {N} |
+| engineering/decisions/0001-example.md | {N} |
+| engineering/specs/feature.md | {N} |
+| engineering/specs/appendices/feature/details.md | {N} |
 | ... | ... |
 | **Total** | **{M}** |
 
@@ -261,7 +261,7 @@ The audit workflow:
 
 ### Step 1: Inventory Documentation
 
-Scan the documentation root (`docs/`) and categorize all content:
+Scan the documentation root (`engineering/`) and categorize all content:
 
 #### 1a: Count All Content
 

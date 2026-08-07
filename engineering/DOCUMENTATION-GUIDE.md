@@ -20,7 +20,7 @@ This section defines key terms and concepts used throughout the documentation.
 
 | Term | Definition |
 |------|------------|
-| `DOCS_DIR` | The documentation root directory (`docs/`) — where all project documentation lives |
+| `DOCS_DIR` | The documentation root directory (`engineering/`) — where all project documentation lives |
 | `LEGACY_DOCS_DIR` | Source documentation being migrated (`specs/`) — the original documentation location |
 | `LDS_DIST_DIR` | The Layered Documentation System distribution directory containing installation workflows and templates |
 
@@ -451,10 +451,10 @@ This project uses Tier 2 tooling:
 
 ```bash
 # Markdown linting
-npx markdownlint-cli2 "docs/**/*.md"
+npx markdownlint-cli2 "engineering/**/*.md"
 
 # Prose linting (requires .vale.ini)
-vale docs/
+vale engineering/
 ```
 
 ---
@@ -462,7 +462,7 @@ vale docs/
 ## Directory Structure
 
 ```
-docs/
+engineering/
 ├── README.md                    # Documentation index
 ├── DOCUMENTATION-GUIDE.md       # This file
 │
@@ -604,7 +604,7 @@ Four workflows are available in `maintenance/`:
 
 To execute a workflow:
 ```
-Execute the workflow in @docs/maintenance/audit.md
+Execute the workflow in @engineering/maintenance/audit.md
 ```
 
 ---

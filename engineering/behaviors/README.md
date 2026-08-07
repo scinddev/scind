@@ -71,10 +71,10 @@ This creates traceability between the executable test and the specification it v
 
 ```bash
 # Run all behavior tests
-cucumber-js docs/behaviors/
+cucumber-js engineering/behaviors/
 
 # Run a specific domain
-cucumber-js docs/behaviors/workspace/
+cucumber-js engineering/behaviors/workspace/
 ```
 
 ## Related Documents
