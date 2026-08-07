@@ -198,6 +198,7 @@ To resolve:
 
 - `unavailable` -> `assigned`: Port became free, Scind claimed it
 - `assigned` -> `released`: Workspace/app removed, port freed
+- `assigned` -> `released`: Proxy destroyed — `scind proxy destroy` removes the generated proxy state that holds the assigned-port inventory, so every workspace loses its assignments at once and receives new host ports on the next `up`
 - `unavailable` -> `released`: External process stopped, `scind port gc` cleaned it up
 
 ---

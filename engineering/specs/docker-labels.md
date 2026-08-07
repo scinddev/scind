@@ -98,18 +98,22 @@ These labels are added to containers to configure Traefik routing. They are gene
 | Label | Description | Example |
 |-------|-------------|---------|
 | `traefik.enable` | Exposes container to Traefik | `true` |
-| `traefik.docker.network` | Which network Traefik routes on | `scind-proxy` |
+| `traefik.docker.network` | Which network Traefik routes on (`proxy.network`) | `scind-proxy` |
 | `traefik.http.routers.{name}.rule` | Routing rule (Host matcher) | `Host(\`dev-app-web.scind.test\`)` |
-| `traefik.http.routers.{name}.entrypoints` | Entry points to use | `websecure` |
+| `traefik.http.routers.{name}.entrypoints` | Entry points to use (`proxy.http_entrypoint` / `proxy.https_entrypoint`) | `web` / `websecure` |
 | `traefik.http.routers.{name}.tls` | Enable TLS | `true` |
-| `traefik.http.routers.{name}.service` | Bind this router to its own service | `dev-app-web-https` |
-| `traefik.http.services.{name}.loadbalancer.server.port` | Container port | `8080` |
+| `traefik.http.routers.{name}.tls.certresolver` | ACME resolver for HTTPS routers (per-export and apex); emitted only when `proxy.certresolver` is set, in either proxy mode | `letsencrypt` |
+| `traefik.http.routers.{name}.service` | Bind this router to its own service; redirect-only HTTP routers pin `noop@internal` instead | `dev-app-web-https` |
+| `traefik.http.routers.{name}.middlewares` | Middlewares attached to the router (the redirect middleware on redirect-only HTTP routers) | `scind-redirect-https` |
+| `traefik.http.services.{name}.loadbalancer.server.port` | Container port; not emitted for redirect-only routers | `8080` |
+| `traefik.http.middlewares.scind-redirect-https.redirectscheme.scheme` | Redirect middleware definition, emitted with `tls: require` exports | `https` |
+| `traefik.http.middlewares.scind-redirect-https.redirectscheme.permanent` | Redirect middleware definition, emitted with `tls: require` exports | `true` |
 
 #### Network Selection and Router→Service Binding
 
 Two labels are load-bearing for correctness under Scind's two-layer networking:
 
-- **`traefik.docker.network={proxy-network}`** (e.g. `scind-proxy`) is **required**. Under [ADR-0002: Two-Layer Networking](../decisions/0002-two-layer-networking.md), each exported container is attached to more than one network (its application-internal network plus the shared proxy network). If the network label is omitted, Traefik cannot unambiguously determine which of the container's IPs to route to and may pick the wrong one, causing intermittent mis-routing. The label pins routing to the shared proxy network.
+- **`traefik.docker.network={proxy.network}`** (default `scind-proxy`) is **required**. Under `mode: external` this points at the host proxy's own network rather than Scind's — the value is config-driven, the requirement is not. Under [ADR-0002: Two-Layer Networking](../decisions/0002-two-layer-networking.md), each exported container is attached to more than one network (its application-internal network plus the shared proxy network). If the network label is omitted, Traefik cannot unambiguously determine which of the container's IPs to route to and may pick the wrong one, causing intermittent mis-routing. The label pins routing to the shared proxy network.
 - **`traefik.http.routers.{name}.service={name}`** explicitly binds each router to its own loadbalancer service. With multiple routers/services on one container, relying on Traefik's implicit service selection is fragile; the explicit binding is deterministic.
 
 *Validated by the Xcind proof-of-concept.*
@@ -143,6 +147,7 @@ When an export requires TLS (`tls: require`), the HTTP→HTTPS redirect is expre
 labels:
   # Shared redirect middleware DEFINITION — emitted on EVERY rendered service block (see note)
   - "traefik.http.middlewares.scind-redirect-https.redirectscheme.scheme=https"
+  - "traefik.http.middlewares.scind-redirect-https.redirectscheme.permanent=true"
   # Redirect-only HTTP router: matches the host on the web entrypoint, applies the middleware
   - "traefik.http.routers.dev-frontend-web-http.rule=Host(`dev-frontend-web.scind.test`)"
   - "traefik.http.routers.dev-frontend-web-http.entrypoints=web"
@@ -150,7 +155,7 @@ labels:
   - "traefik.http.routers.dev-frontend-web-http.service=noop@internal"
 ```
 
-**Emit the middleware definition on every service block.** Traefik's Docker provider loads labels only from **running** containers, so a shared middleware defined on only one "first" container vanishes whenever that container is down, leaving every referencing router dangling. The `...middlewares.scind-redirect-https.redirectscheme.scheme` definition label must therefore be repeated on **every** rendered service block that references it; identical repeated definitions are idempotent. The redirect-only router may target `noop@internal` because the request is redirected before any backend is resolved. See [Proxy Infrastructure — HTTP→HTTPS Redirect](proxy-infrastructure.md#httphttps-redirect).
+**Emit the middleware definition on every service block.** Traefik's Docker provider loads labels only from **running** containers, so a shared middleware defined on only one "first" container vanishes whenever that container is down, leaving every referencing router dangling. The `...middlewares.scind-redirect-https.redirectscheme.*` definition labels must therefore be repeated on **every** rendered service block that references them; identical repeated definitions are idempotent. The redirect-only router may target `noop@internal` because the request is redirected before any backend is resolved. See [Proxy Infrastructure — HTTP→HTTPS Redirect](proxy-infrastructure.md#httphttps-redirect).
 
 See [Proxy Infrastructure - Dynamic Routing](proxy-infrastructure.md#dynamic-routing) for more details.
 

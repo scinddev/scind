@@ -52,3 +52,4 @@ The per-export `tls` attribute is the export-scoped complement to the workspace-
 ## Related Decisions
 
 - [ADR-0008: Traefik for Reverse Proxy](0008-traefik-reverse-proxy.md) - Traefik performs TLS termination
+- [ADR-0017: External Proxy Mode](0017-external-proxy-mode.md) - Under `mode: external` the external proxy provisions certificates, and `tls.mode: custom` is rejected
