@@ -106,7 +106,7 @@ scind down
 
 ## Direct Docker Compose Operations
 
-The `scind-compose` function provides context-aware Docker Compose access:
+The `scind-compose` binary provides context-aware Docker Compose access:
 
 ```bash
 cd ~/workspaces/dev/frontend

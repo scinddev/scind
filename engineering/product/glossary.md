@@ -18,7 +18,7 @@
 | **Project** | Docker Compose project name, formatted as `{workspace}-{application}`, providing namespace isolation for containers. See [ADR-0001](../decisions/0001-docker-compose-project-name-isolation.md). |
 | **Protocol** | For proxied types, the traffic protocol: `http`, `https`, or future SNI types |
 | **Proxy Network** | Host-level Docker network (`scind-proxy`) connecting the Traefik reverse proxy to services requiring external access. See [ADR-0002](../decisions/0002-two-layer-networking.md). |
-| **scind-compose** | Shell function that provides context-aware passthrough to Docker Compose with full tab completion. Automatically injects the appropriate project name and configuration files based on the current workspace and application context. |
+| **scind-compose** | Binary, installed alongside `scind`, that provides context-aware passthrough to Docker Compose with full tab completion. Resolves the project name and configuration files from the current workspace and application context, then execs `docker compose` with them injected. |
 | **Service** | A container defined in a Docker Compose file. Distinct from "Exported Service" which is a Scind abstraction for services exposed beyond their application's network. |
 | **Service Contract** | The `application.yaml` file defining what an application exports |
 | **Single-Application Workspace** | A workspace containing only one application, useful for isolated development of a single project. Allows promoting existing Docker Compose projects to Scind without restructuring. |
