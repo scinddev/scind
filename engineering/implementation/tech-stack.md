@@ -127,7 +127,7 @@ cmd.RegisterFlagCompletionFunc("workspace", func(cmd *cobra.Command, args []stri
 
 ### Shell Integration Scripts
 
-The `init-shell` command outputs static shell scripts. Use `//go:embed` for the script content:
+The `init-shell` command outputs static completion scripts (it defines no shell functions — `scind-compose` is a binary). Use `//go:embed` for the script content:
 
 ```go
 //go:embed scripts/bash.sh

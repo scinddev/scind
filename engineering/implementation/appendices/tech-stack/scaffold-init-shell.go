@@ -25,6 +25,9 @@ var initShellCmd = &cobra.Command{
     Short: "Output shell integration script",
     Long: `Output shell integration script for the specified shell.
 
+The script registers completion only. scind-compose is a binary on PATH and
+needs nothing sourced to run.
+
 Supported shells: bash, zsh, fish
 
 Add to your shell configuration:

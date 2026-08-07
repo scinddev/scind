@@ -15,7 +15,7 @@ var composePrefixCmd = &cobra.Command{
     Use:    "compose-prefix",
     Short:  "Output docker compose command prefix",
     Long:   `Outputs a docker compose command prefix with project name and compose files for the current context.`,
-    Hidden: true, // Internal command for shell integration
+    Hidden: true, // Not part of the primary surface; kept for scripting consumers
     RunE: func(cmd *cobra.Command, args []string) error {
         ws := viper.GetString("resolved.workspace")
         app := viper.GetString("resolved.app")

@@ -6,8 +6,10 @@
 ```
 scind/
 ├── cmd/
-│   └── scind/
-│       └── main.go                 # Entry point
+│   ├── scind/
+│   │   └── main.go                 # Entry point
+│   └── scind-compose/
+│       └── main.go                 # Docker Compose passthrough binary
 │
 ├── internal/
 │   ├── cli/                        # Cobra command definitions
@@ -19,8 +21,8 @@ scind/
 │   │   ├── proxy.go                # proxy subcommands
 │   │   ├── config.go               # config subcommands
 │   │   ├── aliases.go              # Top-level aliases (up, down, ps, generate)
-│   │   ├── compose_prefix.go       # compose-prefix command
-│   │   ├── init_shell.go           # init-shell command
+│   │   ├── compose_prefix.go       # compose-prefix command (scripting-facing)
+│   │   ├── init_shell.go           # init-shell command (completion scripts)
 │   │   ├── completion.go           # completion command
 │   │   ├── validate.go             # validate command
 │   │   ├── doctor.go               # doctor command

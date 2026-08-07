@@ -105,8 +105,8 @@ go build -o scind ./cmd/scind
 | `scind down` | `downCmd` | Alias for `workspace down` |
 | `scind ps` | `psCmd` | Alias for `workspace status` |
 | `scind generate` | `generateCmd` | Alias for `workspace generate` |
-| `scind compose-prefix` | `composePrefixCmd` | Hidden, for shell integration |
-| `scind init-shell` | `initShellCmd` | Outputs shell scripts |
+| `scind compose-prefix` | `composePrefixCmd` | Optional, for scripting consumers — not consumed by shell integration |
+| `scind init-shell` | `initShellCmd` | Outputs completion scripts |
 | `scind completion` | `completionCmd` | Cobra built-in pattern |
 | `scind validate` | `validateCmd` | |
 | `scind doctor` | `doctorCmd` | |
@@ -128,9 +128,11 @@ go build -o scind ./cmd/scind
 4. Traefik label generation
 
 ### Phase 3: Shell Integration
-1. `compose-prefix` command
-2. `init-shell` command with embedded scripts
-3. Shell completion for flags
+1. `scind-compose` binary (context resolution, then `exec docker compose`)
+2. `init-shell` command with embedded completion scripts
+3. `docker __complete compose …` delegation plus the hardcoded subcommand fallback
+4. Shell completion for flags
+5. `compose-prefix` command (optional, scripting-facing)
 
 ### Phase 4: Polish
 1. Port management commands

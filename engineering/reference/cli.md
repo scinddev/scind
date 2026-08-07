@@ -1422,13 +1422,39 @@ scind config edit
 
 ## Docker Compose Integration
 
-Scind provides a `scind-compose` shell function for direct Docker Compose interaction with automatic context awareness. This function is installed via `scind init-shell` and delegates to Docker Compose with the correct project name and compose files.
+Scind provides a `scind-compose` **binary** for direct Docker Compose interaction with automatic context awareness. It is installed alongside `scind`, resolves the workspace, application, and compose files itself, then execs `docker compose` with the correct project name and `-f` files. Nothing needs to be sourced to use it; `scind init-shell` installs only its **completion**.
 
 For full documentation on `scind-compose` and shell integration, see the [Shell Integration Specification](../specs/shell-integration.md).
 
+### `scind-compose`
+
+```bash
+scind-compose [-w WORKSPACE] [-a APP] <docker compose args…>
+```
+
+**Flags**:
+| Flag | Description |
+|------|-------------|
+| `-w, --workspace` | Target workspace (or use context) |
+| `-a, --app` | Target application (or use context) |
+
+Argument parsing stops consuming Scind flags at the first positional argument or unrecognized flag; everything after that is passed straight to `docker compose`.
+
+**Exit codes**: 5 when context cannot be resolved (the error goes to stderr directly); otherwise Docker Compose's own exit code, since `scind-compose` execs it.
+
+```bash
+$ cd ~/workspaces/dev/frontend
+$ scind-compose exec php bash
+$ scind-compose -a backend logs -f
+```
+
+---
+
 ### `scind compose-prefix`
 
-Output the Docker Compose command prefix for the current context. This is primarily used by the `scind-compose` shell function.
+Output the Docker Compose command prefix for the current context.
+
+> **Not load-bearing.** Nothing in Scind's shell integration consumes this command — `scind-compose` resolves context in-process. `compose-prefix` is retained for **scripting consumers** that want the resolved `-p`/`-f` text for their own command lines.
 
 ```bash
 scind compose-prefix [flags]
@@ -1463,6 +1489,8 @@ Either:
 
 Available workspaces: scind workspace list
 ```
+
+Callers must branch on the **exit code**, not on empty output.
 
 ---
 
@@ -1499,7 +1527,7 @@ Credit to the Xcind proof-of-concept (Xcind ADR-0012) for the resolved-config ex
 
 ### `scind init-shell`
 
-Output shell integration script for the specified shell. This script provides the `scind-compose` function and its completion.
+Output shell integration script for the specified shell. This script registers **completion**; `scind-compose` is a binary on PATH and needs nothing sourced to run.
 
 ```bash
 scind init-shell {bash|zsh|fish}
@@ -1518,9 +1546,8 @@ scind init-shell fish >> ~/.config/fish/conf.d/scind.fish
 ```
 
 **Provides**:
-- `scind-compose` function with context-aware Docker Compose passthrough
-- Tab completion for `scind-compose` that delegates to Docker's completion
-- Automatic resolution of workspace, app, and compose files
+- Tab completion for `scind-compose`, delegating to `docker __complete compose …` with a hardcoded subcommand fallback for hosts whose `docker` CLI lacks it
+- Completion of `-w`/`-a` values from Scind's own workspace and application lists
 
 **Example Usage** (after installation):
 ```bash
@@ -1557,9 +1584,9 @@ scind generate-wrappers [flags]
 **Behavior**:
 - Writes two executable scripts—`docker` and `docker-compose`—into `--dir`, each embedding the **resolved project name and compose files** for the context (the same `-p`/`-f` set that `scind compose-prefix` emits)
 - Invoking a wrapper on PATH runs the corresponding Docker command with the Scind project name and `-f` files already injected, then passes the remaining arguments through
-- The scripts are real files on disk, so they work for tools that **exec a literal binary named `docker` or `docker-compose` on PATH** and cannot call a shell function
+- The scripts are real files on disk named `docker` and `docker-compose`, so they work for tools that **exec those exact names from PATH** and offer no setting for a different command
 
-**Use case**: The `scind-compose` shell function is unavailable to tools that don't run through the user's interactive shell—**JetBrains IDEs, CI runners, and other harnesses** that resolve `docker`/`docker-compose` from PATH. Point such a tool at the generated `--dir` (prepend it to PATH, or set the IDE's Docker executable path) and it becomes Scind-aware transparently.
+**Use case**: **JetBrains IDEs, CI runners, and other harnesses** resolve `docker`/`docker-compose` from PATH and cannot be told to call `scind-compose` instead. Point such a tool at the generated `--dir` (prepend it to PATH, or set the IDE's Docker executable path) and it becomes Scind-aware transparently.
 
 ```bash
 $ scind generate-wrappers -a backend --dir .scind/bin
@@ -1570,7 +1597,7 @@ Wrote .scind/bin/docker-compose
 $ PATH=".scind/bin:$PATH" docker-compose ps
 ```
 
-**This complements, not replaces, `scind-compose`.** Interactive shells should keep using the `scind-compose` function (nothing to regenerate when context changes); the wrapper scripts exist specifically for the exec-a-binary case. See the [Shell Integration Specification](../specs/shell-integration.md#docker-wrapper-scripts) for details. Credit to the Xcind proof-of-concept.
+**This complements, not replaces, `scind-compose`.** Anywhere you control the command name — shells, scripts, CI — call `scind-compose` (nothing to regenerate when context changes); the wrapper scripts exist specifically for tools hardwired to the `docker`/`docker-compose` names. See the [Shell Integration Specification](../specs/shell-integration.md#docker-wrapper-scripts) for details. Credit to the Xcind proof-of-concept.
 
 ---
 
@@ -1873,9 +1900,9 @@ scind completion fish > ~/.config/fish/completions/scind.fish
 Scind provides two types of shell integration:
 
 1. **Standard CLI completion**: Completions for the `scind` command itself
-2. **Docker Compose passthrough**: The `scind-compose` function with delegated completion
+2. **Docker Compose passthrough**: Delegated completion for the `scind-compose` binary
 
-For complete documentation on shell integration, including the `scind-compose` function and its completion delegation, see the [Shell Integration Specification](../specs/shell-integration.md).
+For complete documentation on shell integration, including `scind-compose` and its completion delegation, see the [Shell Integration Specification](../specs/shell-integration.md).
 
 ### Standard CLI Completion
 
@@ -1902,10 +1929,10 @@ scind completion fish > ~/.config/fish/completions/scind.fish
 
 ### Full Shell Integration
 
-For both CLI completion and `scind-compose` support:
+For both CLI completion and `scind-compose` completion:
 
 ```bash
-# Bash - includes scind completion + scind-compose function
+# Bash - includes scind completion + scind-compose completion
 scind init-shell bash >> ~/.bashrc
 
 # Zsh
@@ -1917,8 +1944,9 @@ scind init-shell fish >> ~/.config/fish/conf.d/scind.fish
 
 This provides:
 - All standard `scind` CLI completions
-- The `scind-compose` shell function
-- Tab completion for `scind-compose` that delegates to Docker's completion
+- Tab completion for the `scind-compose` binary, delegating to Docker's own completion
+
+`scind-compose` itself needs no shell integration — it is an executable on PATH.
 
 ---
 
