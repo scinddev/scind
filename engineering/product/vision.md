@@ -59,7 +59,7 @@ Scind provides a thin coordination layer over Docker Compose that:
 2. **Uses pure overlay**: All integration happens via generated Docker Compose override files
 3. **Follows conventions**: Predictable naming for hostnames, aliases, and networks
 4. **Separates structure from state**: Configuration describes what exists; runtime state describes what's active
-5. **Enables direct Docker Compose access**: The `scind-compose` shell function provides context-aware passthrough to Docker Compose with full tab completion
+5. **Enables direct Docker Compose access**: The `scind-compose` binary provides context-aware passthrough to Docker Compose with full tab completion
 
 ---
 

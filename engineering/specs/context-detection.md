@@ -62,7 +62,7 @@ scind port gc
 scind up
 scind down
 
-# Docker Compose passthrough (shell function)
+# Docker Compose passthrough (scind-compose binary)
 scind-compose exec php bash
 scind-compose logs -f
 scind-compose -a backend ps
@@ -70,6 +70,6 @@ scind-compose -a backend ps
 
 ## Related Documents
 
-- [Shell Integration](./shell-integration.md) - How context detection integrates with shell functions
+- [Shell Integration](./shell-integration.md) - How context detection integrates with `scind-compose` and completion
 - [Directory Structure](./directory-structure.md) - File locations for workspace.yaml and application.yaml
 - [ADR-0011: Options-Based Targeting](../decisions/0011-options-based-targeting.md) - CLI targeting strategy

@@ -198,9 +198,26 @@ This warning appears when `scind doctor` detects that the base domain resolves b
 
 ---
 
-## compose-prefix Errors (Exit Code 5)
+## Context Resolution Errors (Exit Code 5)
 
 ### Context Cannot Be Resolved
+
+`scind-compose` prints this to stderr and exits 5 — directly, without a helper
+command or an empty-output check:
+
+```bash
+$ cd ~
+$ scind-compose ps
+Error: No application context detected.
+
+Either:
+  1. Run from within an application directory
+  2. Specify explicitly: scind-compose -a APP [command]
+
+Available workspaces: scind workspace list
+```
+
+`scind compose-prefix` fails the same way when called from outside a context:
 
 ```bash
 $ cd ~
